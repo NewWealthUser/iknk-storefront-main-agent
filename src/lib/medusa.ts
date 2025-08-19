@@ -1,4 +1,4 @@
-import qs from "qs"
+import { sdk } from "@lib/config" // Import sdk
 
 export const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_URL as string
 
@@ -7,16 +7,30 @@ if (!MEDUSA_URL) {
 }
 
 export async function medusaGet<T>(path: string, queryParams?: Record<string, any>, init?: RequestInit): Promise<T> {
-  const queryString = queryParams ? `?${qs.stringify(queryParams, { encodeValuesOnly: true })}` : "";
-  const url = `${MEDUSA_URL}${path}${queryString}`;
-  const res = await fetch(url, {
-    headers: { "content-type": "application/json" },
-    ...init,
-  });
-  if (!res.ok) {
-    throw new Error(`Medusa request failed: ${res.status} ${res.statusText}`);
+  try {
+    // Separate headers and query from init to pass them as FetchArgs
+    const { headers, ...restInit } = init || {};
+
+    const data = await sdk.client.fetch<T>(path, {
+      method: "GET",
+      query: queryParams,
+      headers: headers as Record<string, string>, // Cast HeadersInit to Record<string, string>
+    }, restInit); // Pass remaining RequestInit properties as the third argument
+    return data;
+  } catch (error: any) {
+    // The sdk.client.fetch already handles non-2xx responses by throwing an error
+    // We can re-throw it or wrap it for more context if needed.
+    if (error.response) {
+      // Medusa SDK errors often have a 'response' property with status and data
+      throw new Error(`Medusa request failed: ${error.response.status} ${error.response.data?.message || error.response.statusText}`);
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new Error("No response received from Medusa backend. Is it running?");
+    } else {
+      // Something else happened in setting up the request
+      throw new Error(`Error setting up Medusa request: ${error.message}`);
+    }
   }
-  return (await res.json()) as T;
 }
 
 export interface Price {
