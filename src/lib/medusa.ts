@@ -15,7 +15,8 @@ export async function medusaGet<T>(path: string, queryParams?: Record<string, an
       method: "GET",
       query: queryParams,
       headers: headers as Record<string, string>, // Cast HeadersInit to Record<string, string>
-    }, restInit); // Pass remaining RequestInit properties as the third argument
+      ...restInit,
+    });
     return data;
   } catch (error: any) {
     // The sdk.client.fetch already handles non-2xx responses by throwing an error

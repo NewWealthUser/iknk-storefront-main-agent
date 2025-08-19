@@ -54,7 +54,7 @@ const Header = () => {
     {
       title: "Tables",
       children: [
-        { title: "Dining Tables", type: "collection", handle: "dining-tables" },
+        { title: "Dining Tables", type: "category", handle: "dining-tables" },
         { title: "Coffee Tables", type: "collection", handle: "coffee-tables" },
         { title: "Side Tables", type: "collection", handle: "side-tables" },
         { title: "Café Tables", type: "collection", handle: "cafe-tables" },

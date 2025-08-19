@@ -1,64 +1,24 @@
-import { GetStaticPaths, GetStaticProps, GetStaticPropsContext, PreviewData } from "next"
+import { GetServerSideProps, GetServerSidePropsContext } from "next"
 import { ParsedUrlQuery } from "querystring"
-import { dehydrate, QueryClient } from "@tanstack/react-query"
-import { getCategoryByHandle, listCategories } from "@lib/data/categories"
-import { getRegion, listRegions } from "@lib/data/regions"
+import { getCategoryByHandle } from "@lib/data/categories"
+import { getRegion } from "@lib/data/regions"
 import CategoryTemplate from "@modules/categories/templates"
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-import { fetchProductsForListing } from "@lib/catalog"
-import { HttpTypes, StoreRegion } from "@medusajs/types"
+import { HttpTypes } from "@medusajs/types"
 
 interface Params extends ParsedUrlQuery {
   id: string[]
-  countryCode: string // Ensure countryCode is part of params
+  countryCode: string
 }
 
 interface Props {
   category: HttpTypes.StoreProductCategory
-  searchParams: URLSearchParams // Changed to searchParams
-  page: number
+  searchParams: URLSearchParams
   countryCode: string
 }
 
-export const getStaticPaths: GetStaticPaths<Params> = async () => {
-  const product_categories = await listCategories()
-
-  if (!product_categories) {
-    return {
-      paths: [],
-      fallback: false,
-    }
-  }
-
-  const countryCodes = await listRegions().then((regions: StoreRegion[]) =>
-    regions?.map((r) => r.countries?.map((c) => c.iso_2)).flat()
-  )
-
-  const categoryHandles = product_categories.map(
-    (category: any) => category.handle
-  )
-
-  const staticPaths = countryCodes
-    ?.map((countryCode: string | undefined) =>
-      categoryHandles.map((handle: any) => ({
-        params: {
-          countryCode,
-          id: handle.split("/"),
-        },
-      }))
-    )
-    .flat()
-    .filter((path): path is { params: Params } =>
-      Boolean(path?.params.countryCode && path.params.id)
-    )
-
-  return { paths: staticPaths, fallback: false }
-}
-
-export const getStaticProps: GetStaticProps<Props, Params> = async (context: GetStaticPropsContext<Params, PreviewData>) => {
-  const { params, query } = context; // Correctly destructure params and query from context
-  const { id, countryCode } = params as { id: string[]; countryCode: string }; // Assert params type
-  const queryClient = new QueryClient()
+export const getServerSideProps: GetServerSideProps<Props, Params> = async (context: GetServerSidePropsContext<Params>) => {
+  const { params, query } = context;
+  const { id, countryCode } = params as { id: string[]; countryCode: string };
 
   const category = await getCategoryByHandle(id)
 
@@ -76,37 +36,23 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
     }
   }
 
-  const page = parseInt(query.page as string) || 1 // Access from destructured query
-
-  const searchParams = new URLSearchParams(query as any); // Construct URLSearchParams
-
-  await queryClient.prefetchQuery({
-    queryKey: ["products", id, region.id, searchParams.toString(), page], // Use object syntax for queryKey
-    queryFn: () =>
-      fetchProductsForListing({
-        categoryId: category.id,
-        searchParams: searchParams, // Pass constructed searchParams
-      })
-  })
+  const searchParams = new URLSearchParams(query as any);
 
   return {
     props: {
       category,
-      searchParams: searchParams, // Pass searchParams
-      page,
+      searchParams: searchParams,
       countryCode,
-      dehydratedState: dehydrate(queryClient),
     },
   }
 }
 
-export default function CategoryPage({ category, searchParams, page, countryCode }: Props) {
+export default function CategoryPage({ category, searchParams, countryCode }: Props) {
   return (
     <CategoryTemplate
       category={category}
-      searchParams={searchParams} // Pass searchParams
+      searchParams={searchParams}
       countryCode={countryCode}
-      // Removed page={page} as it's handled internally by CategoryTemplate
     />
   )
 }
