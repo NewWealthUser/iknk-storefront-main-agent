@@ -56,7 +56,8 @@ export const getStaticPaths: GetStaticPaths<Params> = async () => {
 }
 
 export const getStaticProps: GetStaticProps<Props, Params> = async (context: GetStaticPropsContext<Params, PreviewData>) => {
-  const { id, countryCode, query } = context.params as { id: string[]; countryCode: string; query: ParsedUrlQuery } // Destructure query directly
+  const { params, query } = context; // Correctly destructure params and query from context
+  const { id, countryCode } = params as { id: string[]; countryCode: string }; // Assert params type
   const queryClient = new QueryClient()
 
   const category = await getCategoryByHandle(id)
