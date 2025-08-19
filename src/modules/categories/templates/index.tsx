@@ -3,9 +3,8 @@ import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-g
 import { SortOptions } from "types/sort-options"
 import PaginatedProducts from "@modules/store/templates/paginated-products"
 import { HttpTypes } from "@medusajs/types"
-import FiltersBar from "../../../components/FiltersBar"
 import { fetchFacetsForListing } from "@lib/catalog"
-import SortControl from "../../../components/SortControl"
+import CategoryFilter from "../components/CategoryFilter"
 
 export default async function CategoryTemplate({
   category,
@@ -20,7 +19,6 @@ export default async function CategoryTemplate({
   const page = parseInt(searchParams.get("page") || "1");
 
   const facets = await fetchFacetsForListing({ categoryId: category.id });
-  const selectedParams = Object.fromEntries(searchParams.entries());
 
   return (
     <div className="flex flex-col small:flex-row small:items-start py-6 content-container">
@@ -28,10 +26,7 @@ export default async function CategoryTemplate({
         <div className="mb-8 text-2xl-semi">
           <h1>{category.name}</h1>
         </div>
-        <div className="flex justify-between w-full mb-8">
-          <FiltersBar facets={facets} selected={selectedParams} />
-          <SortControl value={sortBy} onChange={() => {}} />
-        </div>
+        <CategoryFilter facets={facets} />
         <Suspense
           fallback={
             <SkeletonProductGrid />

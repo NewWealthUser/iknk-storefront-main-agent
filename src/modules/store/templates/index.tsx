@@ -1,25 +1,22 @@
 import { Suspense } from "react"
-
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import { SortOptions } from "types/sort-options"
-
 import PaginatedProducts from "./paginated-products"
-import FiltersBar from "../../../components/FiltersBar"
 import { fetchFacetsForListing } from "@lib/catalog"
+import StoreFilter from "../components/StoreFilter"
 
 const StoreTemplate = async ({
-  searchParams, // Receive searchParams
+  searchParams,
   countryCode,
 }: {
-  searchParams: URLSearchParams // Define searchParams type
+  searchParams: URLSearchParams
   countryCode: string
 }) => {
-  const sortBy = (searchParams.get("sort") || "featured") as SortOptions; // Get sort from searchParams
-  const page = parseInt(searchParams.get("page") || "1"); // Extract page from searchParams
+  const sortBy = (searchParams.get("sort") || "featured") as SortOptions;
+  const page = parseInt(searchParams.get("page") || "1");
 
-  const facets = await fetchFacetsForListing({}); // Fetch all facets for the store page
-  const selectedParams = Object.fromEntries(searchParams.entries());
-
+  const facets = await fetchFacetsForListing({});
+  
   return (
     <div
       className="flex flex-col small:flex-row small:items-start py-6 content-container"
@@ -29,13 +26,13 @@ const StoreTemplate = async ({
         <div className="mb-8 text-2xl-semi">
           <h1 data-testid="store-page-title">All products</h1>
         </div>
-        <FiltersBar facets={facets} selected={selectedParams} />
+        <StoreFilter facets={facets} />
         <Suspense fallback={<SkeletonProductGrid />}>
           <PaginatedProducts
             sortBy={sortBy}
-            searchParams={searchParams} // Pass searchParams
+            searchParams={searchParams}
             countryCode={countryCode}
-            page={page} // Pass page
+            page={page}
           />
         </Suspense>
       </div>
