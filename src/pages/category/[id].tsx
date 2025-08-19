@@ -21,6 +21,30 @@ interface Props {
   countryCode: string
 }
 
+// Helper function to extract facets from products
+const getFacetsFromProducts = (products: HttpTypes.StoreProduct[]) => {
+  const facets: { [key: string]: Set<string> } = {
+    material: new Set(),
+    seating: new Set(),
+    shape: new Set(),
+    size: new Set(),
+  };
+
+  products.forEach((product) => {
+    if ((product.metadata as any)?.material) facets.material.add(String((product.metadata as any).material));
+    if ((product.metadata as any)?.seating) facets.seating.add(String((product.metadata as any).seating));
+    if ((product.metadata as any)?.shape) facets.shape.add(String((product.metadata as any).shape));
+    if ((product.metadata as any)?.size) facets.size.add(String((product.metadata as any).size));
+  });
+
+  return {
+    material: Array.from(facets.material).sort(),
+    seating: Array.from(facets.seating).sort(),
+    shape: Array.from(facets.shape).sort(),
+    size: Array.from(facets.size).sort(),
+  };
+};
+
 export const getServerSideProps: GetServerSideProps<Props, Params> = async (
   context: GetServerSidePropsContext<Params>
 ) => {
@@ -57,28 +81,14 @@ export default function CategoryPage({ products, count, category }: Props) {
   const router = useRouter()
   const { query } = router
 
-  const handleFilterChange = useCallback((key: string, value: string | null) => {
-    const newQuery = { ...query }
-    if (value) {
-      newQuery[key] = value
-    } else {
-      delete newQuery[key]
-    }
-    delete (newQuery as any).page // Reset page on filter change
-    router.push({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
-  }, [router, query])
-
   const handleSortChange = useCallback((value: string) => {
     const newQuery = { ...query, sort: value }
     delete (newQuery as any).page // Reset page on sort change
     router.push({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
   }, [router, query])
 
-  const handleClearFilters = useCallback(() => {
-    const newQuery: ParsedUrlQuery = {}
-    if (query.sort) newQuery.sort = query.sort
-    router.push({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
-  }, [router, query.sort])
+  const facets = getFacetsFromProducts(products);
+  const selected = query as { [k: string]: string };
 
   return (
     <div className="content-container py-12">
@@ -86,10 +96,8 @@ export default function CategoryPage({ products, count, category }: Props) {
         {category.name}
       </h1>
       <FiltersBar
-        products={products}
-        queryParams={new URLSearchParams(query as any)}
-        onFilterChange={handleFilterChange}
-        onClearFilters={handleClearFilters}
+        facets={facets}
+        selected={selected}
       />
       <div className="flex justify-end mb-8">
         <SortControl
