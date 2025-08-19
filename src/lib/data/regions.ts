@@ -33,7 +33,7 @@ export const getRegion = async (countryCode: string) => {
     }
 
     regions.forEach((region: HttpTypes.StoreRegion) => {
-      region.countries?.forEach((c: HttpTypes.Country) => {
+      region.countries?.forEach((c) => {
         regionMap.set(c?.iso_2 ?? "", region)
       })
     })
