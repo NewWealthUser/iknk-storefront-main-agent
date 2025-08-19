@@ -5,40 +5,43 @@ import { HttpTypes } from "@medusajs/types"
 type Variant = HttpTypes.StoreProductVariant
 type Product = HttpTypes.StoreProduct & { variants?: Variant[] | null }
 
-function getMinPrice(product: Product) {
+function getMinMaxPrices(product: Product) {
   if (!product.variants?.length) return null
 
-  const cheapestVariant = product.variants.reduce((min, v) => {
-    const price = v.calculated_price?.calculated_amount ?? Infinity
-    const minPrice = min.calculated_price?.calculated_amount ?? Infinity
-    return price < minPrice ? v : min
-  })
+  const prices = product.variants
+    .map((v) => v.calculated_price?.calculated_amount)
+    .filter((p): p is number => typeof p === 'number');
 
-  return cheapestVariant.calculated_price
+  if (prices.length === 0) return null;
+
+  const minAmount = Math.min(...prices);
+  const maxAmount = Math.max(...prices);
+  
+  const currencyCode = product.variants[0].calculated_price?.currency_code || "USD";
+
+  return { minAmount, maxAmount, currencyCode };
 }
 
 export default function ProductPrice({ product }: { product: Product }) {
-  const cheapestPrice = getMinPrice(product)
+  const priceRange = getMinMaxPrices(product);
 
-  if (!cheapestPrice) return null
+  if (!priceRange) return null;
 
-  const regularAmount = cheapestPrice.calculated_amount ?? 0
-  const memberAmount = regularAmount * 0.9 // Assuming 10% member discount
-  const currency = cheapestPrice.currency_code || "USD"
+  const { minAmount, maxAmount, currencyCode } = priceRange;
+
+  if (minAmount === maxAmount) {
+    return (
+      <div className="text-center text-sm tracking-wide">
+        <span>{formatMoney(minAmount, currencyCode)}</span>
+      </div>
+    )
+  }
 
   return (
-    <div className="text-center text-[11px] tracking-[0.165px]">
-      <span className="my-0 mr-1 text-gray-800">Starting at</span>
-      <span className="tracking-[0.04em] mr-1 font-semibold text-gray-900">
-        {formatMoney(memberAmount, currency)}
-      </span>
-      <span className="tracking-[0.04em] mr-1">Member /</span>
-      <span>
-        <span className="tracking-[0.04em] mr-1">
-          {formatMoney(regularAmount, currency)}
-        </span>
-        <span className="tracking-[0.04em]">Regular</span>
-      </span>
+    <div className="text-center text-sm tracking-wide text-gray-700">
+      <span>Starting at {formatMoney(minAmount, currencyCode)}</span>
+      <span> / </span>
+      <span>{formatMoney(maxAmount, currencyCode)}</span>
     </div>
   )
 }
