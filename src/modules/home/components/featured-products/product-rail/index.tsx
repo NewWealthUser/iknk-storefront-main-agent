@@ -3,7 +3,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Text } from "@medusajs/ui"
 
 import InteractiveLink from "@modules/common/components/interactive-link"
-import ProductCard from "@modules/products/components/product-card"
+import ProductCard from "@components/ProductCard" // Updated import
 
 export default async function ProductRail({
   collection,
@@ -18,7 +18,7 @@ export default async function ProductRail({
     regionId: region.id,
     queryParams: {
       collection_id: [collection.id],
-      fields: "*variants.calculated_price",
+      fields: "*variants.calculated_price,*images,*options,*variants.options",
     } as any,
   })
 
@@ -34,7 +34,7 @@ export default async function ProductRail({
           View all
         </InteractiveLink>
       </div>
-      <ul className="grid grid-cols-2 small:grid-cols-3 gap-x-6 gap-y-24 small:gap-y-36">
+      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 lg:gap-x-7 lg:gap-y-12">
         {pricedProducts &&
           pricedProducts.map((product) => (
             <li key={product.id}>

@@ -2,31 +2,64 @@
 
 import React, { useState } from "react"
 import Image from "next/image"
+import { ChevronLeft, ChevronRight } from "@medusajs/icons"
 
 type ImageType = { id: string; url: string | null }
+
 export default function ProductImageCarousel({ images }: { images: ImageType[] }) {
   const [idx, setIdx] = useState(0)
-  if (!images?.length) return <div className="aspect-[4/5] bg-gray-100 rounded-lg" />
 
-  const active = images[Math.min(idx, images.length - 1)]
+  if (!images?.length) {
+    return <div className="aspect-[4/5] bg-gray-100 rounded-lg" />
+  }
+
+  const activeImage = images[idx]
+
+  const next = () => setIdx((i) => (i + 1) % images.length)
+  const prev = () => setIdx((i) => (i - 1 + images.length) % images.length)
+
   return (
-    <div className="w-full">
+    <div className="w-full relative group">
       <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-gray-50 relative">
-        <Image src={active.url || ""} alt="Product image" fill className="object-cover" />
+        {activeImage.url && (
+          <Image
+            src={activeImage.url}
+            alt="Product image"
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
+          />
+        )}
       </div>
       {images.length > 1 && (
-        <div className="mt-3 grid grid-cols-5 gap-2">
-          {images.map((im, i) => (
-            <button
-              key={im.id}
-              onClick={() => setIdx(i)}
-              className={`aspect-square rounded-md overflow-hidden border relative ${i === idx ? "border-black" : "border-gray-200"}`}
-              aria-label={`Show image ${i + 1}`}
-            >
-              <Image src={im.url || ""} alt={`Thumbnail ${i + 1}`} fill className="object-cover" />
-            </button>
-          ))}
-        </div>
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Previous image"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Next image"
+          >
+            <ChevronRight />
+          </button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`h-[5px] w-[5px] rounded-full transition-colors ${
+                  i === idx ? "bg-black" : "bg-gray-300 hover:bg-gray-500"
+                }`}
+                aria-label={`Go to image ${i + 1}`}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

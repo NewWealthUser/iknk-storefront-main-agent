@@ -7,16 +7,20 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { limit, offset, countryCode, collection_id, category_id } = req.query
+  const { limit, offset, countryCode, collection_id, category_id, sort, ...options } = req.query
 
-  const region = await getRegion(countryCode as string)
+  if (!countryCode || typeof countryCode !== 'string') {
+    return res.status(400).json({ message: "countryCode is required." });
+  }
+
+  const region = await getRegion(countryCode)
 
   if (!region) {
     return res.status(404).json({ message: "Region not found" })
   }
 
-  const queryParams: HttpTypes.StoreProductParams | any = { // Cast to any
-    limit: limit ? parseInt(limit as string) : 100,
+  const queryParams: HttpTypes.StoreProductParams | any = {
+    limit: limit ? parseInt(limit as string) : 24,
     offset: offset ? parseInt(offset as string) : 0,
     region_id: region.id,
   }
@@ -29,7 +33,32 @@ export default async function handler(
     queryParams.category_id = [category_id as string]
   }
 
-  const { response } = await listProducts({ queryParams })
+  // Handle sorting
+  if (sort) {
+    if (sort === 'price_asc') {
+      queryParams.order = 'variants.prices.amount'
+    }
+    if (sort === 'price_desc') {
+      queryParams.order = '-variants.prices.amount'
+    }
+    if (sort === 'created_at') {
+      queryParams.order = '-created_at'
+    }
+  }
 
-  res.status(200).json(response)
+  // Handle option filters
+  for (const key in options) {
+    if (key.startsWith('options[')) {
+      const optionName = key.substring(8, key.length - 1);
+      queryParams[optionName] = options[key];
+    }
+  }
+
+  try {
+    const { response } = await listProducts({ queryParams, countryCode })
+    res.status(200).json(response)
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ message: "Failed to fetch products." });
+  }
 }

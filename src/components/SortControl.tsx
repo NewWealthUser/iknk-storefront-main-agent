@@ -1,10 +1,15 @@
 "use client"
 
-import { Listbox, Transition } from "@headlessui/react"
+import React from "react"
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+  Transition,
+} from "@headlessui/react"
 import { ChevronUpDown } from "@medusajs/icons"
 import { clx } from "@medusajs/ui"
-import { Fragment } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 type SortOption = {
   value: string
@@ -12,74 +17,53 @@ type SortOption = {
 }
 
 const sortOptions: SortOption[] = [
-  { value: "created_at", label: "Newest" },
+  { value: "featured", label: "Featured" },
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
+  { value: "created_at", label: "Newest" },
 ]
 
-export default function SortControl({ initialSort }: { initialSort?: string }) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
-  const currentSort = initialSort || searchParams?.get("sort") || "created_at"
-
-  const handleSortChange = (value: string) => {
-    const params = new URLSearchParams(searchParams?.toString() || '')
-    params.set("sort", value)
-    router.push(`${pathname}?${params.toString()}`)
-  }
-
-  const selectedOption = sortOptions.find(
-    (option) => option.value === currentSort
-  ) || sortOptions[0]
+export default function SortControl({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  const selectedOption = sortOptions.find((o) => o.value === value) || sortOptions[0]
 
   return (
-    <Listbox value={selectedOption.value} onChange={handleSortChange}>
-      <div className="relative">
-        <Listbox.Button className="relative w-full flex justify-between items-center px-4 py-[10px] text-left bg-white cursor-default focus:outline-none border rounded-rounded focus-visible:ring-2 focus-visible:ring-opacity-75 focus-visible:ring-white focus-visible:ring-offset-gray-300 focus-visible:ring-offset-2 focus-visible:border-gray-300 text-base-regular">
-          {({ open }) => (
-            <>
-              <span className="block truncate">Sort by: {selectedOption.label}</span>
-              <ChevronUpDown
-                className={clx("transition-rotate duration-200", {
-                  "transform rotate-180": open,
-                })}
-              />
-            </>
-          )}
-        </Listbox.Button>
+    <Listbox value={value} onChange={onChange}>
+      <div className="relative w-48">
+        <ListboxButton className="relative w-full flex justify-between items-center px-3 py-1.5 text-left bg-white cursor-default focus:outline-none border rounded-md text-sm">
+          <span className="block truncate">{selectedOption.label}</span>
+          <ChevronUpDown className="h-5 w-5 text-gray-400" />
+        </ListboxButton>
         <Transition
-          as={Fragment}
           leave="transition ease-in duration-100"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Listbox.Options className="absolute z-20 w-full overflow-auto text-small-regular bg-white border border-top-0 max-h-60 focus:outline-none sm:text-sm">
+          <ListboxOptions className="absolute z-10 mt-1 w-full overflow-auto text-sm bg-white border rounded-md shadow-lg max-h-60 focus:outline-none">
             {sortOptions.map((option) => (
-              <Listbox.Option
+              <ListboxOption
                 key={option.value}
                 value={option.value}
                 className={({ active }) =>
-                  `cursor-default select-none relative py-2 pl-10 pr-4 ${
-                    active ? "text-amber-900 bg-amber-100" : "text-gray-900"
-                  }`
+                  clx(
+                    "cursor-default select-none relative py-2 pl-3 pr-9",
+                    active ? "bg-gray-100" : ""
+                  )
                 }
               >
                 {({ selected }) => (
-                  <>
-                    <span
-                      className={`block truncate ${
-                        selected ? "font-medium" : "font-normal"
-                      }`}
-                    >
-                      {option.label}
-                    </span>
-                  </>
+                  <span className={clx("block truncate", selected ? "font-semibold" : "")}>
+                    {option.label}
+                  </span>
                 )}
-              </Listbox.Option>
+              </ListboxOption>
             ))}
-          </Listbox.Options>
+          </ListboxOptions>
         </Transition>
       </div>
     </Listbox>
