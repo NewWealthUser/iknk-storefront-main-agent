@@ -2,9 +2,8 @@
 
 import React, { useState } from "react"
 import Image from "next/image"
-import { HttpTypes } from "@medusajs/types"
 
-type ImageType = HttpTypes.StoreProductImage
+type ImageType = { id: string; url: string | null }
 export default function ProductImageCarousel({ images }: { images: ImageType[] }) {
   const [idx, setIdx] = useState(0)
   if (!images?.length) return <div className="aspect-[4/5] bg-gray-100 rounded-lg" />

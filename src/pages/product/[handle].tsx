@@ -6,7 +6,6 @@ import ProductPrice from "../../components/ProductPrice"
 import ProductCard from "../../components/ProductCard"
 import QuickAdd from "../../components/QuickAdd"
 import { getOrCreateCartId } from "@utils/cart"
-import { HttpTypes } from "@medusajs/types" // Import HttpTypes
 
 const resolveVariant = (
   product: Product,
@@ -44,7 +43,7 @@ const ProductPage = ({ product, related }: Props) => {
 
   return (
     <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <ProductImageCarousel images={product.images as HttpTypes.StoreProductImage[]} />
+      <ProductImageCarousel images={product.images} />
       <div>
         <h1 className="text-2xl font-medium mb-2">{product.title}</h1>
         <p className="mb-4 text-sm text-gray-600 line-clamp-3">

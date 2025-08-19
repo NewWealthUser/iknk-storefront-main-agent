@@ -12,7 +12,7 @@ type Props = {
 export async function generateStaticParams() {
   try {
     const countryCodes = await listRegions().then((regions) =>
-      regions?.map((r: HttpTypes.StoreRegion) => r.countries?.map((c: HttpTypes.Store.Country) => c.iso_2)).flat()
+      regions?.map((r: HttpTypes.StoreRegion) => r.countries?.map((c: HttpTypes.StoreCountry) => c.iso_2)).flat()
     )
 
     if (!countryCodes) {
