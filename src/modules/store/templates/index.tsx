@@ -1,10 +1,10 @@
 import { Suspense } from "react"
 
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import { SortOptions } from "types/sort-options"
 
 import PaginatedProducts from "./paginated-products"
-import FiltersBar from "@modules/store/components/filters-bar"
+import FiltersBar from "../../../components/FiltersBar"
 import { fetchFacetsForListing } from "@lib/catalog"
 
 const StoreTemplate = async ({
@@ -29,7 +29,7 @@ const StoreTemplate = async ({
         <div className="mb-8 text-2xl-semi">
           <h1 data-testid="store-page-title">All products</h1>
         </div>
-        <FiltersBar facets={facets} selected={selectedParams} sort={sortBy} />
+        <FiltersBar facets={facets} selected={selectedParams} />
         <Suspense fallback={<SkeletonProductGrid />}>
           <PaginatedProducts
             sortBy={sortBy}

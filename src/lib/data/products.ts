@@ -3,7 +3,7 @@
 import { medusaGet } from "@lib/medusa"
 import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import { SortOptions } from "types/sort-options"
 import { getRegion, retrieveRegion } from "./regions"
 
 export const listProducts = async ({

@@ -3,9 +3,9 @@ import { ParsedUrlQuery } from "querystring"
 import { listProducts } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
 import { HttpTypes } from "@medusajs/types"
-import ProductGrid from "@components/ProductGrid"
-import FiltersBar from "@components/FiltersBar"
-import SortControl from "@components/SortControl"
+import ProductGrid from "../../components/ProductGrid"
+import FiltersBar from "../../components/FiltersBar"
+import SortControl from "../../components/SortControl"
 import { useRouter } from "next/router"
 import { useCallback } from "react"
 
@@ -64,13 +64,13 @@ export default function CategoryPage({ products, count, category }: Props) {
     } else {
       delete newQuery[key]
     }
-    delete newQuery.page // Reset page on filter change
+    delete (newQuery as any).page // Reset page on filter change
     router.push({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
   }, [router, query])
 
   const handleSortChange = useCallback((value: string) => {
     const newQuery = { ...query, sort: value }
-    delete newQuery.page // Reset page on sort change
+    delete (newQuery as any).page // Reset page on sort change
     router.push({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
   }, [router, query])
 

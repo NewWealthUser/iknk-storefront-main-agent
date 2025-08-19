@@ -1,8 +1,8 @@
 import { fetchProductsForListing } from "@lib/catalog"
 import { Pagination } from "@modules/store/components/pagination"
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import { SortOptions } from "types/sort-options"
 import { getRegion } from "@lib/data/regions"
-import ProductGrid from "@modules/store/components/product-grid"
+import ProductGrid from "../../../components/ProductGrid"
 
 type PaginatedProductsProps = {
   sortBy?: SortOptions

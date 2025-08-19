@@ -3,7 +3,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Text } from "@medusajs/ui"
 
 import InteractiveLink from "@modules/common/components/interactive-link"
-import ProductCard from "@components/ProductCard" // Updated import
+import ProductCard from "../../../../../components/ProductCard"
 
 export default async function ProductRail({
   collection,

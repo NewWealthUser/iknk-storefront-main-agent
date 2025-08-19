@@ -10,7 +10,7 @@ import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-relat
 import { notFound } from "next/navigation"
 import ProductActionsWrapper from "./product-actions-wrapper"
 import { HttpTypes } from "@medusajs/types"
-import ProductPrice from "@modules/products/components/product-card/product-price"
+import ProductPrice from "../../../components/ProductPrice"
 
 type ProductTemplateProps = {
   product: HttpTypes.StoreProduct

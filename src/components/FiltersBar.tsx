@@ -1,62 +1,82 @@
 "use client"
 
 import React from "react"
-import { HttpTypes } from "@medusajs/types"
-import CheckboxWithLabel from "@modules/common/components/checkbox"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@medusajs/ui"
+import CheckboxWithLabel from "@modules/common/components/checkbox"
 
 type FiltersBarProps = {
-  products: HttpTypes.StoreProduct[]
-  queryParams: URLSearchParams
-  onFilterChange: (key: string, value: string | null) => void
-  onClearFilters: () => void
+  facets: {
+    material: string[]
+    seating: string[]
+    shape: string[]
+    size: string[]
+  }
+  selected: { [k: string]: string }
 }
 
-const getUniqueOptions = (products: HttpTypes.StoreProduct[]) => {
-  const optionsMap = new Map<string, Set<string>>()
-  products.forEach(p => {
-    p.options?.forEach(o => {
-      if (!optionsMap.has(o.title)) {
-        optionsMap.set(o.title, new Set())
-      }
-      const values = optionsMap.get(o.title)!
-      o.values?.forEach(v => values.add(v.value))
-    })
-  })
-  return Array.from(optionsMap.entries()).map(([title, values]) => ({
-    title,
-    values: Array.from(values).sort(),
-  }))
-}
+export default function FiltersBar({ facets, selected }: FiltersBarProps) {
+  const router = useRouter()
+  const pathname = usePathname()
 
-export default function FiltersBar({ products, queryParams, onFilterChange, onClearFilters }: FiltersBarProps) {
-  const uniqueOptions = getUniqueOptions(products)
-  const hasActiveFilters = Array.from(queryParams.keys()).some(k => k !== 'sort' && k !== 'page' && k !== 'limit' && k !== 'offset');
+  const handleFilterChange = (key: string, value: string | null) => {
+    const currentParams = new URLSearchParams(window.location.search)
+    if (value) {
+      currentParams.set(key, value)
+    } else {
+      currentParams.delete(key)
+    }
+    currentParams.delete("page") // Reset page on filter change
+    router.push(`${pathname}?${currentParams.toString()}`)
+  }
+
+  const handleClearFilters = () => {
+    const currentParams = new URLSearchParams(window.location.search)
+    const sort = currentParams.get("sort")
+    const newParams = new URLSearchParams()
+    if (sort) {
+      newParams.set("sort", sort)
+    }
+    router.push(`${pathname}?${newParams.toString()}`)
+  }
+
+  const hasActiveFilters = Object.keys(selected).some(
+    (k) => k !== "sort" && k !== "page"
+  )
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 pb-8">
       <div className="flex flex-wrap items-center gap-4">
         <CheckboxWithLabel
           label="In-Stock"
-          checked={queryParams.get("in_stock") === "true"}
-          onChange={() => onFilterChange("in_stock", queryParams.get("in_stock") ? null : "true")}
+          checked={selected.in_stock === "true"}
+          onChange={() =>
+            handleFilterChange(
+              "in_stock",
+              selected.in_stock ? null : "true"
+            )
+          }
         />
-        {uniqueOptions.map(option => (
-          <div key={option.title}>
+        {Object.entries(facets).map(([key, values]) => (
+          <div key={key}>
             <select
-              value={queryParams.get(`options[${option.title}]`) || ""}
-              onChange={(e) => onFilterChange(`options[${option.title}]`, e.target.value || null)}
-              className="px-3 py-1.5 border rounded-md text-sm bg-white"
+              value={selected[key] || ""}
+              onChange={(e) => handleFilterChange(key, e.target.value || null)}
+              className="px-3 py-1.5 border rounded-md text-sm bg-white capitalize"
             >
-              <option value="">{option.title}</option>
-              {option.values.map(value => (
-                <option key={value} value={value}>{value}</option>
+              <option value="">{key}</option>
+              {values.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
               ))}
             </select>
           </div>
         ))}
         {hasActiveFilters && (
-          <Button variant="secondary" size="sm" onClick={onClearFilters}>Clear All</Button>
+          <Button variant="secondary" size="small" onClick={handleClearFilters}>
+            Clear All
+          </Button>
         )}
       </div>
     </div>

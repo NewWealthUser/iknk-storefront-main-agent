@@ -1,6 +1,6 @@
 import { medusaGet } from "./medusa";
 import { HttpTypes } from "@medusajs/types";
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products";
+import { SortOptions } from "types/sort-options";
 
 /**
  * Fetches a collection by its handle.
