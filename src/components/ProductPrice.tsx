@@ -27,9 +27,18 @@ export default function ProductPrice({ product }: { product: Product }) {
   const currency = cheapestPrice.currency_code || "USD"
 
   return (
-    <div className="text-xs text-gray-700">
-      Starting at {formatMoney(memberAmount, currency)} Member /{" "}
-      {formatMoney(regularAmount, currency)} Regular
+    <div className="text-center text-[11px] tracking-[0.165px]">
+      <span className="my-0 mr-1 text-gray-800">Starting at</span>
+      <span className="tracking-[0.04em] mr-1 font-semibold text-gray-900">
+        {formatMoney(memberAmount, currency)}
+      </span>
+      <span className="tracking-[0.04em] mr-1">Member /</span>
+      <span>
+        <span className="tracking-[0.04em] mr-1">
+          {formatMoney(regularAmount, currency)}
+        </span>
+        <span className="tracking-[0.04em]">Regular</span>
+      </span>
     </div>
   )
 }
