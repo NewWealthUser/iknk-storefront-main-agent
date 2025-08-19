@@ -2,7 +2,7 @@
 
 import { medusaGet } from "@lib/medusa"
 import medusaError from "@lib/util/medusa-error"
-import { HttpTypes } from "@medusajs/types"
+import { HttpTypes, StoreCountry } from "@medusajs/types"
 
 export const listRegions = async () => {
   const { regions } = await medusaGet<{ regions: HttpTypes.StoreRegion[] }>(
@@ -33,7 +33,7 @@ export const getRegion = async (countryCode: string) => {
     }
 
     regions.forEach((region: HttpTypes.StoreRegion) => {
-      region.countries?.forEach((c: HttpTypes.StoreCountry) => {
+      region.countries?.forEach((c: StoreCountry) => {
         regionMap.set(c?.iso_2 ?? "", region)
       })
     })
