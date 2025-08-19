@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
-import { HttpTypes } from "@medusajs/types" // Removed StoreCountry from direct import
+import { HttpTypes, StoreCountry } from "@medusajs/types" // Corrected import
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
@@ -12,7 +12,7 @@ type Props = {
 export async function generateStaticParams() {
   try {
     const countryCodes = await listRegions().then((regions) =>
-      regions?.map((r: HttpTypes.StoreRegion) => r.countries?.map((c: HttpTypes.StoreCountry) => c.iso_2)).flat() // Using HttpTypes.StoreCountry
+      regions?.map((r: HttpTypes.StoreRegion) => r.countries?.map((c: StoreCountry) => c.iso_2)).flat() // Using directly imported StoreCountry
     )
 
     if (!countryCodes) {
