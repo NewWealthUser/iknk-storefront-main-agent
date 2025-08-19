@@ -56,7 +56,7 @@ export const getStaticPaths: GetStaticPaths<Params> = async () => {
 }
 
 export const getStaticProps: GetStaticProps<Props, Params> = async (context: GetStaticPropsContext<Params, PreviewData>) => {
-  const { id, countryCode } = context.params as { id: string[]; countryCode: string } // Assert countryCode as string
+  const { id, countryCode, query } = context.params as { id: string[]; countryCode: string; query: ParsedUrlQuery } // Destructure query directly
   const queryClient = new QueryClient()
 
   const category = await getCategoryByHandle(id)
@@ -75,19 +75,18 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
     }
   }
 
-  const query = context.query as ParsedUrlQuery // Assert context.query type
-  const page = parseInt(query.page as string) || 1 // Access from asserted query
+  const page = parseInt(query.page as string) || 1 // Access from destructured query
 
   const searchParams = new URLSearchParams(query as any); // Construct URLSearchParams
 
-  await queryClient.prefetchQuery(
-    ["products", id, region.id, searchParams.toString(), page], // Use searchParams.toString() for query key
-    () =>
+  await queryClient.prefetchQuery({
+    queryKey: ["products", id, region.id, searchParams.toString(), page], // Use object syntax for queryKey
+    queryFn: () =>
       fetchProductsForListing({
         categoryId: category.id,
         searchParams: searchParams, // Pass constructed searchParams
       })
-  )
+  })
 
   return {
     props: {
