@@ -6,8 +6,8 @@ import { ChevronLeft, ChevronRight } from "@medusajs/icons"
 
 type ImageType = { id: string; url: string | null }
 
-export default function ProductImageCarousel({ images }: { images: ImageType[] }) {
-  const [idx, setIdx] = useState(0)
+export default function ProductImageCarousel({ images, initialImageIndex = 0 }: { images: ImageType[], initialImageIndex?: number }) {
+  const [idx, setIdx] = useState(initialImageIndex)
 
   if (!images?.length) {
     return <div className="aspect-[4/5] bg-gray-100 rounded-lg" />
