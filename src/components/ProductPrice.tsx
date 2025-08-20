@@ -1,45 +1,43 @@
-import React from "react"
-import { formatMoney } from "@lib/util/money"
+import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes } from "@medusajs/types"
+import { clx } from "@medusajs/ui"
+import React from "react"
 
-type Variant = HttpTypes.StoreProductVariant
-type Product = HttpTypes.StoreProduct & { variants?: Variant[] | null }
-
-function getMinPrice(product: Product) {
-  if (!product.variants?.length) return null
-
-  const cheapestVariant = product.variants.reduce((min, v) => {
-    const price = v.calculated_price?.calculated_amount ?? Infinity
-    const minPrice = min.calculated_price?.calculated_amount ?? Infinity
-    return price < minPrice ? v : min
+export default function ProductPrice({
+  product,
+  variant,
+}: {
+  product: HttpTypes.StoreProduct
+  variant?: HttpTypes.StoreProductVariant
+}) {
+  const { cheapestPrice, variantPrice } = getProductPrice({
+    product,
+    variantId: variant?.id,
   })
 
-  return cheapestVariant.calculated_price
-}
+  const selectedPrice = variant ? variantPrice : cheapestPrice
 
-export default function ProductPrice({ product }: { product: Product }) {
-  const cheapestPrice = getMinPrice(product)
-
-  if (!cheapestPrice) return null
-
-  const regularAmount = cheapestPrice.calculated_amount ?? 0
-  // Applying a 30% discount for member price to match the example's style
-  const memberAmount = regularAmount * 0.7
-  const currency = cheapestPrice.currency_code || "USD"
+  if (!selectedPrice) {
+    return <div className="block w-32 h-9 bg-gray-100 animate-pulse mx-auto" />
+  }
 
   return (
-    <div className="text-center text-[11px] tracking-[0.165px] whitespace-nowrap">
-      <span className="my-0 mr-1 text-gray-800">Starting at</span>
-      <span className="tracking-[0.04em] mr-1 font-semibold text-gray-900">
-        {formatMoney(memberAmount, currency)}
+    <div className="flex flex-col text-gray-700 text-center">
+      <span
+        className={clx("text-sm", {
+          "text-rose-600": selectedPrice.price_type === "sale",
+        })}
+      >
+        {!variant && "From "}
+        {selectedPrice.calculated_price}
       </span>
-      <span className="tracking-[0.04em] mr-1">Member /</span>
-      <span>
-        <span className="tracking-[0.04em] mr-1">
-          {formatMoney(regularAmount, currency)}
-        </span>
-        <span className="tracking-[0.04em]">Regular</span>
-      </span>
+      {selectedPrice.price_type === "sale" && (
+        <p className="text-xs text-gray-500">
+          <span className="line-through">
+            {selectedPrice.original_price}
+          </span>
+        </p>
+      )}
     </div>
   )
 }
