@@ -67,13 +67,7 @@ const useParams = (props: any) => ({
 });
 const isServer = false;
 const processEnvServer = false;
-const _chunk = (arr: any[], size: number) => {
-  const result = [];
-  for (let i = 0; i < arr.length; i += size) {
-    result.push(arr.slice(i, i + size));
-  }
-  return result;
-};
+// Removed local _chunk placeholder function
 const useHistory = () => ({ action: "PUSH" });
 const useLocation = () => ({ pathname: "" });
 const RHRProductCardSkeleton = (props: any) => <div>Skeleton</div>;
@@ -274,11 +268,11 @@ const ProductGrid: FC<ProductGrid> = ({
 
   const { pathname } = useLocation();
   const isAemPage = !pathname?.includes(".jsp");
-  const { items_per_page_options, NEW, STARTING_AT } = !isAemPage
+  const { NEW, STARTING_AT } = !isAemPage
     ? (usePageContent() as any)
     : (useFetchModel("/admin/products", false, false) as any);
   const ItemsPerPageOptions = JSON.parse(
-    items_per_page_options || "[]"
+    (usePageContent() as any)?.items_per_page_options || "[]"
   );
   let mobile = false;
   const req = getReqContext();

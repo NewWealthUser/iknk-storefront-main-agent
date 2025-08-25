@@ -6,16 +6,16 @@ const useLocation = () => ({ pathname: "", search: "" });
 const ITEMS_PER_PAGE_PREFERENCE = "itemsPerPage";
 const useTypographyStyles = (props: any) => ({ rhBaseCaption: "", rhBaseBody1: "", rhBaseBody2: "" });
 import clsx from "clsx";
-const usePageContent = () => ({ items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" });
-const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" });
+const usePageContent = () => ({ pageContent: { items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" } });
+const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ pageContent: { NEW: "New", STARTING_AT: "Starting At", items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" } });
 const useParams = (props: any) => ({ no: "0", maxnrpp: "24", loadAll: "" });
 const useEnv = () => ({ FEATURE_PG_DEFAULT_ITEMS_PER_PAGE: "false" });
 const yn = (value: any) => value === "true";
 const isServer = false;
 const RHArrowIcon = (props: any) => <svg {...props} />;
 const getPGDefaultItemsPerPage = () => 24;
-const useSetSipId = () => (id: any) => {};
-const Typography = (props: any) => <div className={props.className}>{props.children}</div>>;
+const useSetSipId = () => (id: any) => {}; // Added semicolon here
+const Typography = (props: any) => <div className={props.className}>{props.children}</div>;
 
 export interface ItemsPerPageProps {
   recsPerPage: number;
@@ -66,8 +66,7 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
       const searchParams = new URLSearchParams(search);
       const currentPage = Math.floor(Number(params.no) / Number(params.maxnrpp));
       const newNrpp = nrpp === "load-all" ? totalNumRecs : Number(nrpp);
-      const newMaxPage = Math.floor(totalNumRecs / newNrpp);
-      const newPage = Math.min(currentPage, newMaxPage);
+      const newMaxPage = Math.min(currentPage, newMaxPage);
       const newNo = newPage * newNrpp;
       setSipId(null);
       if (nrpp === "load-all") {
