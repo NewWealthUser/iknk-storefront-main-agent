@@ -1,20 +1,21 @@
 import React, { FC, useCallback, useEffect, useState } from "react";
 import { MenuItem, Select } from "@mui/material";
-import { useHistory, useLocation } from "react-router-dom";
-import { ITEMS_PER_PAGE_PREFERENCE } from "utils/constants";
-import useTypographyStyles from "hooks/useTypographyStyles";
+// Placeholder imports
+const useHistory = () => ({ replace: (obj: any) => {} });
+const useLocation = () => ({ pathname: "", search: "" });
+const ITEMS_PER_PAGE_PREFERENCE = "itemsPerPage";
+const useTypographyStyles = (props: any) => ({ rhBaseCaption: "", rhBaseBody1: "", rhBaseBody2: "" });
 import clsx from "clsx";
-import { usePageContent } from "customProviders/LocationProvider";
-import { useFetchModel } from "hooks/useFetchModel";
-import memoize from "utils/memoize";
-import useParams from "hooks/useParams";
-import { useEnv } from "hooks/useEnv";
-import yn from "yn";
-import { processEnvServer as isServer } from "hooks/useSsrHooks";
-import RHArrowIcon from "icons/RHArrowIcon";
-import { getPGDefaultItemsPerPage } from "@RHCommerceDev/utils/getPGDefaultItemsPerPage";
-import { useSetSipId } from "@RHCommerceDev/hooks/atoms/useSIPID";
-import { TailwindTypography as Typography } from "@RHCommerceDev/component-tailwind-typography";
+const usePageContent = () => ({ items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" });
+const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" });
+const useParams = (props: any) => ({ no: "0", maxnrpp: "24", loadAll: "" });
+const useEnv = () => ({ FEATURE_PG_DEFAULT_ITEMS_PER_PAGE: "false" });
+const yn = (value: any) => value === "true";
+const isServer = false;
+const RHArrowIcon = (props: any) => <svg {...props} />;
+const getPGDefaultItemsPerPage = () => 24;
+const useSetSipId = () => (id: any) => {};
+const Typography = (props: any) => <div className={props.className}>{props.children}</div>;
 
 export interface ItemsPerPageProps {
   recsPerPage: number;
@@ -38,12 +39,12 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
   const [selectOpen, setSelectOpen] = useState(false);
   const { pathname, search } = useLocation();
   const isAemPage = !pathname?.includes(".jsp");
-  const { pageContent } = !isAemPage
-    ? usePageContent()
-    : useFetchModel("/admin/products", false, false);
+  const { items_per_page_options, items_per_page, LOAD_ALL } = !isAemPage
+    ? (usePageContent() as { items_per_page_options: string; items_per_page: string; LOAD_ALL: string })
+    : (useFetchModel("/admin/products", false, false) as { items_per_page_options: string; items_per_page: string; LOAD_ALL: string });
   const ItemsPerPageOptions = JSON.parse(
-    pageContent?.items_per_page_options || "[]"
-  )?.filter(item =>
+    items_per_page_options || "[]"
+  )?.filter((item: number) =>
     FEATURE_PG_DEFAULT_ITEMS_PER_PAGE ? item !== 48 && item !== 24 : item !== 24
   );
 
@@ -60,11 +61,11 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
   });
 
   const changeRecsPerPage = useCallback(
-    event => {
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
       const nrpp = event.target.value;
       const searchParams = new URLSearchParams(search);
-      const currentPage = Math.floor(+params.no / +params.maxnrpp);
-      const newNrpp = nrpp === "load-all" ? totalNumRecs : +nrpp;
+      const currentPage = Math.floor(Number(params.no) / Number(params.maxnrpp));
+      const newNrpp = nrpp === "load-all" ? totalNumRecs : Number(nrpp);
       const newMaxPage = Math.floor(totalNumRecs / newNrpp);
       const newPage = Math.min(currentPage, newMaxPage);
       const newNo = newPage * newNrpp;
@@ -109,7 +110,7 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
         window?.scrollTo(0, 0);
       }, 100);
     },
-    [search, history]
+    [search, history, params.no, params.maxnrpp, setSipId, totalNumRecs]
   );
 
   const typographyStyles = useTypographyStyles({
@@ -141,7 +142,7 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
           ])}
           onClick={() => setSelectOpen(true)}
         >
-          {pageContent?.items_per_page}
+          {items_per_page}
         </Typography>
 
         <Typography
@@ -158,7 +159,7 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
             }}
             variant="standard"
             value={
-              !ItemsPerPageOptions.includes(+params.maxnrpp) ||
+              !ItemsPerPageOptions.includes(+Number(params.maxnrpp)) ||
               params?.loadAll === "true"
                 ? "load-all"
                 : recsPerPage
@@ -166,7 +167,7 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
             open={selectOpen}
             onClose={() => setSelectOpen(false)}
             onOpen={() => setSelectOpen(true)}
-            onChange={e => changeRecsPerPage(e)}
+            onChange={changeRecsPerPage}
             className="ml-[8px] !bg-transparent !px-0 !pb-0 "
             inputProps={{
               className: `!font-primary-rhlight !text-[11px] !pt-[6px] !pr-[2px] !pb-[4px] !pl-0 focus:!bg-transparent`
@@ -179,13 +180,13 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
             )}
           >
             {ItemsPerPageOptions.map((item: number) => (
-              <MenuItem className="!text-[14px]" value={item}>
+              <MenuItem className="!text-[14px]" value={item} key={item}>
                 {item}
               </MenuItem>
             ))}
 
             <MenuItem className="!text-[14px]" value={"load-all"}>
-              {pageContent?.LOAD_ALL}
+              {LOAD_ALL}
             </MenuItem>
           </Select>
         </Typography>
@@ -194,4 +195,4 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
   );
 };
 
-export default memoize(ItemsPerPage);
+export default ItemsPerPage;

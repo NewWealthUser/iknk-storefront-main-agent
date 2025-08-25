@@ -1,89 +1,90 @@
-import "server-only"
-import { cookies as nextCookies } from "next/headers"
-
 export const getAuthHeaders = async (): Promise<
   { authorization: string } | {}
 > => {
   try {
-    const cookies = await nextCookies()
-    const token = cookies.get("_medusa_jwt")?.value
-
-    if (!token) {
-      return {}
-    }
-
-    return { authorization: `Bearer ${token}` }
+    const res = await fetch("/api/cookies/auth?action=getAuthHeaders");
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data;
   } catch {
-    return {}
+    return {};
   }
-}
+};
 
 export const getCacheTag = async (tag: string): Promise<string> => {
-  try {
-    const cookies = await nextCookies()
-    const cacheId = cookies.get("_medusa_cache_id")?.value
-
-    if (!cacheId) {
-      return ""
-    }
-
-    return `${tag}-${cacheId}`
-  } catch (error) {
-    return ""
-  }
-}
+  // This function is typically used in server-only contexts for revalidation tags.
+  // For client-side, it might not be directly applicable or needs a different approach.
+  // Keeping it as a placeholder for now.
+  return "";
+};
 
 export const getCacheOptions = async (
   tag: string
 ): Promise<{ tags: string[] } | {}> => {
   if (typeof window !== "undefined") {
-    return {}
+    return {};
   }
-
-  const cacheTag = await getCacheTag(tag)
-
-  if (!cacheTag) {
-    return {}
-  }
-
-  return { tags: [`${cacheTag}`] }
-}
+  // This function is typically used in server-only contexts for revalidation tags.
+  // Keeping it as a placeholder for now.
+  return {};
+};
 
 export const setAuthToken = async (token: string) => {
-  const cookies = await nextCookies()
-  cookies.set("_medusa_jwt", token, {
-    maxAge: 60 * 60 * 24 * 7,
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-  })
-}
+  try {
+    await fetch("/api/cookies/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "setAuthToken", token }),
+    });
+  } catch (error) {
+    console.error("Error setting auth token via API:", error);
+  }
+};
 
 export const removeAuthToken = async () => {
-  const cookies = await nextCookies()
-  cookies.set("_medusa_jwt", "", {
-    maxAge: -1,
-  })
-}
+  try {
+    await fetch("/api/cookies/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "removeAuthToken" }),
+    });
+  } catch (error) {
+    console.error("Error removing auth token via API:", error);
+  }
+};
 
 export const getCartId = async () => {
-  const cookies = await nextCookies()
-  return cookies.get("_medusa_cart_id")?.value
-}
+  try {
+    const res = await fetch("/api/cookies/auth?action=getCartId");
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    return data.cartId;
+  } catch {
+    return undefined;
+  }
+};
 
 export const setCartId = async (cartId: string) => {
-  const cookies = await nextCookies()
-  cookies.set("_medusa_cart_id", cartId, {
-    maxAge: 60 * 60 * 24 * 7,
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-  })
-}
+  try {
+    await fetch("/api/cookies/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "setCartId", cartId }),
+    });
+  } catch (error) {
+    console.error("Error setting cart ID via API:", error);
+  }
+};
 
 export const removeCartId = async () => {
-  const cookies = await nextCookies()
-  cookies.set("_medusa_cart_id", "", {
-    maxAge: -1,
-  })
-}
+  try {
+    await fetch("/api/cookies/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "removeCartId" }),
+    });
+  } catch (error) {
+    console.error("Error removing cart ID via API:", error);
+  }
+};
+

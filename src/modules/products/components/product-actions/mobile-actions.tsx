@@ -6,16 +6,17 @@ import useToggleState from "@lib/hooks/use-toggle-state"
 import ChevronDown from "@modules/common/icons/chevron-down"
 import X from "@modules/common/icons/x"
 
-import { getProductPrice } from "@lib/util/get-product-price"
+// import { getProductPrice } from "@lib/util/get-product-price" // Removed
 import OptionSelect from "./option-select"
-import { HttpTypes } from "@medusajs/types"
+// import { HttpTypes } from "@medusajs/types" // Removed
 import { isSimpleProduct } from "@lib/util/product"
+import { RhProduct, RhVariant, RhOption } from "@lib/util/rh-product-adapter"; // Import RhProduct and RhVariant
 
 type MobileActionsProps = {
-  product: HttpTypes.StoreProduct
-  variant?: HttpTypes.StoreProductVariant
+  product: RhProduct
+  // variant?: HttpTypes.StoreProductVariant // Removed
   options: Record<string, string | undefined>
-  updateOptions: (title: string, value: string) => void
+  updateOptions: (optionId: string, value: string) => void // Changed type of updateOptions
   inStock?: boolean
   handleAddToCart: () => void
   isAdding?: boolean
@@ -25,8 +26,8 @@ type MobileActionsProps = {
 
 const MobileActions: React.FC<MobileActionsProps> = ({
   product,
-  variant,
-  options,
+  // variant, // Removed
+  options, // Use options prop
   updateOptions,
   inStock,
   handleAddToCart,
@@ -36,19 +37,25 @@ const MobileActions: React.FC<MobileActionsProps> = ({
 }) => {
   const { state, open, close } = useToggleState()
 
-  const price = getProductPrice({
-    product: product,
-    variantId: variant?.id,
-  })
-
+  // Adapt pricing logic to use RhProduct
   const selectedPrice = useMemo(() => {
-    if (!price) {
-      return null
-    }
-    const { variantPrice, cheapestPrice } = price
+    const priceInfo = product.skuPriceInfo;
+    const priceRangeDisplay = product.priceRangeDisplay;
 
-    return variantPrice || cheapestPrice || null
-  }, [price])
+    if (!priceInfo && !priceRangeDisplay) {
+      return null;
+    }
+
+    const displayPrice = priceInfo?.salePrice || priceInfo?.listPrice || priceRangeDisplay?.listPrices?.[0];
+    const originalPrice = priceInfo?.listPrice || priceRangeDisplay?.listPrices?.[0];
+    const isOnSale = priceInfo?.onSale || priceRangeDisplay?.nextGenDrivenOnSale;
+
+    return {
+      calculated_price: displayPrice,
+      original_price: originalPrice,
+      price_type: isOnSale ? "sale" : "default",
+    };
+  }, [product.skuPriceInfo, product.priceRangeDisplay]);
 
   const isSimple = isSimpleProduct(product)
 
@@ -74,7 +81,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
             data-testid="mobile-actions"
           >
             <div className="flex items-center gap-x-2">
-              <span data-testid="mobile-title">{product.title}</span>
+              <span data-testid="mobile-title">{product.displayName}</span>
               <span>—</span>
               {selectedPrice ? (
                 <div className="flex items-end gap-x-2 text-ui-fg-base">
@@ -109,8 +116,9 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               >
                 <div className="flex items-center justify-between w-full">
                   <span>
-                    {variant
-                      ? Object.values(options).join(" / ")
+                    {/* Use product.variants[0].options for display if needed */}
+                    {product.variants?.[0]?.options?.[0]?.value
+                      ? product.variants[0].options.map((opt: { id?: string; value?: string }) => opt.value).join(" / ")
                       : "Select Options"}
                   </span>
                   <ChevronDown />
@@ -118,12 +126,12 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               </Button>}
               <Button
                 onClick={handleAddToCart}
-                disabled={!inStock || !variant}
+                disabled={!inStock || !product.variants?.[0]?.id} // Check if a variant exists
                 className="w-full"
                 isLoading={isAdding}
                 data-testid="mobile-cart-button"
               >
-                {!variant
+                {!product.variants?.[0]?.id
                   ? "Select variant"
                   : !inStock
                   ? "Out of stock"
@@ -174,7 +182,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   <div className="bg-white px-6 py-12">
                     {(product.variants?.length ?? 0) > 1 && (
                       <div className="flex flex-col gap-y-6">
-                        {(product.options || []).map((option) => {
+                        {(product.options || []).map((option: RhOption) => {
                           return (
                             <div key={option.id}>
                               <OptionSelect

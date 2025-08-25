@@ -2,54 +2,12 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
-import ProductTemplate from "@modules/products/templates"
+import ProductPageClient from "@modules/products/templates/product-page-client"
 import { HttpTypes } from "@medusajs/types"
+import { adaptMedusaProductToRhProduct } from "@lib/util/rh-product-adapter"
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
-}
-
-export async function generateStaticParams() {
-  try {
-    const countryCodes = await listRegions().then((regions) =>
-      regions?.map((r: HttpTypes.StoreRegion) => r.countries?.map((c) => c.iso_2)).flat()
-    )
-
-    if (!countryCodes) {
-      return []
-    }
-
-    const promises = countryCodes.map(async (country: string | undefined) => {
-      if (!country) return { country: undefined, products: [] }; // Handle undefined countryCode
-      const { response } = await listProducts({
-        countryCode: country,
-        queryParams: { limit: 100, fields: "handle" },
-      })
-
-      return {
-        country,
-        products: response.products,
-      }
-    })
-
-    const countryProducts = await Promise.all(promises)
-
-    return countryProducts
-      .flatMap((countryData: { country: string | undefined; products: HttpTypes.StoreProduct[] }) =>
-        countryData.products.map((product: HttpTypes.StoreProduct) => ({
-          countryCode: countryData.country,
-          handle: product.handle,
-        }))
-      )
-      .filter((param: { handle: string | undefined; countryCode: string | undefined }) => param.handle && param.countryCode)
-  } catch (error) {
-    console.error(
-      `Failed to generate static paths for product pages: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }.`
-    )
-    return []
-  }
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
@@ -61,10 +19,13 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
-  const product = await listProducts({
+  const { response: { products: responseProducts } } = await listProducts({
     countryCode: params.countryCode,
-    queryParams: { handle } as any,
-  }).then(({ response }) => response.products[0])
+    regionId: region.id,
+    queryParams: { handle } as HttpTypes.StoreProductParams,
+  })
+
+  const product = responseProducts?.[0]
 
   if (!product) {
     notFound()
@@ -89,18 +50,50 @@ export default async function ProductPage(props: Props) {
     notFound()
   }
 
-  const pricedProduct = await listProducts({
+  const { response: { products: responseProducts } } = await listProducts({
     countryCode: params.countryCode,
-    queryParams: { handle: params.handle } as any,
-  }).then(({ response }) => response.products[0])
+    regionId: region.id,
+    queryParams: { handle: params.handle } as HttpTypes.StoreProductParams,
+  })
+
+  const pricedProduct = responseProducts?.[0]
 
   if (!pricedProduct) {
     notFound()
   }
 
+  const adaptedPricedProduct = adaptMedusaProductToRhProduct(pricedProduct);
+
+  const queryParams: any = {}
+  if (region?.id) {
+    queryParams.region_id = region.id
+  }
+  if (adaptedPricedProduct.collection) {
+    queryParams.collection_id = [adaptedPricedProduct.collection.id]
+  }
+  if (adaptedPricedProduct.tags) {
+    queryParams.tags = {
+      value: adaptedPricedProduct.tags
+        .map((t: HttpTypes.StoreProductTag) => t.id)
+        .filter(Boolean) as string[],
+    }
+  }
+  queryParams.is_giftcard = false
+
+  const { response } = await listProducts({
+    queryParams,
+    countryCode: params.countryCode,
+    regionId: region.id,
+  })
+
+  const relatedProducts = response?.products?.filter(
+    (responseProduct) => responseProduct.id !== pricedProduct.id
+  ).map(adaptMedusaProductToRhProduct) || []
+
   return (
-    <ProductTemplate
-      product={pricedProduct}
+    <ProductPageClient
+      product={adaptedPricedProduct}
+      relatedProducts={relatedProducts}
       region={region}
       countryCode={params.countryCode}
     />

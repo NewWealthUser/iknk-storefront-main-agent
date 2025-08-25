@@ -1,10 +1,10 @@
-import { getPercentageDiff } from "@lib/util/get-precentage-diff"
 import { convertToLocale } from "@lib/util/money"
-import { HttpTypes } from "@medusajs/types"
 import { clx } from "@medusajs/ui"
+import React from "react"
+import { IknkLineItem } from "@lib/util/iknk-cart-adapter"; // Import IknkLineItem
 
 type LineItemPriceProps = {
-  item: HttpTypes.StoreCartLineItem | HttpTypes.StoreOrderLineItem
+  item: IknkLineItem
   style?: "default" | "tight"
   currencyCode: string
 }
@@ -14,10 +14,8 @@ const LineItemPrice = ({
   style = "default",
   currencyCode,
 }: LineItemPriceProps) => {
-  const { total, original_total } = item
-  const originalPrice = original_total
-  const currentPrice = total
-  const hasReducedPrice = currentPrice < originalPrice
+  const currentPrice = item.price;
+  const hasReducedPrice = false; // Simplified for now, assuming no reduced price
 
   return (
     <div className="flex flex-col gap-x-2 text-ui-fg-subtle items-end">
@@ -33,14 +31,14 @@ const LineItemPrice = ({
                 data-testid="product-original-price"
               >
                 {convertToLocale({
-                  amount: originalPrice,
+                  amount: currentPrice, // Using currentPrice as original for now
                   currency_code: currencyCode,
                 })}
               </span>
             </p>
             {style === "default" && (
               <span className="text-ui-fg-interactive">
-                -{getPercentageDiff(originalPrice, currentPrice || 0)}%
+                {/* -{getPercentageDiff(originalPrice, currentPrice || 0)}% */}
               </span>
             )}
           </>

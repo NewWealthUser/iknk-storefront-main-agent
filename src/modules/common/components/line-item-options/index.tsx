@@ -1,14 +1,14 @@
-import { HttpTypes } from "@medusajs/types"
 import { Text } from "@medusajs/ui"
+import { IknkLineItem } from "@lib/util/iknk-cart-adapter"; // Import IknkLineItem
 
 type LineItemOptionsProps = {
-  variant: HttpTypes.StoreProductVariant | undefined
+  item: IknkLineItem // Changed from variant
   "data-testid"?: string
-  "data-value"?: HttpTypes.StoreProductVariant
+  "data-value"?: string // Changed from HttpTypes.StoreProductVariant
 }
 
 const LineItemOptions = ({
-  variant,
+  item, // Changed from variant
   "data-testid": dataTestid,
   "data-value": dataValue,
 }: LineItemOptionsProps) => {
@@ -18,7 +18,7 @@ const LineItemOptions = ({
       data-value={dataValue}
       className="inline-block txt-medium text-ui-fg-subtle w-full overflow-hidden text-ellipsis"
     >
-      Variant: {variant?.title}
+      Variant: {item.sku} {/* Using SKU as variant identifier */}
     </Text>
   )
 }

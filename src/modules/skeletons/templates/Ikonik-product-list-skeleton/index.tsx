@@ -1,9 +1,13 @@
 import React, { FC, RefObject, useMemo } from "react";
-import { TailwindSkeleton as Skeleton } from "@RHCommerceDev/component-tailwind-skeletons";
+// import { TailwindSkeleton as Skeleton } from "@RHCommerceDev/component-tailwind-skeletons";
 import { Card, CardContent, CardMedia } from "@mui/material";
-import { IMAGE_ASPECT_RATIO } from "@RHCommerceDev/utils/constants";
-import { ImageSkeleton } from "@RHCommerceDev/skeleton-image";
+// import { IMAGE_ASPECT_RATIO } from "@RHCommerceDev/utils/constants";
+// import { ImageSkeleton } from "@RHCommerceDev/skeleton-image";
 import clsx from "clsx";
+
+const Skeleton = (props: any) => <div style={{ backgroundColor: '#f0f0f0', height: '20px', ...props.style }} className={props.className}></div>;
+const IMAGE_ASPECT_RATIO = { productCard: 1 }; // Placeholder
+const ImageSkeleton = (props: any) => <div style={{ backgroundColor: '#e0e0e0', aspectRatio: props.aspectRatio, ...props.style }} className={props.className}></div>;
 
 export interface RHRProductCardSkeleton {
   disableProductInfoSkeleton?: boolean;

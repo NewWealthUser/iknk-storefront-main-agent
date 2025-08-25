@@ -10,56 +10,107 @@ import React, {
 
 import clsx from "clsx";
 
-import RHPagination from "@RHCommerceDev/component-pagination";
-import ItemsPerPage from "@RHCommerceDev/component-product-grid/ItemsPerPage";
+// import RHPagination from "@RHCommerceDev/component-pagination";
+// import ItemsPerPage from "@RHCommerceDev/component-product-grid/ItemsPerPage";
 
-import RHDivider from "@RHCommerceDev/component-rh-divider";
+// import RHDivider from "@RHCommerceDev/component-rh-divider";
 
-import { usePageContent } from "custom-providers/LocationProvider";
-import { useImageSize } from "@RHCommerceDev/graphql-client/contexts/ImageSizeContext";
+// import { usePageContent } from "custom-providers/LocationProvider";
+// import { useImageSize } = "@RHCommerceDev/graphql-client/contexts/ImageSizeContext";
 
-import { useFetchModel } from "hooks/useFetchModel";
+// import { useFetchModel } from "hooks/useFetchModel";
 
-import useMediaString from "@RHCommerceDev/hooks/useMediaString";
-import useParams from "@RHCommerceDev/hooks/useParams";
+// import useMediaString from "@RHCommerceDev/hooks/useMediaString";
+// import useParams from "@RHCommerceDev/hooks/useParams";
 
-import {
-  processEnvServer as isServer,
-  processEnvServer
-} from "@RHCommerceDev/hooks/useSsrHooks";
+// import {
+//   processEnvServer as isServer,
+//   processEnvServer
+// } from "@RHCommerceDev/hooks/useSsrHooks";
 import _chunk from "lodash/chunk";
 
-import { useHistory, useLocation } from "react-router-dom";
-import { RHRProductCardSkeleton } from "@RHCommerceDev/skeleton-rhr-product-list";
-import {
-  DEFAULT_GRID_COLUMNS,
-  DEFAULT_VIEW,
-  IMAGE_ASPECT_RATIO,
-  INITIAL_PG_IMAGE_CONTAINER_DIMENSION,
-  ITEMS_PER_PAGE_PREFERENCE,
-  PG_IMAGE_CONTAINER_DIMENSION,
-  ZERO_RESULTS
-} from "@RHCommerceDev/utils/constants";
+// import { useHistory, useLocation } from "react-router-dom";
+// import { RHRProductCardSkeleton } from "@RHCommerceDev/skeleton-rhr-product-list";
+// import {
+//   DEFAULT_GRID_COLUMNS,
+//   DEFAULT_VIEW,
+//   IMAGE_ASPECT_RATIO,
+//   INITIAL_PG_IMAGE_CONTAINER_DIMENSION,
+//   ITEMS_PER_PAGE_PREFERENCE,
+//   PG_IMAGE_CONTAINER_DIMENSION,
+//   ZERO_RESULTS
+// } from "@RHCommerceDev/utils/constants";
 
-import prasePGCropRules from "@RHCommerceDev/utils/prasePGCropRules";
+// import prasePGCropRules from "@RHCommerceDev/utils/prasePGCropRules";
 
 import { PC } from "./ProductCard";
-import { showPGPaginationModule } from "@RHCommerceDev/utils/showPaginationModule";
-import { useMediaQuery, useTheme } from "@mui/material";
-import maxBy from "lodash.maxby";
-import { useSipIdValue } from "@RHCommerceDev/hooks/atoms/useSIPID";
-import { useInfiniteScroll } from "@RHCommerceDev/hooks/useInfiniteScroll";
-import { getReqContext } from "@RHCommerceDev/utils/reqContext";
-import { getSelectorsByUserAgent } from "react-device-detect";
+// import { showPGPaginationModule } from "@RHCommerceDev/utils/showPaginationModule";
+// import { useMediaQuery, useTheme } from "@mui/material";
+// import maxBy from "lodash.maxby";
+// import { useSipIdValue } from "@RHCommerceDev/hooks/atoms/useSIPID";
+// import { useInfiniteScroll } from "@RHCommerceDev/hooks/useInfiniteScroll";
+// import { getReqContext } from "@RHCommerceDev/utils/reqContext";
+// import { getSelectorsByUserAgent } from "react-device-detect";
+
+// Placeholder implementations
+const RHPagination = (props: any) => <div>Pagination</div>;
+const ItemsPerPage = (props: any) => <div>Items Per Page</div>;
+const RHDivider = (props: any) => <div style={{ borderTop: "1px solid gray" }} />;
+const usePageContent = () => ({ items_per_page_options: "[]" });
+const useImageSize = () => ({ generateGridMap: (sections: any, columns: number) => {} });
+const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ items_per_page_options: "[]" });
+const useMediaString = () => "lg";
+const useParams = (props: any) => ({
+  no: "0",
+  maxnrpp: "24",
+  loadAll: ""
+});
+const isServer = false;
+const processEnvServer = false;
+// Removed placeholder _chunk function, relying on lodash/chunk
+const useHistory = () => ({ action: "PUSH" });
+const useLocation = () => ({ pathname: "" });
+const RHRProductCardSkeleton = (props: any) => <div>Skeleton</div>;
+const DEFAULT_GRID_COLUMNS = 4;
+const DEFAULT_VIEW = "grid";
+const IMAGE_ASPECT_RATIO = { verticalProductTile: 1, horizontalProductTile: 1 };
+const INITIAL_PG_IMAGE_CONTAINER_DIMENSION = 100;
+const ITEMS_PER_PAGE_PREFERENCE = "itemsPerPage";
+const PG_IMAGE_CONTAINER_DIMENSION: { [key: number]: { [key: string]: number[] } } = {};
+const ZERO_RESULTS = 0;
+const prasePGCropRules = (rules: any) => ({ height: 0 });
+const showPGPaginationModule = (a: any, b: any) => false;
+const useMediaQuery = (query: any) => true;
+const useTheme = () => ({ breakpoints: { up: (s: string) => true } });
+const maxBy = (arr: any[], iteratee: (item: any) => any) => arr[0];
+const useSipIdValue = () => "";
+const useInfiniteScroll = (props: any) => ({ ref: null });
+const getReqContext = () => ({ headers: { "user-agent": "" } });
+const getSelectorsByUserAgent = (userAgent: string) => ({ isMobile: false });
 
 function extractSkuOtions(option: string) {
-  const facets = option?.split("|")?.reduce((acc, part) => {
+  const facets: { [key: string]: string } = option?.split("|")?.reduce((acc: { [key: string]: string }, part) => {
     const [id, type, value] = part?.split("~~");
     acc[type?.toLowerCase()] = value;
     return acc;
   }, {});
 
   return facets;
+}
+
+interface SearchResultRecord {
+  product?: {
+    anchor?: string;
+    pgCropRules?: { height: number };
+    rhr?: boolean;
+    galleryDescription?: string;
+    displayName?: string;
+    repositoryId?: string;
+    skuOptiondata?: string;
+  };
+  sku?: {
+    fullSkuId?: string;
+  };
 }
 
 export const getUrl = (
@@ -113,7 +164,6 @@ export const getUrl = (
   //     .reduce((acc, pair) => {
   //       const [key, value] = pair.split(":").map(item => item.trim());
   //       acc[key] = value;
-  //       return acc;
   //     }, {});
   //   let color = skuOptiondataToObj?.["Color"] ?? null;
   //   totalNumRecs === 1 && !stocked
@@ -139,7 +189,7 @@ export const getUrl = (
   };
 };
 
-export const getPriceUserType = (userType: string, price) => {
+export const getPriceUserType = (userType: string, price: any) => {
   switch (userType) {
     case "CONTRACT":
       return price?.contractPrice;
@@ -150,6 +200,10 @@ export const getPriceUserType = (userType: string, price) => {
   }
 };
 
+interface ProductGridItem extends SearchResultRecord {
+  loader?: boolean;
+}
+
 interface ProductGrid {
   isStockedFilterActive: boolean;
   isRefinementFilterActive: boolean;
@@ -157,7 +211,7 @@ interface ProductGrid {
   view: string;
   totalNumRecs: number;
   loadMoreData: () => any;
-  productList: any[];
+  productList: ProductGridItem[];
   noLazy?: boolean;
   host?: string;
   brand?: string;
@@ -214,11 +268,11 @@ const ProductGrid: FC<ProductGrid> = ({
 
   const { pathname } = useLocation();
   const isAemPage = !pathname?.includes(".jsp");
-  const { pageContent } = !isAemPage
-    ? usePageContent()
-    : useFetchModel("/admin/products", false, false);
+  const { items_per_page_options } = !isAemPage
+    ? (usePageContent() as { items_per_page_options: string })
+    : (useFetchModel("/admin/products", false, false) as { items_per_page_options: string });
   const ItemsPerPageOptions = JSON.parse(
-    pageContent?.items_per_page_options || "[]"
+    items_per_page_options || "[]"
   );
   let mobile = false;
   const req = getReqContext();
@@ -296,7 +350,7 @@ const ProductGrid: FC<ProductGrid> = ({
   const derivedProductListGroupedByAnchor = useMemo(
     () =>
       derivedProductList?.reduce(
-        (acc = [[]], rec) => {
+        (acc: ProductGridItem[][], rec: ProductGridItem) => {
           const pgCropRules = prasePGCropRules(rec?.product?.pgCropRules);
 
           const record = {
@@ -348,7 +402,7 @@ const ProductGrid: FC<ProductGrid> = ({
   }
 
   // Utility function to calculate max height based on max string length and width
-  const calculateMaxHeightOfCaption = (items: string[], width) => {
+  const calculateMaxHeightOfCaption = (items: string[], width: number) => {
     // Get the string with the maximum length
     const longestString = maxBy(items, item => item?.length) || "";
     const charsPerLine = smUp ? Math.floor(width / 5) : Math.floor(width / 4);
@@ -367,27 +421,27 @@ const ProductGrid: FC<ProductGrid> = ({
   const sipId = useSipIdValue();
   const selectedItemId = useMemo(() => {
     if (history?.action === "POP" || history?.action === "REPLACE") {
-      return sipId;
+      return Number(sipId);
     }
   }, [history?.action, sipId]);
 
   const parsedDerivedProductList = useMemo(() => {
     return derivedProductListGroupedByAnchor?.flatMap(derivedProductList =>
       _chunk(derivedProductList, 12 / gridColumns)?.flatMap(
-        (groupedDerivedProduct: any) => {
+        (groupedDerivedProduct: ProductGridItem[]) => {
           const imgContainerHeight = groupedDerivedProduct?.map(
-            derivedProduct => derivedProduct?.product?.pgCropRules?.height
-          );
+            (derivedProduct: ProductGridItem) => derivedProduct?.product?.pgCropRules?.height
+          ).filter((h): h is number => h !== undefined);
 
           const areAllRhr = groupedDerivedProduct?.every(
-            derivedProduct => derivedProduct?.product?.rhr
+            (derivedProduct: ProductGridItem) => derivedProduct?.product?.rhr
           );
 
           const imagCaptionsArr = groupedDerivedProduct?.map(
-            derivedProduct => derivedProduct?.product?.galleryDescription
-          );
+            (derivedProduct: ProductGridItem) => derivedProduct?.product?.galleryDescription
+          ).filter((caption): caption is string => caption !== undefined);
 
-          const maxImageContainerHeight = Math?.max(...imgContainerHeight);
+          const maxImageContainerHeight = Math?.max(...imgContainerHeight.filter(h => h !== undefined));
           const [MAX_IMG_CONTAINER_HEIGHT] =
             PG_IMAGE_CONTAINER_DIMENSION?.[gridColumns]?.[mediaString] ??
             INITIAL_PG_IMAGE_CONTAINER_DIMENSION;
@@ -398,9 +452,9 @@ const ProductGrid: FC<ProductGrid> = ({
             view === "vertical"
               ? IMAGE_ASPECT_RATIO?.verticalProductTile
               : IMAGE_ASPECT_RATIO?.horizontalProductTile;
-          return groupedDerivedProduct?.map(derivedProduct => {
+          return groupedDerivedProduct?.map((derivedProduct: ProductGridItem) => {
             const imgHeight = `${
-              (derivedProduct?.product?.pgCropRules?.height / 100) *
+              ((derivedProduct?.product?.pgCropRules?.height ?? 0) / 100) *
               MAX_IMG_CONTAINER_HEIGHT
             }px`;
 
@@ -450,7 +504,7 @@ const ProductGrid: FC<ProductGrid> = ({
 
   const skeletonUi = useMemo(
     () =>
-      Array.from(new Array(12 / gridColumns)).map((item, index) => (
+      Array.from(new Array(12 / gridColumns)).map((item: any, index) => (
         <RHRProductCardSkeleton key={`${index}`} width={imageFlexBoxWidth} />
       )),
     [gridColumns]
@@ -467,7 +521,7 @@ const ProductGrid: FC<ProductGrid> = ({
   });
 
   const handleObserver = useCallback(
-    entries => {
+    (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
       if (target.isIntersecting && productList.length < totalNumRecs) {
         loadMoreData();
@@ -527,10 +581,11 @@ const ProductGrid: FC<ProductGrid> = ({
       {infiniteScrollEnabled ? (
         <div>
           <div className={flexboxContainerClasses}>
-            {parsedDerivedProductListWithLoader?.map((item, index) => {
+            {parsedDerivedProductListWithLoader?.map((item: ProductGridItem, index: number) => {
               return (
                 <>
-                  {productTitle?.toLowerCase() !==
+                  {item?.product?.anchor &&
+                  productTitle?.toLowerCase() !==
                   item?.product?.anchor?.toLowerCase() ? (
                     <>
                       {item?.product?.anchor &&
@@ -595,7 +650,8 @@ const ProductGrid: FC<ProductGrid> = ({
         <div className={clsx(flexboxContainerClasses)}>
           {parsedDerivedProductList?.map((item, index) => (
             <>
-              {productTitle?.toLowerCase() !==
+              {item?.product?.anchor &&
+              productTitle?.toLowerCase() !==
               item?.product?.anchor?.toLowerCase() ? (
                 <>
                   {item?.product?.anchor &&
@@ -667,15 +723,6 @@ const ProductGrid: FC<ProductGrid> = ({
       ) : null}
     </div>
   );
-};
-
-ProductGrid.defaultProps = {
-  productList: [],
-  isStockedFilterActive: false,
-  isRefinementFilterActive: false,
-  gridColumns: DEFAULT_GRID_COLUMNS,
-  view: DEFAULT_VIEW,
-  totalNumRecs: ZERO_RESULTS
 };
 
 export default ProductGrid;

@@ -196,7 +196,6 @@ const EditAddress: React.FC<EditAddressProps> = ({
               />
               <CountrySelect
                 name="country_code"
-                region={region}
                 required
                 autoComplete="country"
                 defaultValue={address.country_code || undefined}

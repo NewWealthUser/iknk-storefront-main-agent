@@ -2,29 +2,26 @@
 
 import { convertToLocale } from "@lib/util/money"
 import React from "react"
+import { IknkCartPrice } from "@lib/util/iknk-cart-adapter"; // Import IknkCartPrice
 
 type CartTotalsProps = {
-  totals: {
-    total?: number | null
-    subtotal?: number | null
-    tax_total?: number | null
-    shipping_total?: number | null
-    discount_total?: number | null
-    gift_card_total?: number | null
-    currency_code: string
-    shipping_subtotal?: number | null
-  }
+  totals: IknkCartPrice & { // Extend IknkCartPrice with other necessary fields
+    discount_total?: number | null;
+    gift_card_total?: number | null;
+    shipping_total?: number | null;
+    currency_code: string;
+  };
 }
 
 const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
   const {
     currency_code,
-    total,
+    totalPrice: total,
     subtotal,
-    tax_total,
+    tax: tax_total,
     discount_total,
     gift_card_total,
-    shipping_subtotal,
+    shipping_total,
   } = totals
 
   return (
@@ -53,8 +50,8 @@ const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
         )}
         <div className="flex items-center justify-between">
           <span>Shipping</span>
-          <span data-testid="cart-shipping" data-value={shipping_subtotal || 0}>
-            {convertToLocale({ amount: shipping_subtotal ?? 0, currency_code })}
+          <span data-testid="cart-shipping" data-value={shipping_total || 0}>
+            {convertToLocale({ amount: shipping_total ?? 0, currency_code })}
           </span>
         </div>
         <div className="flex justify-between">

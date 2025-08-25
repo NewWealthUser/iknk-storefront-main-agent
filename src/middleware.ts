@@ -37,13 +37,17 @@ async function getRegionMap(cacheId: string) {
       const json = await response.json()
 
       if (!response.ok) {
+        console.error("Error fetching regions from Medusa backend:", json.message);
         throw new Error(json.message)
       }
 
       return json
     })
 
+    console.log("Fetched regions:", regions);
+
     if (!regions?.length) {
+      console.error("No regions found from Medusa backend.");
       throw new Error(
         "No regions found. Please set up regions in your Medusa Admin."
       )
@@ -55,6 +59,7 @@ async function getRegionMap(cacheId: string) {
         regionMapCache.regionMap.set(c.iso_2 ?? "", region)
       })
     })
+    console.log("Populated regionMap:", regionMapCache.regionMap);
 
     regionMapCache.regionMapUpdated = Date.now()
   }
@@ -118,6 +123,12 @@ export async function middleware(request: NextRequest) {
 
   const urlHasCountryCode =
     countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
+
+  console.log("Middleware Debug:");
+  console.log("  request.nextUrl.pathname:", request.nextUrl.pathname);
+  console.log("  countryCode:", countryCode);
+  console.log("  urlHasCountryCode:", urlHasCountryCode);
+  console.log("  cacheIdCookie:", cacheIdCookie?.value);
 
   // if one of the country codes is in the url and the cache id is set, return next
   if (urlHasCountryCode && cacheIdCookie) {

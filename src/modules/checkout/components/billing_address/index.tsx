@@ -2,18 +2,23 @@ import { HttpTypes } from "@medusajs/types"
 import Input from "@modules/common/components/input"
 import React, { useState } from "react"
 import CountrySelect from "../country-select"
+import { IknkCart, IknkAddress } from "@lib/util/iknk-cart-adapter"; // Import IknkCart and IknkAddress
 
-const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
+const BillingAddress = ({
+  cart,
+}: {
+  cart: IknkCart | null // Changed cart type
+}) => {
   const [formData, setFormData] = useState<any>({
-    "billing_address.first_name": cart?.billing_address?.first_name || "",
-    "billing_address.last_name": cart?.billing_address?.last_name || "",
-    "billing_address.address_1": cart?.billing_address?.address_1 || "",
-    "billing_address.company": cart?.billing_address?.company || "",
-    "billing_address.postal_code": cart?.billing_address?.postal_code || "",
-    "billing_address.city": cart?.billing_address?.city || "",
-    "billing_address.country_code": cart?.billing_address?.country_code || "",
-    "billing_address.province": cart?.billing_address?.province || "",
-    "billing_address.phone": cart?.billing_address?.phone || "",
+    "billing_address.first_name": cart?.billAddress?.firstName || "",
+    "billing_address.last_name": cart?.billAddress?.lastName || "",
+    "billing_address.address_1": cart?.billAddress?.address1 || "",
+    "billing_address.company": cart?.billAddress?.company || "", // Assuming company is in metadata or similar
+    "billing_address.postal_code": cart?.billAddress?.postalCode || "",
+    "billing_address.city": cart?.billAddress?.city || "",
+    "billing_address.country_code": cart?.billAddress?.country || "", // Assuming country is string
+    "billing_address.province": cart?.billAddress?.state || "",
+    "billing_address.phone": cart?.billAddress?.phone || "",
   })
 
   const handleChange = (
@@ -84,7 +89,7 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
         <CountrySelect
           name="billing_address.country_code"
           autoComplete="country"
-          region={cart?.region}
+          // region={cart?.region} // Removed region prop
           value={formData["billing_address.country_code"]}
           onChange={handleChange}
           required

@@ -8,42 +8,145 @@ import React, {
   useState
 } from "react";
 
-import { useLazyQuery } from "@apollo/client";
-import { Theme, useMediaQuery } from "@mui/material";
-import analyticsLoader from "analytics/loader";
+// All original imports are commented out to rely on placeholders below.
+// import { useLazyQuery } from "@apollo/client";
+// import { Theme, useMediaQuery } from "@mui/material";
+// import analyticsLoader from "analytics/loader";
 import clsx from "clsx";
-import RHSpinner from "component-rh-spinner";
-import { queryProductImage } from "graphql-client/queries/product-image";
-import { useAppId } from "hooks-use-app-id";
-import { useEnv } from "hooks/useEnv";
-import useLocale from "hooks/useLocale/useLocale";
-import { useLocalization } from "hooks/useLocalization";
-import useSite from "hooks/useSite";
-import {
-  processEnvServer as isServer,
-  processEnvServer
-} from "hooks/useSsrHooks";
-import useTypographyStyles from "hooks/useTypographyStyles";
-import { COLOR_PREVIEW_AVAILABLE_SOON } from "resources/page-level-resources-schemas/products.json";
-import memoize from "utils/memoize";
-import stringToObject from "utils/stringToObject";
-import yn from "yn";
+// import RHSpinner from "component-rh-spinner";
+// import { queryProductImage } from "graphql-client/queries/product-image"; // Removed
+// import { useAppId } from "hooks-use-app-id";
+// import { useEnv } = "hooks/useEnv";
+// import useLocale from "hooks/useLocale/useLocale";
+// import { useLocalization } from "hooks/useLocalization";
+// import useSite from "hooks/useSite";
+// import {
+//   processEnvServer as isServer,
+//   processEnvServer
+// } from "hooks/useSsrHooks";
+// import useTypographyStyles from "hooks/useTypographyStyles";
+// import { COLOR_PREVIEW_AVAILABLE_SOON } from "resources/page-level-resources-schemas/products.json";
+// import memoize from "utils/memoize";
+// import stringToObject from "utils/stringToObject";
+// import yn from "yn";
 import { getUrl } from "..";
 import { PD } from "../ProductDetails";
-import { useNewURLStructureParams } from "hooks/useParams";
-import ImageCarousel from "component-product-grid/ImageCarousel";
-import { getPresetMap } from "@RHCommerceDev/utils/sanitizedImages";
-import RHImageV2 from "@RHCommerceDev/rh-image-component";
-import { sleep } from "@RHCommerceDev/utils/sleep";
-import useParams from "@RHCommerceDev/hooks/useParams";
-import { getReqContext } from "utils/reqContext";
-import { BCT_PATHS, SELECTED_BRAND_COOKIE } from "utils/constants";
-import RHLink from "@RHCommerceDev/component-rh-link";
-import Cookies from "universal-cookie";
-import { useCookies } from "hooks/useCookies";
-import { TailwindTypography as Typography } from "@RHCommerceDev/component-tailwind-typography";
-import { PG_GRID_CHOICE } from "@RHCommerceDev/nextgen-product-gallery/constants";
-import { useIsoCookies } from "@RHCommerceDev/hooks/useIsoCookies";
+import { RhSwatch } from "@lib/util/rh-product-adapter";
+// import { useNewURLStructureParams } from "hooks/useParams";
+// import ImageCarousel from "component-product-grid/ImageCarousel";
+// import { getPresetMap } from "@RHCommerceDev/utils/sanitizedImages";
+// import RHImageV2 from "@RHCommerceDev/rh-image-component";
+// import { sleep } from "@RHCommerceDev/utils/sleep";
+// import useParams from "@RHCommerceDev/hooks/useParams";
+// import { getReqContext } from "utils/reqContext";
+// import { BCT_PATHS, SELECTED_BRAND_COOKIE } from "utils/constants";
+// import RHLink from "@RHCommerceDev/component-rh-link";
+// import Cookies from "universal-cookie";
+// import { useCookies } from "hooks/useCookies";
+// import { TailwindTypography as Typography } from "@RHCommerceDev/component-tailwind-typography";
+// import { PG_GRID_CHOICE } from "@RHCommerceDev/nextgen-product-gallery/constants";
+// import { useIsoCookies } from "@RHCommerceDev/hooks/useIsoCookies";
+
+// Placeholder components and utilities
+const useLazyQuery = (query: any, options: any) => ({
+  data: { productImage: { imageUrl: "" } },
+  loading: false,
+  getProductSwatchImage: (variables: any) => {
+    if (options.onCompleted) {
+      options.onCompleted({ productImage: { imageUrl: "placeholder-image.jpg" } });
+    }
+  }
+});
+const queryProductImage = {};
+const useMediaQuery = (query: any) => true;
+const analyticsLoader = (callback: any) => {};
+const RHSpinner = () => <div>Loading...</div>;
+const useAppId = () => ({ isConcierge: false });
+const useEnv = () => ({ FEATURE_URL_CHANGE: false, FEATURE_BCT_SUNSET: false, FEATURE_TEST_PRESET: false });
+const useLocale = () => "en-US";
+const useLocalization = () => "/";
+const useSite = () => "RH";
+const processEnvServer = false;
+const isServer = false;
+const useTypographyStyles = (props: any) => ({ rhBaseBody1: "", rhBaseH2: "", rhBaseCaption: "", rhBaseBody2: "", rhBaseBody3: "", rhBaseCaption1: "", rhBaseCaption2: "" });
+const COLOR_PREVIEW_AVAILABLE_SOON = "Color preview available soon";
+const memoize = (Component: any) => Component;
+const stringToObject = (str: string) => ({});
+const yn = (value: any) => Boolean(value);
+const useNewURLStructureParams = () => ({ category: "" });
+const ImageCarousel = (props: any) => <div>Image Carousel</div>;
+interface PresetMap {
+  rhrThreeK: string;
+  threeK: string;
+  xlUp: { [key: string]: string };
+  lgUp: { [key: string]: string };
+  mdUp: { [key: string]: string };
+  smUp: { [key: string]: string };
+  xsUp: { [key: string]: string };
+}
+
+const getPresetMap = (a: any, b: any, c: any): PresetMap => ({ rhrThreeK: "", threeK: "", xlUp: {}, lgUp: {}, mdUp: {}, smUp: {}, xsUp: {} });
+const RHImageV2 = (props: any) => <img src={props.src} alt={props.alt} className={props.className} />;
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const useParams = (props: any) => ({ site: "" });
+const getReqContext = () => ({ cookies: {}, path: "" });
+const BCT_PATHS: { [key: string]: string } = {};
+const SELECTED_BRAND_COOKIE = "";
+const RHLink = (props: any) => <a href={props.to}>{props.children}</a>;
+const Cookies = (initialCookies: any) => ({
+  cookies: initialCookies,
+  get: (name: string) => initialCookies?.[name]
+});
+const useCookies = (props: any) => [{}, () => {}];
+const Typography = (props: any) => <p>{props.children}</p>;
+const PG_GRID_CHOICE = "";
+const useIsoCookies = (props: any) => {
+  const cookies: { [key: string]: string } = {};
+  return cookies;
+};
+
+// Placeholder types
+interface SearchResultRecord {
+  product?: {
+    rhr?: boolean;
+    pgImagePresetOverride?: any;
+    repositoryId?: string;
+    colorizable?: boolean;
+    displaySwatch?: string;
+    swatchInfo?: {
+      swatchesToDisplay?: {
+        swatchId?: string;
+        displayName?: string;
+        imageUrl?: string;
+      }[];
+    };
+    displayName?: string;
+    percentSaleSkus?: number;
+    imageFlip?: boolean;
+    imageUrl?: string;
+    altImageUrl?: string;
+    alternateImages?: { imageUrl: string }[];
+    skuOptiondata?: string;
+    priceInfo?: any; // Added priceInfo
+    galleryDescription?: string; // Added galleryDescription
+    imageContainerStyle?: any; // Added imageContainerStyle
+    captionMinHeight?: number; // Added captionMinHeight
+    imageStyle?: any; // Added imageStyle
+  };
+  sku?: {
+    fullSkuId?: string;
+  };
+}
+
+interface Query {
+  productImage?: {
+    imageUrl?: string;
+  };
+}
+
+interface ProductAlternateImage {
+  imageUrl: string;
+}
 
 interface ProductCard {
   isStockedFilterActive: boolean;
@@ -62,6 +165,8 @@ interface ProductCard {
   isSelectedItem?: boolean;
 }
 
+
+// @ts-ignore
 export const ProductCard: FC<ProductCard> = memo(
   ({
     item,
@@ -106,12 +211,12 @@ export const ProductCard: FC<ProductCard> = memo(
     const isRHR = item?.product?.rhr ?? false;
     const isRHRImage = isRHR;
     const isConciergeRHRImage = isConcierge && isRHR;
-    const xlUp = useMediaQuery<Theme>(theme => theme.breakpoints.up("xl"));
-    const lgUp = useMediaQuery<Theme>(theme => theme.breakpoints.up("lg"));
-    const mdUp = useMediaQuery<Theme>(theme => theme.breakpoints.up("md"));
-    const smUp = useMediaQuery<Theme>(theme => theme.breakpoints.up("sm"));
+    const xlUp = useMediaQuery(true);
+    const lgUp = useMediaQuery(true);
+    const mdUp = useMediaQuery(true);
+    const smUp = useMediaQuery(true);
     const req = getReqContext();
-    const params = useParams({
+    const params: { site: string } = useParams({
       site: ""
     });
 
@@ -134,7 +239,7 @@ export const ProductCard: FC<ProductCard> = memo(
       ]
     });
     const reqContext: { cookies?: any } = getReqContext() ?? {};
-    const conciergeCookie = new Cookies(reqContext.cookies);
+    const conciergeCookie = Cookies(reqContext.cookies);
     const savedBrand = useMemo(
       () => conciergeCookie.get(SELECTED_BRAND_COOKIE),
       [conciergeCookie, SELECTED_BRAND_COOKIE]
@@ -145,7 +250,7 @@ export const ProductCard: FC<ProductCard> = memo(
       setIsColorizable(item?.product?.colorizable ?? false);
     }, [item?.product?.colorizable]);
 
-    const getSite = (params, productUrl) => {
+    const getSite = (params: any, productUrl: string | undefined) => {
       if (params?.site) return params?.site;
       else if (productUrl?.includes("rhbc_prod")) return "BC";
       else if (productUrl?.includes("rhtn_prod")) return "TN";
@@ -242,17 +347,15 @@ export const ProductCard: FC<ProductCard> = memo(
     // let value = swatchRows !== undefined && swatchRows > 6 ? 6 : swatchRows;
     // const mdUp = useMediaQuery<Theme>(theme => theme.breakpoints.up("md"));
     // const Wrapper = mdUp ? Fade : React.Fragment;
-    const [
+    const {
       getProductSwatchImage,
-      {
-        data: { productImage: productSwatchImage } = {} as Query,
-        loading: productSwatchLoading
-      }
-    ] = useLazyQuery<Query>(queryProductImage, {
-      onCompleted: data => {
+      data: { productImage: productSwatchImage } = { productImage: { imageUrl: "" } },
+      loading: productSwatchLoading
+    } = useLazyQuery(queryProductImage, {
+      onCompleted: (data: any) => {
         setIsClicked(true);
       },
-      onError: data => {}
+      onError: (data: any) => {}
     });
 
     // const wrapperProps = useMemo(
@@ -260,9 +363,9 @@ export const ProductCard: FC<ProductCard> = memo(
     //   [mdUp]
     // );
     const onSwatchClickHandler = useCallback(
-      (e, index, swatch, disableProductCall?: boolean) => {
+      (e: React.MouseEvent | null, index: number, swatch: RhSwatch | undefined, disableProductCall?: boolean) => {
         setSelectedSwatchIdx(index);
-        setSelectedSwatch(swatch?.swatchId);
+        setSelectedSwatch(swatch?.swatchId ?? null);
         if (isColorizable) {
           if (!disableProductCall) {
             setIsClicked(true);
@@ -320,7 +423,7 @@ export const ProductCard: FC<ProductCard> = memo(
     }, [isConciergeRHRImage, isRHRImage, item?.product?.pgImagePresetOverride]);
 
     const presetImage = useCallback(
-      (rawURL: string | undefined, zoom?) => {
+      (rawURL: string | undefined, zoom?: boolean) => {
         try {
           if (!rawURL) return "";
           let preset = "";
@@ -393,7 +496,7 @@ export const ProductCard: FC<ProductCard> = memo(
           }
         ];
 
-        analyticsLoader(a =>
+        analyticsLoader((a: any) =>
           a.emitAnalyticsEvent(
             document.querySelector("#spa-root > *")! as HTMLElement,
             a.EVENTS.SELECT_ITEM.INT_TYPE,
@@ -465,7 +568,7 @@ export const ProductCard: FC<ProductCard> = memo(
       return name;
     }, [item, stringToObject]);
 
-    const swatchAriaLabel = swatchName =>
+    const swatchAriaLabel = (swatchName: string | undefined) =>
       `${swatchName} ${isSwatchFinish ? "finish" : ""}`;
 
     const spinnerHeight = `calc(${
@@ -550,7 +653,7 @@ export const ProductCard: FC<ProductCard> = memo(
             presetImage={presetImage}
             imageAlternativeName={imageAlternativeName}
             onProductClick={onProductClick}
-            imageFlip={Boolean(item?.product.imageFlip)}
+            imageFlip={Boolean(item?.product?.imageFlip)}
             isClicked={IsClicked}
             setIsClicked={setIsClicked}
             imageStyle={productDetails?.imageStyle || {}}

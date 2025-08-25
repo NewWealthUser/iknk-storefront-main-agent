@@ -1,3 +1,4 @@
+import { adaptMedusaLineItemToIknkLineItem } from "@lib/util/iknk-cart-adapter"
 import repeat from "@lib/util/repeat"
 import { HttpTypes } from "@medusajs/types"
 import { Heading, Table } from "@medusajs/ui"
@@ -37,10 +38,11 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
                   return (a.created_at ?? "") > (b.created_at ?? "") ? -1 : 1
                 })
                 .map((item) => {
+                  const iknkItem = adaptMedusaLineItemToIknkLineItem(item);
                   return (
                     <Item
-                      key={item.id}
-                      item={item}
+                      key={iknkItem.id}
+                      item={iknkItem}
                       currencyCode={cart?.currency_code}
                     />
                   )

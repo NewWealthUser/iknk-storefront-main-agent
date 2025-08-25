@@ -1,18 +1,19 @@
 "use client"
 
 import repeat from "@lib/util/repeat"
-import { HttpTypes } from "@medusajs/types"
+// import { HttpTypes } from "@medusajs/types"
 import { Table, clx } from "@medusajs/ui"
 
 import Item from "@modules/cart/components/item"
 import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
+import { IknkCart } from "@lib/util/iknk-cart-adapter"; // Import IknkCart
 
 type ItemsTemplateProps = {
-  cart: HttpTypes.StoreCart
+  cart: IknkCart
 }
 
 const ItemsPreviewTemplate = ({ cart }: ItemsTemplateProps) => {
-  const items = cart.items
+  const items = cart.lineItems // Changed from cart.items
   const hasOverflow = items && items.length > 4
 
   return (
@@ -27,7 +28,8 @@ const ItemsPreviewTemplate = ({ cart }: ItemsTemplateProps) => {
           {items
             ? items
                 .sort((a, b) => {
-                  return (a.created_at ?? "") > (b.created_at ?? "") ? -1 : 1
+                  // Assuming IknkLineItem has a created_at or similar for sorting
+                  return (a.id || "") > (b.id || "") ? -1 : 1 // Simplified sorting by ID
                 })
                 .map((item) => {
                   return (
@@ -35,7 +37,7 @@ const ItemsPreviewTemplate = ({ cart }: ItemsTemplateProps) => {
                       key={item.id}
                       item={item}
                       type="preview"
-                      currencyCode={cart.currency_code}
+                      currencyCode={cart.cartPrice.currencySymbol ?? ''} // Changed from cart.currency_code
                     />
                   )
                 })

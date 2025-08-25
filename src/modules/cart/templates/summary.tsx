@@ -7,6 +7,7 @@ import Divider from "@modules/common/components/divider"
 import DiscountCode from "@modules/checkout/components/discount-code"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { HttpTypes } from "@medusajs/types"
+import { adaptMedusaCartToIknkCart, IknkCart } from "@lib/util/iknk-cart-adapter"
 
 type SummaryProps = {
   cart: HttpTypes.StoreCart & {
@@ -25,16 +26,27 @@ function getCheckoutStep(cart: HttpTypes.StoreCart) {
 }
 
 const Summary = ({ cart }: SummaryProps) => {
+  const iknkCart: IknkCart = adaptMedusaCartToIknkCart(cart);
   const step = getCheckoutStep(cart)
 
   return (
     <div className="flex flex-col gap-y-4">
-      <Heading level="h2" className="text-[2rem] leading-[2.75rem]">
+      <Heading level="h2" className="text-[2rem] leading-[2.75rem">
         Summary
       </Heading>
-      <DiscountCode cart={cart} />
+      <DiscountCode cart={iknkCart} />
       <Divider />
-      <CartTotals totals={cart} />
+      <CartTotals
+        totals={{
+          subtotal: iknkCart.cartPrice.subtotal,
+          tax: iknkCart.cartPrice.tax,
+          totalPrice: iknkCart.cartPrice.totalPrice,
+          discount_total: iknkCart.discount_total,
+          gift_card_total: iknkCart.gift_card_total,
+          shipping_total: iknkCart.shipping_total,
+          currency_code: iknkCart.cartPrice.currencySymbol || "",
+        }}
+      />
       <LocalizedClientLink
         href={"/checkout?step=" + step}
         data-testid="checkout-button"
@@ -45,4 +57,4 @@ const Summary = ({ cart }: SummaryProps) => {
   )
 }
 
-export default Summary
+export default Summary;

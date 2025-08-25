@@ -1,17 +1,59 @@
-import memoize from "utils/memoize";
 import React, { FC, useMemo } from "react";
-import { useFetchModel } from "hooks/useFetchModel";
-import { usePageContent } from "customProviders/LocationProvider";
-import { useLocation } from "react-router-dom";
-import { Theme, useMediaQuery } from "@mui/material";
-import useTypographyStyles from "hooks/useTypographyStyles";
-import { useRhUserAtomValue } from "hooks/atoms";
+import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import RHRPriceDisplay from "@RHCommerceDev/component-rh-price-range-display/RHRPriceDisplay";
-import { getPriceUserType } from "..";
-import OptionsDetailsList from "component-options-details-list";
-import { SkuLabelMobile } from "component-search-result-card";
-import { getMemberSavingsText } from "utils/memberSavingsTextUtils";
+
+// Placeholder for RH.COM specific utilities/components
+const memoize = (Component: any) => Component;
+const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ pageContent: { NEW: "New", STARTING_AT: "Starting At" } });
+const usePageContent = () => ({ pageContent: { NEW: "New", STARTING_AT: "Starting At" } });
+const useTypographyStyles = (props: any) => ({ rhBaseBody1: "" });
+const useRhUserAtomValue = () => ({ userType: "" });
+const RHRPriceDisplay = (props: any) => <div>Price Display Placeholder</div>;
+const OptionsDetailsList = (props: any) => <div>Options Details List Placeholder</div>;
+const SkuLabelMobile = (props: any) => <div>Sku Label Mobile Placeholder</div>;
+const getMemberSavingsText = (pageContent: any, percentSaleSkus: number, min: number, max: number) => "";
+const getPriceUserType = (userType: string, price: any) => price; // Placeholder
+
+// Placeholder for MUI components
+const useMediaQuery = (query: any) => true;
+
+// Placeholder types
+interface SearchRecordProduct {
+  newProduct?: boolean;
+  displayName?: string;
+  percentSaleSkus?: number;
+  memberSavingsMin?: number;
+  memberSavingsMax?: number;
+  rhr?: boolean;
+  priceInfo?: {
+    listPrices?: number[];
+    memberPrices?: number[];
+    nextGenDrivenOnSale?: boolean;
+    skulowestMemberPrice?: number;
+    overridePriceLabel?: string;
+  };
+  skuPriceInfo?: {
+    listPrice?: number;
+    memberPrice?: number;
+    onSale?: boolean;
+    skulowestMemberPrice?: number;
+    skuOptions?: ProductItemOption[];
+  };
+  uxAttributes?: {
+    membershipProduct?: string;
+    giftCert?: string;
+  };
+  customProduct?: boolean;
+}
+
+interface SearchRecordSku {
+  fullSkuId?: string;
+}
+
+interface ProductItemOption {
+  optionType?: string;
+  label?: string;
+}
 
 interface ProductDetailsProps {
   product: SearchRecordProduct;
@@ -40,14 +82,14 @@ const ProductDetails: FC<ProductDetailsProps> = ({
   if (!inStockFlow) {
     isStockedFilterActive = inStockFlow;
   }
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const isAemPage = !pathname?.includes(".jsp");
   const { pageContent } = !isAemPage
     ? usePageContent()
     : useFetchModel("/admin/products", false, false);
   const { userType } = useRhUserAtomValue();
-  const mdUp = useMediaQuery((theme: Theme) => theme.breakpoints.up("md"));
-  const smDown = useMediaQuery((theme: Theme) => theme.breakpoints.down("sm"));
+  const mdUp = true;
+  const smDown = true;
 
   const centerAlignFlag = product?.rhr;
 

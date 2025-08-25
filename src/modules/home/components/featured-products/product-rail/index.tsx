@@ -4,6 +4,7 @@ import { Text } from "@medusajs/ui"
 
 import InteractiveLink from "@modules/common/components/interactive-link"
 import ProductCard from "../../../../../components/ProductCard"
+import { adaptMedusaProductToRhProduct } from "@lib/util/rh-product-adapter"
 
 export default async function ProductRail({
   collection,
@@ -38,7 +39,7 @@ export default async function ProductRail({
         {pricedProducts &&
           pricedProducts.map((product) => (
             <li key={product.id}>
-              <ProductCard product={product} />
+              <ProductCard data={adaptMedusaProductToRhProduct(product)} />
             </li>
           ))}
       </ul>

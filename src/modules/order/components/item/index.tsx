@@ -5,6 +5,7 @@ import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
 import LineItemUnitPrice from "@modules/common/components/line-item-unit-price"
 import Thumbnail from "@modules/products/components/thumbnail"
+import { adaptMedusaLineItemToIknkLineItem } from "@lib/util/iknk-cart-adapter"
 
 type ItemProps = {
   item: HttpTypes.StoreCartLineItem | HttpTypes.StoreOrderLineItem
@@ -12,6 +13,8 @@ type ItemProps = {
 }
 
 const Item = ({ item, currencyCode }: ItemProps) => {
+  const iknkItem = adaptMedusaLineItemToIknkLineItem(item)
+
   return (
     <Table.Row className="w-full" data-testid="product-row">
       <Table.Cell className="!pl-0 p-4 w-24">
@@ -25,9 +28,9 @@ const Item = ({ item, currencyCode }: ItemProps) => {
           className="txt-medium-plus text-ui-fg-base"
           data-testid="product-name"
         >
-          {item.product_title}
+          {item.title}
         </Text>
-        <LineItemOptions variant={item.variant} data-testid="product-variant" />
+        <LineItemOptions item={iknkItem} data-testid="product-variant" />
       </Table.Cell>
 
       <Table.Cell className="!pr-0">
@@ -37,14 +40,14 @@ const Item = ({ item, currencyCode }: ItemProps) => {
               <span data-testid="product-quantity">{item.quantity}</span>x{" "}
             </Text>
             <LineItemUnitPrice
-              item={item}
+              item={iknkItem}
               style="tight"
               currencyCode={currencyCode}
             />
           </span>
 
           <LineItemPrice
-            item={item}
+            item={iknkItem}
             style="tight"
             currencyCode={currencyCode}
           />

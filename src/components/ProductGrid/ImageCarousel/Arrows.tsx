@@ -1,5 +1,6 @@
 import React, { Fragment } from "react";
-import memoize from "utils/memoize";
+// import memoize from "utils/memoize";
+const memoize = (Component: any) => Component;
 
 const Arrows = ({
   scrollPrev,
@@ -8,6 +9,13 @@ const Arrows = ({
   nextClassName = "",
   index = 1,
   slides = 0
+}: {
+  scrollPrev: () => void;
+  scrollNext: () => void;
+  prevClassName?: string;
+  nextClassName?: string;
+  index?: number;
+  slides?: number;
 }) => {
   return (
     <Fragment>

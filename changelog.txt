@@ -1,0 +1,224 @@
+# Changelog for iknk-storefront-main Integration Session
+
+This changelog summarizes the modifications and additions made to the `iknk-storefront-main copy` project during a session with Gemini, aimed at integrating features from an RH.COM static site.
+
+## Session Overview:
+The primary goal of this session was to integrate "feature-rich" functionalities from a provided RH.COM static site (`static2` folder) into the Medusa storefront. This involved adapting existing Medusa components and creating new ones to handle RH.COM's specific data structures and UI/UX.
+
+## Key Integration Areas & Changes:
+
+### 1. Product Data Adapter (`src/lib/util/rh-product-adapter.ts`)
+- **Created**: `src/lib/util/rh-product-adapter.ts`
+- **Purpose**: To transform Medusa's `HttpTypes.StoreProduct` into a `RhProduct` format that closely matches the data structure expected by RH.COM components.
+- **Details**:
+    - Defined `RhProduct` interface, along with nested interfaces like `RhImage`, `RhPriceRangeDisplay`, `RhSkuPriceInfo`, `RhPersonalizeInfo`, `RhSwatchData`, `RhSwatchGroup`, `RhSwatch`, `RhCustomProductOptions`, `RhProductAddons`, `RhDimensions`, `RhCtaLink`.
+    - Implemented `adaptMedusaProductToRhProduct` function to map fields, derive pricing/stock status, and parse complex JSON data from Medusa's `metadata` field.
+
+### 2. Medusa Product Data Fetching (`src/lib/medusa.ts`)
+- **Modified**: `src/lib/medusa.ts`
+- **Purpose**: To use the `rh-product-adapter` and ensure `listProducts` and `getProductByHandle` return `RhProduct` objects.
+- **Details**:
+    - Updated `listProducts` and `getProductByHandle` to return `RhProduct[]` and `RhProduct | null` respectively.
+    - Applied `adaptMedusaProductToRhProduct` to the fetched Medusa products.
+    - Removed redundant local `Product` and related interfaces.
+    - Refactored `listProducts` to correctly handle `countryCode`, `regionId`, and `queryParams` for `medusaGet`.
+    - Removed redundant `expand` parameter from `medusaGet` call.
+    - Fixed syntax error in `medusaGet`'s catch block.
+
+### 3. Core Product Display Components (Adapted from RH.COM)
+
+#### a. Product Card (`src/components/ProductCard.tsx`)
+- **Modified**: `src/components/ProductCard.tsx` (overwritten with adapted RH.COM component)
+- **Purpose**: To display product information in the RH.COM style.
+- **Details**:
+    - Copied content from `static2/js/components/ProductCard/index.tsx`.
+    - Renamed component to `IknkProductCard`.
+    - Added `"use client"` directive.
+    - Adapted imports and props to use `RhProduct`.
+    - Replaced RH.COM specific utilities/components with placeholders or simplified versions (`RHImageV2`, `RHLink`, `RHRPriceDisplay`, `Typography`, `cn`, MUI components).
+    - Installed missing dependencies: `@mui/material`, `@emotion/react`, `@emotion/styled`, `react-intersection-observer`, `he`.
+
+#### b. Product Grid (`src/components/ProductGrid.tsx`)
+- **Modified**: `src/components/ProductGrid.tsx` (overwritten with adapted RH.COM component)
+- **Purpose**: To display a grid of products in the RH.COM style.
+- **Details**:
+    - Copied content from `static2/js/components/ProductGrid/index.tsx`.
+    - Renamed component to `IknkProductGrid`.
+    - Added `"use client"` directive.
+    - Adapted imports and props to use `RhProduct` and `IknkProductCard`.
+    - Replaced RH.COM specific utilities/components with placeholders or simplified versions.
+    - Made `gridColumns` handling more robust to prevent `RangeError: Invalid array length`.
+    - Handled `sortBy="featured"` by not adding an `order` parameter to Medusa API requests.
+
+#### c. Product List Hook (`src/lib/hooks/use-iknk-product-list.tsx`)
+- **Created**: `src/lib/hooks/use-iknk-product-list.tsx`
+- **Purpose**: To process `RhProduct` list for display in `IknkProductGrid`.
+- **Details**:
+    - Copied content from `static2/js/hooks/usePGProductItemList/usePGProductItemList.tsx`.
+    - Renamed hook to `useIknkProductList`.
+    - Adapted imports and input/output types to `RhProduct`.
+    - Simplified URL generation and price calculation logic.
+
+### 4. Product Detail Page (PDP) Enhancements (`src/modules/products/templates/index.tsx`)
+- **Modified**: `src/modules/products/templates/index.tsx`
+- **Purpose**: To display rich product details from `RhProduct` on the PDP.
+- **Details**:
+    - Changed `product` prop type to `RhProduct`.
+    - Adapted `ProductImageCarousel` to use `product.alternateImages`.
+    - Adapted `ProductPrice` to use `product.skuPriceInfo` and `product.priceRangeDisplay`.
+    - Adapted `ProductActions` and `MobileActions` to accept `selectedOptions` and `onOptionChange` props, and manage variant selection.
+    - Adapted `isSimpleProduct` and `OptionSelect` to `RhProduct`.
+    - Adapted `RelatedProducts` to `RhProduct`.
+    - Added `"use client"` directive.
+    - Added placeholder sections for `swatchData`, `personalizeInfo`, `customProductOptions`, `productAddons`, and other metadata fields (`videoUrl`, `dimensions`, `careInstructions`, `romanceHeader`, `ctaLinks`).
+
+#### a. Swatch Selector (`src/modules/products/components/iknk-swatch-selector.tsx`)
+- **Created**: `src/modules/products/components/iknk-swatch-selector.tsx`
+- **Purpose**: To render product swatches and handle selection.
+- **Details**:
+    - Basic component to display `RhSwatchData` and trigger `onOptionChange`.
+    - Integrated into `ProductTemplate`.
+
+#### b. Personalization Options (`src/modules/products/components/iknk-personalization-options.tsx`)
+- **Created**: `src/modules/products/components/iknk-personalization-options.tsx`
+- **Purpose**: To display personalization options.
+- **Details**:
+    - Basic component to display `RhPersonalizeInfo`.
+    - Integrated into `ProductTemplate`.
+
+#### c. Custom Product Configurator (`src/modules/products/components/iknk-custom-product-configurator.tsx`)
+- **Created**: `src/modules/products/components/iknk-custom-product-configurator.tsx`
+- **Purpose**: To display custom product options.
+- **Details**:
+    - Basic component to display `RhCustomProductOptions`.
+    - Integrated into `ProductTemplate`.
+
+#### d. Product Add-ons (`src/modules/products/components/iknk-product-addons.tsx`)
+- **Created**: `src/modules/products/components/iknk-product-addons.tsx`
+- **Purpose**: To display product add-ons.
+- **Details**:
+    - Basic component to display `RhProductAddons`.
+    - Integrated into `ProductTemplate`.
+
+### 5. Cart Data Adapter (`src/lib/util/iknk-cart-adapter.ts`)
+- **Created**: `src/lib/util/iknk-cart-adapter.ts`
+- **Purpose**: To transform Medusa's `HttpTypes.StoreCart` into an `IknkCart` format.
+- **Details**:
+    - Defined `IknkCart` interface, along with nested interfaces like `IknkLineItem`, `IknkCartPrice`, `IknkAddress`, `IknkPayment`.
+    - Implemented `adaptMedusaCartToIknkCart` function to map cart data.
+
+### 6. Cart Context (`src/lib/context/iknk-cart-context.tsx`)
+- **Created**: `src/lib/context/iknk-cart-context.tsx`
+- **Purpose**: To provide cart state and actions to the application.
+- **Details**:
+    - Implemented `IknkShoppingCartContext` and `IknkShoppingCartContextProvider`.
+    - Uses Medusa's `retrieveCart` and `iknk-cart-adapter`.
+    - Integrated into `src/app/layout.tsx`.
+
+### 7. Shopping Cart Page (`src/modules/cart/templates/iknk-shopping-cart.tsx`)
+- **Created**: `src/modules/cart/templates/iknk-shopping-cart.tsx`
+- **Purpose**: To display the shopping cart content.
+- **Details**:
+    - Consumes `IknkShoppingCartContext`.
+    - Displays `IknkCart` items and totals.
+    - Provides basic quantity update and remove item functionality.
+    - Integrated into `src/app/[countryCode]/(main)/cart/page.tsx`.
+
+### 8. Checkout Flow Components (Adapted)
+
+#### a. Checkout Summary (`src/modules/checkout/templates/checkout-summary/index.tsx`)
+- **Modified**: `src/modules/checkout/templates/checkout-summary/index.tsx`
+- **Purpose**: To display the cart summary in checkout.
+- **Details**:
+    - Changed `cart` prop type to `IknkCart`.
+    - Adapted `CartTotals`, `ItemsPreviewTemplate`, `DiscountCode` to `IknkCart`.
+
+#### b. Addresses (`src/modules/checkout/components/addresses/index.tsx`)
+- **Modified**: `src/modules/checkout/components/addresses/index.tsx`
+- **Purpose**: To handle shipping and billing addresses.
+- **Details**:
+    - Changed `cart` prop type to `IknkCart`.
+    - Adapted `formData` initialization and data access to `IknkCart.shipAddress` and `IknkCart.billAddress`.
+
+#### c. Shipping Address (`src/modules/checkout/components/shipping-address/index.tsx`)
+- **Modified**: `src/modules/checkout/components/shipping-address/index.tsx`
+- **Purpose**: To handle shipping address input.
+- **Details**:
+    - Changed `cart` prop type to `IknkCart`.
+    - Adapted `formData` initialization and data access to `IknkCart.shipAddress`.
+
+#### d. Billing Address (`src/modules/checkout/components/billing_address/index.tsx`)
+- **Modified**: `src/modules/checkout/components/billing_address/index.tsx`
+- **Purpose**: To handle billing address input.
+- **Details**:
+    - Changed `cart` prop type to `IknkCart`.
+    - Adapted `formData` initialization and data access to `IknkCart.billAddress`.
+
+#### e. Country Select (`src/modules/checkout/components/country-select/index.tsx`)
+- **Modified**: `src/modules/checkout/components/country-select/index.tsx`
+- **Purpose**: To select a country.
+- **Details**:
+    - Removed `region` prop dependency.
+    - Fetches all countries independently using `listRegions`.
+
+#### f. Shipping (`src/modules/checkout/components/shipping/index.tsx`)
+- **Modified**: `src/modules/checkout/components/shipping/index.tsx`
+- **Purpose**: To select shipping methods.
+- **Details**:
+    - Changed `cart` prop type to `IknkCart`.
+    - Adapted data access for `cart.shipping_methods` (assuming it's in `metadata`) and `cart.cartPrice.currencySymbol`.
+
+#### g. Payment (`src/modules/checkout/components/payment/index.tsx`)
+- **Modified**: `src/modules/checkout/components/payment/index.tsx`
+- **Purpose**: To select payment methods.
+- **Details**:
+    - Changed `cart` prop type to `IknkCart`.
+    - Adapted data access for `cart.payments` and `cart.cartPrice.totalPrice`.
+
+#### h. Review (`src/modules/checkout/components/review/index.tsx`)
+- **Modified**: `src/modules/checkout/components/review/index.tsx`
+- **Purpose**: To review the order before placing.
+- **Details**:
+    - Changed `cart` prop type to `IknkCart`.
+    - Adapted data access for `cart.shipAddress`, `cart.payments`, and `cart.cartPrice.totalPrice`.
+
+### 9. Error Handling & Debugging
+- **Modified**: `src/lib/medusa.ts`, `src/middleware.ts`, `src/app/[countryCode]/(main)/collections/[handle]/page.tsx`, `src/app/[countryCode]/(main)/categories/[...category]/page.tsx`, `src/app/[countryCode]/(main)/products/[handle]/page.tsx`
+- **Purpose**: To resolve various build and runtime errors.
+- **Details**:
+    - Added robust error handling to `generateStaticParams` functions.
+    - Removed `generateStaticParams` from dynamic routes to prevent build failures when Medusa backend is not running.
+    - Fixed `localStorage is not defined` error by correctly identifying server environment.
+    - Fixed `region_id` missing error by passing it to `listProducts`.
+    - Fixed `Product.featured` sort error by handling `featured` sort option.
+    - Fixed syntax errors in `src/lib/medusa.ts`.
+    - Added extensive `console.log` statements to `src/middleware.ts` for debugging redirect loops.
+
+## Current State:
+- The project now compiles successfully.
+- Core product display (card, grid, PDP with placeholders for rich features) is integrated.
+- Cart functionality (adding, updating, removing items, displaying cart) is integrated.
+- Checkout flow (addresses, shipping, payment, review) is integrated with adapted components.
+- The immediate next step is to resolve why products are not being fetched for category pages (e.g., /za/categories/dining-tables), even though the Medusa backend is returning a 200 OK for the product query. This suggests the backend is returning an empty product list for that specific query.
+
+---
+
+## Prompt for New Gemini Session:
+
+```
+I'm continuing our previous session on integrating RH.COM static site features into the iknk-storefront-main project.
+
+Here's a summary of our current progress:
+- The project now compiles successfully.
+- Core product display (card, grid, PDP with placeholders for rich features) is integrated.
+- Cart functionality (adding, updating, removing items, displaying cart) is integrated.
+- Checkout flow (addresses, shipping, payment, review) is integrated with adapted components.
+
+The immediate next step is to resolve why products are not being fetched for category pages (e.g., /za/categories/dining-tables), even though the Medusa backend is returning a 200 OK for the product query. This suggests the backend is returning an empty product list for that specific query.
+
+To help diagnose this, I need the **full JSON response body** from the following network request when you navigate to `/za/categories/dining-tables` in your browser:
+
+`http://localhost:9000/store/products?limit=12&offset=0&region_id=reg_01K36EHDXKF7PPJZPN5XBC8K4A&fields=%2Avariants.calculated_price%2C%2Bvariants.inventory_quantity%2C%2Bmetadata%2C%2Btags&category_id=pcat_01K30JZENTYQ6WNWV4782FHB8S`
+
+Please provide the JSON content from the 'Response' tab in your browser's developer tools for this request.
+```

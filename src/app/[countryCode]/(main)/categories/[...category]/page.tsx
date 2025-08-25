@@ -10,37 +10,10 @@ type Props = {
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export async function generateStaticParams() {
-  const categories = await listCategories()
 
-  if (!categories) {
-    return []
-  }
 
-  const countryCodes = await listRegions().then(
-    (regions) =>
-      regions
-        ?.map((r) => r.countries?.map((c) => c.iso_2))
-        .flat()
-        .filter(Boolean) as string[]
-  )
-
-  const categoryHandles = categories.map((c) => c.handle)
-
-  const staticParams = countryCodes
-    ?.map((countryCode) =>
-      categoryHandles.map((handle) => ({
-        countryCode,
-        category: handle?.split('/'),
-      }))
-    )
-    .flat()
-    .filter((param) => param.category && param.countryCode)
-
-  return staticParams
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const category = await getCategoryByHandle(params.category)
 
   if (!category) {
@@ -53,7 +26,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function CategoryPage({ params, searchParams }: Props) {
+export default async function CategoryPage(props: Props) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
+
   const category = await getCategoryByHandle(params.category)
 
   if (!category) {

@@ -5,6 +5,7 @@ import Image from "next/image"
 
 type ImageType = { id: string; url: string | null }
 export default function ProductImageCarousel({ images }: { images: ImageType[] }) {
+  console.log("ProductImageCarousel images:", images)
   const [idx, setIdx] = useState(0)
   if (!images?.length) return <div className="aspect-[4/5] bg-gray-100 rounded-lg" />
 

@@ -2,7 +2,7 @@
 
 import { Table, Text, clx } from "@medusajs/ui"
 import { updateLineItem } from "@lib/data/cart"
-import { HttpTypes } from "@medusajs/types"
+// import { HttpTypes } from "@medusajs/types" // Removed
 import CartItemSelect from "@modules/cart/components/cart-item-select"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import DeleteButton from "@modules/common/components/delete-button"
@@ -13,9 +13,10 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import Spinner from "@modules/common/icons/spinner"
 import Thumbnail from "@modules/products/components/thumbnail"
 import { useState } from "react"
+import { IknkLineItem } from "@lib/util/iknk-cart-adapter"; // Import IknkLineItem
 
 type ItemProps = {
-  item: HttpTypes.StoreCartLineItem
+  item: IknkLineItem
   type?: "full" | "preview"
   currencyCode: string
 }
@@ -29,7 +30,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
     setUpdating(true)
 
     await updateLineItem({
-      lineId: item.id,
+      lineId: item.id || item.sku, // Use item.id or item.sku as lineId
       quantity,
     })
       .catch((err) => {
@@ -40,23 +41,27 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
       })
   }
 
-  // TODO: Update this to grab the actual max inventory
+  // TODO: Update this to grab the actual max inventory from IknkLineItem
   const maxQtyFromInventory = 10
-  const maxQuantity = item.variant?.manage_inventory ? 10 : maxQtyFromInventory
+  // Simplified inventory management for now
+  const manage_inventory = item.metadata?.manage_inventory || false; // Assuming metadata contains this
+  const allow_backorder = item.metadata?.allow_backorder || false; // Assuming metadata contains this
+  const inventory_quantity = item.metadata?.inventory_quantity || 0; // Assuming metadata contains this
+
+  const maxQuantity = manage_inventory ? 10 : maxQtyFromInventory
 
   return (
     <Table.Row className="w-full" data-testid="product-row">
       <Table.Cell className="!pl-0 p-4 w-24">
         <LocalizedClientLink
-          href={`/products/${item.product_handle}`}
+          href={`/products/${item.productId}`} // Use productId for handle
           className={clx("flex", {
             "w-16": type === "preview",
             "small:w-24 w-12": type === "full",
           })}
         >
           <Thumbnail
-            thumbnail={item.thumbnail}
-            images={item.variant?.product?.images}
+            thumbnail={item.imageUrl} // Use imageUrl for thumbnail
             size="square"
           />
         </LocalizedClientLink>
@@ -67,15 +72,15 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
           className="txt-medium-plus text-ui-fg-base"
           data-testid="product-title"
         >
-          {item.product_title}
+          {item.displayName}
         </Text>
-        <LineItemOptions variant={item.variant} data-testid="product-variant" />
+        <LineItemOptions item={item} data-testid="product-variant" />
       </Table.Cell>
 
       {type === "full" && (
         <Table.Cell>
           <div className="flex gap-2 items-center w-28">
-            <DeleteButton id={item.id} data-testid="product-delete-button" />
+            <DeleteButton id={item.id || item.sku} data-testid="product-delete-button" />
             <CartItemSelect
               value={item.quantity}
               onChange={(value) => changeQuantity(parseInt(value.target.value))}

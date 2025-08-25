@@ -11,18 +11,21 @@ import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
+import { RhProduct, RhVariant, RhOption } from "@lib/util/rh-product-adapter"; // Import RhProduct and related types
 
 type ProductActionsProps = {
-  product: HttpTypes.StoreProduct
+  product: RhProduct
   region: HttpTypes.StoreRegion
   disabled?: boolean
+  selectedOptions: Record<string, string | undefined>; // New prop
+  onOptionChange: (optionId: string, value: string) => void; // New prop
 }
 
 const optionsAsKeymap = (
-  variantOptions: HttpTypes.StoreProductVariant["options"]
+  variantOptions: { id: string; value: string }[] | undefined
 ) => {
   return variantOptions?.reduce((acc: Record<string, string>, varopt: any) => {
-    acc[varopt.option_id] = varopt.value
+    acc[varopt.id] = varopt.value
     return acc
   }, {})
 }
@@ -30,8 +33,10 @@ const optionsAsKeymap = (
 export default function ProductActions({
   product,
   disabled,
+  selectedOptions, // Destructure new prop
+  onOptionChange, // Destructure new prop
 }: ProductActionsProps) {
-  const [options, setOptions] = useState<Record<string, string | undefined>>({})
+  // const [options, setOptions] = useState<Record<string, string | undefined>>({}) // Removed local state
   const [isAdding, setIsAdding] = useState(false)
   const params = useParams()
   const countryCode = typeof params?.countryCode === 'string' ? params.countryCode : '';
@@ -39,37 +44,43 @@ export default function ProductActions({
   // If there is only 1 variant, preselect the options
   useEffect(() => {
     if (product.variants?.length === 1) {
-      const variantOptions = optionsAsKeymap(product.variants[0].options)
-      setOptions(variantOptions ?? {})
+      const variantOptions = product.variants[0].options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
+      // setOptions(optionsAsKeymap(variantOptions) ?? {}) // Use onOptionChange
+      const mappedOptions = optionsAsKeymap(variantOptions) ?? {};
+      for (const key in mappedOptions) {
+        if (mappedOptions.hasOwnProperty(key)) {
+          onOptionChange(key, mappedOptions[key]);
+        }
+      }
     }
-  }, [product.variants])
+  }, [product.variants, onOptionChange])
 
   const selectedVariant = useMemo(() => {
     if (!product.variants || product.variants.length === 0) {
       return
     }
 
-    return product.variants.find((v) => {
-      const variantOptions = optionsAsKeymap(v.options)
-      return isEqual(variantOptions, options)
+    return product.variants.find((v: RhVariant) => {
+      const variantOptions = v.options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
+      return isEqual(optionsAsKeymap(variantOptions), selectedOptions) // Use selectedOptions
     })
-  }, [product.variants, options])
+  }, [product.variants, selectedOptions]) // Use selectedOptions
 
   // update the options when a variant is selected
-  const setOptionValue = (optionId: string, value: string) => {
-    setOptions((prev) => ({
-      ...prev,
-      [optionId]: value,
-    }))
-  }
+  // const setOptionValue = (optionId: string, value: string) => { // Removed local function
+  //   setOptions((prev) => ({
+  //     ...prev,
+  //     [optionId]: value,
+  //   }))
+  // }
 
   //check if the selected options produce a valid variant
   const isValidVariant = useMemo(() => {
-    return product.variants?.some((v) => {
-      const variantOptions = optionsAsKeymap(v.options)
-      return isEqual(variantOptions, options)
+    return product.variants?.some((v: RhVariant) => {
+      const variantOptions = v.options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
+      return isEqual(optionsAsKeymap(variantOptions), selectedOptions) // Use selectedOptions
     })
-  }, [product.variants, options])
+  }, [product.variants, selectedOptions]) // Use selectedOptions
 
   // check if the selected variant is in stock
   const inStock = useMemo(() => {
@@ -120,13 +131,13 @@ export default function ProductActions({
         <div>
           {(product.variants?.length ?? 0) > 1 && (
             <div className="flex flex-col gap-y-4">
-              {(product.options || []).map((option) => {
+              {(product.options || []).map((option: RhOption) => {
                 return (
                   <div key={option.id}>
                     <OptionSelect
                       option={option}
-                      current={options[option.id]}
-                      updateOption={setOptionValue}
+                      current={selectedOptions[option.id]}
+                      updateOption={onOptionChange}
                       title={option.title ?? ""}
                       data-testid="product-options"
                       disabled={!!disabled || isAdding}
@@ -155,7 +166,7 @@ export default function ProductActions({
           isLoading={isAdding}
           data-testid="add-product-button"
         >
-          {!selectedVariant && !options
+          {!selectedVariant && !selectedOptions
             ? "Select variant"
             : !inStock || !isValidVariant
             ? "Out of stock"
@@ -163,9 +174,8 @@ export default function ProductActions({
         </Button>
         <MobileActions
           product={product}
-          variant={selectedVariant}
-          options={options}
-          updateOptions={setOptionValue}
+          options={selectedOptions}
+          updateOptions={onOptionChange}
           inStock={inStock}
           handleAddToCart={handleAddToCart}
           isAdding={isAdding}

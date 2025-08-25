@@ -122,7 +122,6 @@ const AddAddress = ({
                 data-testid="state-input"
               />
               <CountrySelect
-                region={region}
                 name="country_code"
                 required
                 autoComplete="country"

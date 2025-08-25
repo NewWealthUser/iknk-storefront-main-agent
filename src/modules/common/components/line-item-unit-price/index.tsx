@@ -1,9 +1,10 @@
 import { convertToLocale } from "@lib/util/money"
-import { HttpTypes } from "@medusajs/types"
 import { clx } from "@medusajs/ui"
+import React from "react"
+import { IknkLineItem } from "@lib/util/iknk-cart-adapter"; // Import IknkLineItem
 
 type LineItemUnitPriceProps = {
-  item: HttpTypes.StoreCartLineItem | HttpTypes.StoreOrderLineItem
+  item: IknkLineItem
   style?: "default" | "tight"
   currencyCode: string
 }
@@ -13,12 +14,8 @@ const LineItemUnitPrice = ({
   style = "default",
   currencyCode,
 }: LineItemUnitPriceProps) => {
-  const { total, original_total } = item
-  const hasReducedPrice = total < original_total
-
-  const percentage_diff = Math.round(
-    ((original_total - total) / original_total) * 100
-  )
+  const unitPrice = item.price; // Use item.price as the unit price
+  const hasReducedPrice = false; // Simplified for now
 
   return (
     <div className="flex flex-col text-ui-fg-muted justify-center h-full">
@@ -33,13 +30,13 @@ const LineItemUnitPrice = ({
               data-testid="product-unit-original-price"
             >
               {convertToLocale({
-                amount: original_total / item.quantity,
+                amount: unitPrice, // Using unitPrice as original for now
                 currency_code: currencyCode,
               })}
             </span>
           </p>
           {style === "default" && (
-            <span className="text-ui-fg-interactive">-{percentage_diff}%</span>
+            <span className="text-ui-fg-interactive">{/* -{percentage_diff}% */}</span>
           )}
         </>
       )}
@@ -50,7 +47,7 @@ const LineItemUnitPrice = ({
         data-testid="product-unit-price"
       >
         {convertToLocale({
-          amount: total / item.quantity,
+          amount: unitPrice,
           currency_code: currencyCode,
         })}
       </span>

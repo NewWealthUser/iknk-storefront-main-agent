@@ -5,14 +5,15 @@ import React from "react";
 
 import { applyPromotions } from "@lib/data/cart"
 import { convertToLocale } from "@lib/util/money"
-import { HttpTypes } from "@medusajs/types"
+// import { HttpTypes } from "@medusajs/types" // Removed
 import Trash from "@modules/common/icons/trash"
 import ErrorMessage from "../error-message"
 import { SubmitButton } from "../submit-button"
+import { IknkCart } from "@lib/util/iknk-cart-adapter"; // Import IknkCart
 
 type DiscountCodeProps = {
-  cart: HttpTypes.StoreCart & {
-    promotions: HttpTypes.StorePromotion[]
+  cart: IknkCart & { // Changed to IknkCart
+    promotions?: any[] // Assuming promotions will be an array on IknkCart
   }
 }
 
@@ -27,7 +28,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     )
 
     await applyPromotions(
-      validPromotions.filter((p) => p.code === undefined).map((p) => p.code!)
+      validPromotions.filter((p: any) => p.code === undefined).map((p: any) => p.code!)
     )
   }
 
@@ -40,8 +41,8 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     }
     const input = document.getElementById("promotion-input") as HTMLInputElement
     const codes = promotions
-      .filter((p) => p.code === undefined)
-      .map((p) => p.code!)
+      .filter((p: any) => p.code === undefined)
+      .map((p: any) => p.code!)
     codes.push(code.toString())
 
     try {
@@ -108,7 +109,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                 Promotion(s) applied:
               </Heading>
 
-              {promotions.map((promotion) => {
+              {promotions.map((promotion: any) => {
                 return (
                   <div
                     key={promotion.id}

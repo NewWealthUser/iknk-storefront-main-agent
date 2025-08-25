@@ -5,10 +5,10 @@ import FastDelivery from "@modules/common/icons/fast-delivery"
 import Refresh from "@modules/common/icons/refresh"
 
 import Accordion from "./accordion"
-import { HttpTypes } from "@medusajs/types"
+import { RhProduct } from "@lib/util/rh-product-adapter"
 
 type ProductTabsProps = {
-  product: HttpTypes.StoreProduct
+  product: RhProduct
 }
 
 const ProductTabs = ({ product }: ProductTabsProps) => {
@@ -56,19 +56,19 @@ const ProductInfoTab = ({ product }: ProductTabsProps) => {
           </div>
           <div>
             <span className="font-semibold">Type</span>
-            <p>{product.type ? product.type.value : "-"}</p>
+            <p>{product.type ? product.type : "-"}</p>
           </div>
         </div>
         <div className="flex flex-col gap-y-4">
           <div>
             <span className="font-semibold">Weight</span>
-            <p>{product.weight ? `${product.weight} g` : "-"}</p>
+            <p>{product.dimensions?.weight ? `${product.dimensions.weight} g` : "-"}</p>
           </div>
           <div>
             <span className="font-semibold">Dimensions</span>
             <p>
-              {product.length && product.width && product.height
-                ? `${product.length}L x ${product.width}W x ${product.height}H`
+              {product.dimensions?.length && product.dimensions?.width && product.dimensions?.height
+                ? `${product.dimensions.length}L x ${product.dimensions.width}W x ${product.dimensions.height}H`
                 : "-"}
             </p>
           </div>

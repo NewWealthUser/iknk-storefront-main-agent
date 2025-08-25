@@ -1,5 +1,5 @@
-import { HttpTypes } from "@medusajs/types";
+import { RhProduct } from "@lib/util/rh-product-adapter";
 
-export const isSimpleProduct = (product: HttpTypes.StoreProduct): boolean => {
+export const isSimpleProduct = (product: RhProduct): boolean => {
     return (product.variants?.length || 0) <= 1;
 }

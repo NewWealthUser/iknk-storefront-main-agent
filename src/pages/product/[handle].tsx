@@ -4,6 +4,7 @@ import { dehydrate, QueryClient } from "@tanstack/react-query"
 import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
+import { adaptMedusaProductToRhProduct, RhProduct } from "@lib/util/rh-product-adapter"
 import { HttpTypes, StoreRegion } from "@medusajs/types"
 
 interface Params extends ParsedUrlQuery {
@@ -15,6 +16,7 @@ interface Props {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
   countryCode: string
+  relatedProducts: RhProduct[] // Added relatedProducts to Props
 }
 
 export const getStaticPaths: GetStaticPaths<Params> = async () => {
@@ -89,20 +91,48 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
     }
   }
 
+  const queryParams: any = {}
+  if (region?.id) {
+    queryParams.region_id = region.id
+  }
+  if (product.collection) {
+    queryParams.collection_id = [product.collection.id]
+  }
+  if (product.tags) {
+    queryParams.tags = {
+      value: product.tags
+        .map((t: HttpTypes.StoreProductTag) => t.id)
+        .filter(Boolean) as string[],
+    }
+  }
+  queryParams.is_giftcard = false
+
+  const { response } = await listProducts({
+    queryParams,
+    countryCode: countryCode,
+    regionId: region.id,
+  })
+
+  const relatedProducts = response?.products?.filter(
+    (responseProduct) => responseProduct.id !== product.id
+  ).map(adaptMedusaProductToRhProduct) || []
+
   return {
     props: {
       product,
       region,
       countryCode,
+      relatedProducts, // Pass relatedProducts here
       dehydratedState: dehydrate(queryClient),
     },
   }
 }
 
-export default function ProductPage({ product, region, countryCode }: Props) {
+export default function ProductPage({ product, region, countryCode, relatedProducts }: Props) {
   return (
     <ProductTemplate
-      product={product}
+      product={adaptMedusaProductToRhProduct(product)}
+      relatedProducts={relatedProducts} // Pass relatedProducts here
       region={region}
       countryCode={countryCode}
     />

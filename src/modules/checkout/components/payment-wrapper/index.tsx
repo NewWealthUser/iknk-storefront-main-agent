@@ -3,11 +3,12 @@
 import { loadStripe } from "@stripe/stripe-js"
 import React from "react"
 import StripeWrapper from "./stripe-wrapper"
-import { HttpTypes } from "@medusajs/types"
+// import { HttpTypes } from "@medusajs/types" // Removed
 import { isStripe } from "@lib/constants"
+import { IknkCart } from "@lib/util/iknk-cart-adapter"; // Import IknkCart
 
 type PaymentWrapperProps = {
-  cart: HttpTypes.StoreCart
+  cart: IknkCart
   children: React.ReactNode
 }
 
@@ -15,7 +16,8 @@ const stripeKey = process.env.NEXT_PUBLIC_STRIPE_KEY
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null
 
 const PaymentWrapper: React.FC<PaymentWrapperProps> = ({ cart, children }) => {
-  const paymentSession = cart.payment_collection?.payment_sessions?.find(
+  // Simplified payment session logic for IknkCart
+  const paymentSession = cart.payments?.find(
     (s) => s.status === "pending"
   )
 

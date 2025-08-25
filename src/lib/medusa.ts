@@ -1,4 +1,6 @@
 import { sdk } from "@lib/config" // Import sdk
+import { adaptMedusaProductToRhProduct, RhProduct } from "./util/rh-product-adapter";
+import { HttpTypes } from "@medusajs/types"; // Ensure HttpTypes is imported
 
 export const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_URL as string
 
@@ -28,66 +30,54 @@ export async function medusaGet<T>(path: string, queryParams?: Record<string, an
       // The request was made but no response was received
       throw new Error("No response received from Medusa backend. Is it running?");
     } else {
-      // Something else happened in setting up the request
+      console.error("Unknown error in medusaGet:", error);
       throw new Error(`Error setting up Medusa request: ${error.message}`);
     }
   }
 }
 
-export interface Price {
-  amount: number
-  currency_code: string
+export async function listProducts({
+  pageParam = 1,
+  queryParams,
+  countryCode,
+  regionId,
+}: {
+  pageParam?: number
+  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
+  countryCode?: string
+  regionId?: string
+}): Promise<{ products: RhProduct[]; count: number; limit: number; offset: number }> {
+  const limit = queryParams?.limit || 12
+  const _pageParam = Math.max(pageParam, 1)
+  const offset = _pageParam === 1 ? 0 : (_pageParam - 1) * limit
+
+  // For now, we'll assume regionId is passed or derived elsewhere if needed
+  // In a real scenario, you'd fetch the region based on countryCode here
+  const region_id = regionId;
+
+  const data = await medusaGet<{ products: HttpTypes.StoreProduct[]; count: number }>(`/store/products`, {
+    limit,
+    offset,
+    region_id,
+    fields:
+      "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags",
+    sales_channel_id: process.env.NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID,
+    ...queryParams,
+  });
+
+  const adaptedProducts = data.products.map(adaptMedusaProductToRhProduct);
+
+  return {
+    products: adaptedProducts,
+    count: data.count,
+    limit: limit,
+    offset: offset,
+  };
 }
 
-export interface Variant {
-  id: string
-  title: string
-  prices: Price[]
-  inventory_quantity?: number
-  manage_inventory?: boolean
-  allow_backorder?: boolean
-  options?: { option_id: string; value: string }[]
-}
-
-export interface OptionValue {
-  id: string
-  value: string
-}
-
-export interface Option {
-  id: string
-  title: string
-  values: OptionValue[]
-}
-
-export interface Image {
-  id: string
-  url: string
-  rank?: number // Added rank property
-}
-
-export interface Product {
-  id: string
-  title: string
-  handle: string
-  description?: string
-  options: Option[]
-  variants: Variant[]
-  images: Image[]
-  collections?: { id: string }[]
-  categories?: { id: string }[]
-}
-
-export async function listProducts(
-  params: Record<string, string | number>
-): Promise<{ products: Product[]; count: number; limit: number; offset: number }> {
-  // Pass the params object directly to medusaGet, it will handle stringification
-  return await medusaGet(`/store/products`, { ...params, expand: "variants,options,images,collections,categories" })
-}
-
-export async function getProductByHandle(handle: string): Promise<Product | null> {
-  const data = await listProducts({ handle, limit: 1 })
-  return data.products[0] || null
+export async function getProductByHandle(handle: string, countryCode: string): Promise<RhProduct | null> {
+  const data = await listProducts({ queryParams: { handle, limit: 1 } as any, countryCode });
+  return data.products[0] || null;
 }
 
 export function formatMoney(amount: number, currency = "USD"): string {
