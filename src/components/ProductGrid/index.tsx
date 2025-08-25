@@ -56,9 +56,9 @@ import { PC } from "./ProductCard";
 const RHPagination = (props: any) => <div>Pagination</div>;
 const ItemsPerPage = (props: any) => <div>Items Per Page</div>;
 const RHDivider = (props: any) => <div style={{ borderTop: "1px solid gray" }} />;
-const usePageContent = () => ({ items_per_page_options: "[]" });
+const usePageContent = () => ({ items_per_page_options: "[]", NEW: "New", STARTING_AT: "Starting At" });
 const useImageSize = () => ({ generateGridMap: (sections: any, columns: number) => {} });
-const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ items_per_page_options: "[]" });
+const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ items_per_page_options: "[]", NEW: "New", STARTING_AT: "Starting At" });
 const useMediaString = () => "lg";
 const useParams = (props: any) => ({
   no: "0",
@@ -67,7 +67,13 @@ const useParams = (props: any) => ({
 });
 const isServer = false;
 const processEnvServer = false;
-// Removed placeholder _chunk function, relying on lodash/chunk
+const _chunk = (arr: any[], size: number) => {
+  const result = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+};
 const useHistory = () => ({ action: "PUSH" });
 const useLocation = () => ({ pathname: "" });
 const RHRProductCardSkeleton = (props: any) => <div>Skeleton</div>;
@@ -268,9 +274,9 @@ const ProductGrid: FC<ProductGrid> = ({
 
   const { pathname } = useLocation();
   const isAemPage = !pathname?.includes(".jsp");
-  const { items_per_page_options } = !isAemPage
-    ? (usePageContent() as { items_per_page_options: string })
-    : (useFetchModel("/admin/products", false, false) as { items_per_page_options: string });
+  const { items_per_page_options, NEW, STARTING_AT } = !isAemPage
+    ? (usePageContent() as any)
+    : (useFetchModel("/admin/products", false, false) as any);
   const ItemsPerPageOptions = JSON.parse(
     items_per_page_options || "[]"
   );
@@ -619,7 +625,7 @@ const ProductGrid: FC<ProductGrid> = ({
                       isRefinementFilterActive={isRefinementFilterActive}
                       gridColumns={productGridColumns}
                       filterQueries={filterQueries}
-                      pageContent={pageContent}
+                      pageContent={{ NEW, STARTING_AT }}
                       productTitle={productTitle}
                       onProductClick={() => {
                         productClickHandler?.(index);
@@ -688,7 +694,7 @@ const ProductGrid: FC<ProductGrid> = ({
                   isRefinementFilterActive={isRefinementFilterActive}
                   gridColumns={gridColumns}
                   filterQueries={filterQueries}
-                  pageContent={pageContent}
+                  pageContent={{ NEW, STARTING_AT }}
                   productTitle={productTitle}
                   onProductClick={() => {
                     productClickHandler?.(index);

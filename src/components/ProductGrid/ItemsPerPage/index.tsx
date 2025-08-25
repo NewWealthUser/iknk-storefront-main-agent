@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from "react";
-import { MenuItem, Select } from "@mui/material";
+import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 // Placeholder imports
 const useHistory = () => ({ replace: (obj: any) => {} });
 const useLocation = () => ({ pathname: "", search: "" });
@@ -15,7 +15,7 @@ const isServer = false;
 const RHArrowIcon = (props: any) => <svg {...props} />;
 const getPGDefaultItemsPerPage = () => 24;
 const useSetSipId = () => (id: any) => {};
-const Typography = (props: any) => <div className={props.className}>{props.children}</div>;
+const Typography = (props: any) => <div className={props.className}>{props.children}</div>>;
 
 export interface ItemsPerPageProps {
   recsPerPage: number;
@@ -61,7 +61,7 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
   });
 
   const changeRecsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
+    (event: SelectChangeEvent<string | number>) => { // Changed event type here
       const nrpp = event.target.value;
       const searchParams = new URLSearchParams(search);
       const currentPage = Math.floor(Number(params.no) / Number(params.maxnrpp));
@@ -83,8 +83,8 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
           searchParams.set("no", String(newNo));
           // loadMoreData(newNrpp);
         }
-        localStorage.setItem(ITEMS_PER_PAGE_PREFERENCE, nrpp);
-        searchParams.set("maxnrpp", nrpp);
+        localStorage.setItem(ITEMS_PER_PAGE_PREFERENCE, nrpp as string); // Cast to string
+        searchParams.set("maxnrpp", nrpp as string); // Cast to string
       }
       const updatedSearch = searchParams.toString();
       history.replace({

@@ -16,7 +16,7 @@ import clsx from "clsx";
 // import RHDivider from "@RHCommerceDev/component-rh-divider"; // RH.COM specific
 
 // import { usePageContent } from "custom-providers/LocationProvider"; // RH.COM specific
-// import { useImageSize } from "@RHCommerceDev/graphql-client/contexts/ImageSizeContext"; // RH.COM specific
+// import { useImageSize } = "@RHCommerceDev/graphql-client/contexts/ImageSizeContext"; // RH.COM specific
 
 // import { useFetchModel } from "hooks/useFetchModel"; // RH.COM specific
 
@@ -245,9 +245,9 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
 
   const { pathname } = useLocation();
   const isAemPage = !pathname?.includes(".jsp");
-  const { items_per_page_options } = !isAemPage
-    ? (usePageContent() as { items_per_page_options: string })
-    : (useFetchModel("/admin/products", false, false) as { items_per_page_options: string });
+  const { items_per_page_options, NEW, STARTING_AT } = !isAemPage
+    ? (usePageContent() as any)
+    : (useFetchModel("/admin/products", false, false) as any);
   const ItemsPerPageOptions = JSON.parse(
     items_per_page_options || "[]"
   );
@@ -446,9 +446,9 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                   objectFit: "contain",
                   alignSelf: "flex-end",
                   maxWidth: "100%",
-                  maxHeight: derivedProduct?.metadata?.rhr
-                    ? imgHeight
-                    : MAX_IMG_CONTAINER_HEIGHT,
+                  maxHeight: areAllRhr
+                    ? imageContainerHeight
+                    : `${MAX_IMG_CONTAINER_HEIGHT}px`,
                   width: "auto",
                   height: "auto",
                   transitionProperty: "opacity"
@@ -592,7 +592,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                       isRefinementFilterActive={isRefinementFilterActive}
                       gridColumns={productGridColumns}
                       filterQueries={filterQueries}
-                      pageContent={pageContent}
+                      pageContent={{ NEW, STARTING_AT }}
                       productTitle={productTitle}
                       onProductClick={() => {
                         productClickHandler?.(index);
@@ -661,7 +661,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                   isRefinementFilterActive={isRefinementFilterActive}
                   gridColumns={gridColumns}
                   filterQueries={filterQueries}
-                  pageContent={pageContent}
+                  pageContent={{ NEW, STARTING_AT }}
                   productTitle={productTitle}
                   onProductClick={() => {
                     productClickHandler?.(index);
