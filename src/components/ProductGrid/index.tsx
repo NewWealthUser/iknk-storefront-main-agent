@@ -67,7 +67,7 @@ const useParams = (props: any) => ({
 });
 const isServer = false;
 const processEnvServer = false;
-// Removed local _chunk placeholder function
+// Removed placeholder _chunk function, relying on lodash/chunk
 const useHistory = () => ({ action: "PUSH" });
 const useLocation = () => ({ pathname: "" });
 const RHRProductCardSkeleton = (props: any) => <div>Skeleton</div>;
@@ -268,11 +268,11 @@ const ProductGrid: FC<ProductGrid> = ({
 
   const { pathname } = useLocation();
   const isAemPage = !pathname?.includes(".jsp");
-  const { NEW, STARTING_AT } = !isAemPage
+  const { items_per_page_options, NEW, STARTING_AT } = !isAemPage
     ? (usePageContent() as any)
     : (useFetchModel("/admin/products", false, false) as any);
   const ItemsPerPageOptions = JSON.parse(
-    (usePageContent() as any)?.items_per_page_options || "[]"
+    items_per_page_options || "[]"
   );
   let mobile = false;
   const req = getReqContext();
