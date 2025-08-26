@@ -54,28 +54,28 @@ export interface IknkPayment extends HttpTypes.StorePaymentSession {
 export function adaptMedusaLineItemToIknkLineItem(item: HttpTypes.StoreCartLineItem | HttpTypes.StoreOrderLineItem): IknkLineItem {
   return {
     id: item.id,
-    productId: item.product_id || item.variant?.product_id || '', // Use product_id directly from item if available
+    productId: item.product_id || item.variant?.product_id || '',
     sku: item.variant?.sku || '',
     displayName: item.title,
     imageUrl: item.thumbnail || '',
     quantity: item.quantity,
-    price: item.unit_price || 0, // Use unit_price for individual item price
+    price: item.unit_price || 0,
   }
 }
 
 export function adaptMedusaCartToIknkCart(medusaCart: HttpTypes.StoreCart): IknkCart {
   const iknkCart: IknkCart = {
     id: medusaCart.id,
-    lineItems: medusaCart.items?.map(item => ({ // Changed to 'lineItems'
+    lineItems: medusaCart.items?.map(item => ({
       id: item.id,
-      productId: item.product_id || item.variant?.product_id || '', // Use product_id directly from item if available
+      productId: item.product_id || item.variant?.product_id || '',
       sku: item.variant?.sku || '',
       displayName: item.title,
       imageUrl: item.thumbnail || '',
       quantity: item.quantity,
-      price: item.unit_price || 0, // Use unit_price for individual item price
+      price: item.unit_price || 0,
       // Map other line item properties from Medusa's item and variant
-    })) || [],
+    })) || [], // Ensure this mapping is correct
     cartPrice: {
       subtotal: medusaCart.subtotal || 0,
       tax: medusaCart.tax_total || 0,

@@ -35,13 +35,16 @@ export async function retrieveCart(cartId?: string) {
     {
       fields:
         "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name",
+    },
+    {
+      cache: "no-store", // Ensure fresh data is always fetched
     }
   ).catch((err) => {
     console.error("retrieveCart: Error fetching cart:", err); // LOG
     return { cart: null }
   })
 
-  console.log("retrieveCart: Retrieved cart:", JSON.stringify(cart, null, 2)); // LOG
+  console.log("retrieveCart: Retrieved cart:", cart?.id, "Items:", cart?.items?.length); // LOG
   return cart
 }
 
