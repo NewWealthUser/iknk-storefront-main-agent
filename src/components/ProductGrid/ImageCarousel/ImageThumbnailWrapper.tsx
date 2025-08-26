@@ -165,11 +165,11 @@ export const ImageThumbnailWrapper: FC<ImageThumbnailListProps> = ({
                 }
               }}
               carouselArrowGridStyles={{
-                right: "-20px"
-              }}
-              icon={"yes"}
-            />
-          ))}
+                  right: "-20px"
+                }}
+                icon={"yes"}
+              />
+            ))}
       </Carousel>
     </div>
   );

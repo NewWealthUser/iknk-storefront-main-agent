@@ -113,93 +113,6 @@ interface SearchResultRecord {
   };
 }
 
-export const getUrl = (
-  item: SearchResultRecord | undefined,
-  host: string = "",
-  stocked: boolean,
-  isRefinementFilterActive: boolean,
-  totalNumRecs: number,
-  isSale: boolean,
-  isConcierge?: boolean,
-  filterQueries?: string[],
-  selectedSwatch?: string | null,
-  isNextGen = false,
-  inStockFlow = true,
-  isNewURLFeatureEnabled: boolean = false,
-  category: string = ""
-) => {
-  const saleParamString = isSale ? "true" : "";
-  const formattedDisplayName = item?.product?.displayName
-    ?.toLowerCase()
-    .replace(/\s+/g, "-");
-
-  const urlPath =
-    isNewURLFeatureEnabled && category
-      ? `/${category}/pdp/${formattedDisplayName}`
-      : `/catalog/product/product.jsp/${item?.product?.repositoryId}`;
-
-  const url = new URL(urlPath, host || "http://www.example.com");
-
-  {
-    isSale && url.searchParams.set("sale", saleParamString);
-  }
-
-  if (item?.product?.skuOptiondata?.length && isNextGen && !stocked) {
-    const skuOptiondata = extractSkuOtions(item?.product?.skuOptiondata);
-    Object.keys(skuOptiondata)?.map(key => {
-      if (skuOptiondata[key] && key) {
-        url.searchParams?.set(key, skuOptiondata[key]);
-      }
-    });
-  }
-
-  // SR-1909 : PDP-Page URL has sku details appended to product ID
-  // if (
-  //   item?.product?.repositoryId !== item?.sku?.fullSkuId &&
-  //   (stocked || isRefinementFilterActive || totalNumRecs === 1) &&
-  //   !isNextGen
-  // ) {
-  //   const skuOptiondataToObj = item?.product?.skuOptiondata
-  //     ?.split(",")
-  //     .reduce((acc, pair) => {
-  //       const [key, value] = pair.split(":").map(item => item.trim());
-  //       acc[key] = value;
-  //     }, {});
-  //   let color = skuOptiondataToObj?.["Color"] ?? null;
-  //   totalNumRecs === 1 && !stocked
-  //     ? url.searchParams.set("categoryId", `search`)
-  //     : (url.searchParams.set("color", `${color}`),
-  //       url.searchParams.set("categoryId", "search"));
-  // }
-
-  if (selectedSwatch) {
-    url.searchParams.set("swatch", selectedSwatch);
-  }
-
-  if (stocked) {
-    if (inStockFlow) {
-      url.searchParams.set("fullSkuId", item?.sku?.fullSkuId ?? "");
-    } else {
-      url.searchParams.set("inStock", "true");
-    }
-  }
-
-  return {
-    to: !host ? url.pathname + url.search : undefined
-  };
-};
-
-export const getPriceUserType = (userType: string, price: any) => {
-  switch (userType) {
-    case "CONTRACT":
-      return price?.contractPrice;
-    case "TRADE":
-      return price?.tradePrice;
-    default:
-      return price?.memberPrice;
-  }
-};
-
 interface ProductGridItem extends SearchResultRecord {
   loader?: boolean;
 }
@@ -273,7 +186,10 @@ const ProductGrid: FC<ProductGrid> = ({
     : (useFetchModel("/admin/products", false, false) as any);
   const ItemsPerPageOptions = JSON.parse(
     items_per_page_options || "[]"
+  )?.filter((item: number) =>
+    FEATURE_PG_DEFAULT_ITEMS_PER_PAGE ? item !== 48 && item !== 24 : item !== 24
   );
+
   let mobile = false;
   const req = getReqContext();
   const userAgent = req && req?.headers["user-agent"];

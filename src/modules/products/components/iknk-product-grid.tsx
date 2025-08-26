@@ -52,8 +52,6 @@ import { IknkProductCard } from "./iknk-product-card"; // Our new ProductCard
 // import { getReqContext } = "@RHCommerceDev/utils/reqContext"; // RH.COM specific
 // import { getSelectorsByUserAgent } from "react-device-detect"; // RH.COM specific
 
-import { RhProduct } from "@lib/util/rh-product-adapter"; // Our adapter types
-
 // Placeholder for RH.COM specific utilities/components
 const RHPagination = (props: any) => <div>Pagination Placeholder</div>;
 const ItemsPerPage = (props: any) => <div>Items Per Page Placeholder</div>;
@@ -250,7 +248,10 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
     : (useFetchModel("/admin/products", false, false) as any);
   const ItemsPerPageOptions = JSON.parse(
     items_per_page_options || "[]"
+  )?.filter((item: number) =>
+    FEATURE_PG_DEFAULT_ITEMS_PER_PAGE ? item !== 48 && item !== 24 : item !== 24
   );
+
   let mobile = false;
   const req = getReqContext();
   const userAgent = req && req?.headers["user-agent"];
@@ -417,7 +418,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
             (derivedProduct: RhProduct) => derivedProduct?.galleryDescription
           ).filter((caption): caption is string => caption !== undefined);
 
-          const maxImageContainerHeight = Math?.max(...imgContainerHeight);
+          const maxImageContainerHeight = Math?.max(...imgContainerHeight.filter(h => h !== undefined));
           const [MAX_IMG_CONTAINER_HEIGHT] =
             PG_IMAGE_CONTAINER_DIMENSION?.[gridColumns]?.[mediaString] ??
             INITIAL_PG_IMAGE_CONTAINER_DIMENSION;
@@ -430,7 +431,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
               : IMAGE_ASPECT_RATIO?.horizontalProductTile;
           return groupedDerivedProduct?.map((derivedProduct: RhProduct) => {
             const imgHeight = `${
-              (derivedProduct?.metadata?.pgCropRules?.height ?? 0) / 100 *
+              ((derivedProduct?.metadata?.pgCropRules?.height ?? 0) / 100) *
               MAX_IMG_CONTAINER_HEIGHT
             }px`;
 
@@ -441,14 +442,16 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
 
             return {
               ...derivedProduct,
+              metadata: {
+                ...derivedProduct?.metadata,
                 captionMinHeight: captionMinHeight,
                 imageStyle: {
                   objectFit: "contain",
                   alignSelf: "flex-end",
                   maxWidth: "100%",
-                  maxHeight: areAllRhr
-                    ? imageContainerHeight
-                    : `${MAX_IMG_CONTAINER_HEIGHT}px`,
+                  maxHeight: derivedProduct?.metadata?.rhr
+                    ? imgHeight
+                    : MAX_IMG_CONTAINER_HEIGHT,
                   width: "auto",
                   height: "auto",
                   transitionProperty: "opacity"
@@ -468,6 +471,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                     : MAX_IMG_CONTAINER_HEIGHT,
                   width: aspectRatio * MAX_IMG_CONTAINER_HEIGHT
                 }
+              }
             };
           });
         }
@@ -477,7 +481,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
 
   const skeletonUi = useMemo(
     () =>
-      Array.from(new Array(12 / gridColumns)).map((item, index) => (
+      Array.from(new Array(12 / gridColumns)).map((item: any, index) => (
         <RHRProductCardSkeleton key={`${index}`} width={imageFlexBoxWidth} />
       )),
     [gridColumns]
@@ -554,21 +558,21 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
       {infiniteScrollEnabled ? (
         <div>
           <div className={flexboxContainerClasses}>
-            {parsedDerivedProductListWithLoader?.map((item, index) => {
+            {parsedDerivedProductListWithLoader?.map((item: RhProduct, index: number) => {
               return (
                 <>
-                  {item?.metadata?.anchor && // Changed to metadata
+                  {item?.metadata?.anchor &&
                   productTitle?.toLowerCase() !==
-                  item?.metadata?.anchor?.toLowerCase() ? ( // Changed to metadata
+                  item?.metadata?.anchor?.toLowerCase() ? (
                     <>
-                      {item?.metadata?.anchor && // Changed to metadata
-                        parsedDerivedProductList[index - 1]?.metadata?.anchor !== // Changed to metadata
-                          item?.metadata?.anchor && // Changed to metadata
+                      {item?.metadata?.anchor &&
+                        parsedDerivedProductList[index - 1]?.metadata?.anchor !==
+                          item?.metadata?.anchor &&
                         !isSort && (
                           <div className="col-span-full  w-full">
                             {index > 0 && <RHDivider className="!mb-[60px]" />}{" "}
                             <div className="font-primary-ultra-thin !text-[24px] uppercase">
-                              {item?.metadata?.anchor} // Changed to metadata
+                              {item?.metadata?.anchor}
                             </div>
                           </div>
                         )}
@@ -583,8 +587,8 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                     }}
                     ref={index === selectedItemId ? selectedProductRef : null}
                   >
-                    <IknkProductCard // Changed from PC to IknkProductCard
-                      data={item} // Changed from item to data
+                    <PC
+                      item={item}
                       isSale={isSale}
                       isSaleFilterEnabled={isSaleFilterEnabled}
                       totalNumRecs={totalNumRecs}
@@ -598,7 +602,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                         productClickHandler?.(index);
                       }}
                       inStockFlow={inStockFlow}
-                      isSelectedItem={selectedItemId !== undefined && index === selectedItemId}
+                      isSelectedItem={index === selectedItemId}
                     />
                     {item.loader && <div ref={loaderRef} key="loader"></div>}
                   </div>
@@ -623,18 +627,18 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
         <div className={clsx(flexboxContainerClasses)}>
           {parsedDerivedProductList?.map((item, index) => (
             <>
-              {item?.metadata?.anchor && // Changed to metadata
+              {item?.metadata?.anchor &&
               productTitle?.toLowerCase() !==
-              item?.metadata?.anchor?.toLowerCase() ? ( // Changed to metadata
+              item?.metadata?.anchor?.toLowerCase() ? (
                 <>
-                  {item?.metadata?.anchor && // Changed to metadata
-                    parsedDerivedProductList[index - 1]?.metadata?.anchor !== // Changed to metadata
-                      item?.metadata?.anchor && // Changed to metadata
+                  {item?.metadata?.anchor &&
+                    parsedDerivedProductList[index - 1]?.metadata?.anchor !==
+                      item?.metadata?.anchor &&
                     !isSort && (
                       <div className="col-span-full w-full">
                         {index > 0 && <RHDivider className="!mb-[60px]" />}{" "}
                         <div className="font-primary-ultra-thin !text-[24px] uppercase">
-                          {item?.metadata?.anchor} // Changed to metadata
+                          {item?.metadata?.anchor}
                         </div>
                       </div>
                     )}
@@ -652,8 +656,8 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                   width: imageFlexBoxWidth
                 }}
               >
-                <IknkProductCard // Changed from PC to IknkProductCard
-                  data={item} // Changed from item to data
+                <PC
+                  item={item}
                   isSale={isSale}
                   isSaleFilterEnabled={isSaleFilterEnabled}
                   totalNumRecs={totalNumRecs}
@@ -698,6 +702,4 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
   );
 };
 
-
-
-export default IknkProductGrid;
+export default ProductGrid;
