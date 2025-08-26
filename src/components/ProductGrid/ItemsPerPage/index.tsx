@@ -7,8 +7,8 @@ const useLocation = () => ({ pathname: "", search: "" });
 const ITEMS_PER_PAGE_PREFERENCE = "itemsPerPage";
 const useTypographyStyles = (props: any) => ({ rhBaseCaption: "", rhBaseBody1: "", rhBaseBody2: "" });
 import clsx from "clsx";
-const usePageContent = () => ({ items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" });
-const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" });
+const usePageContent = () => ({ pageContent: { items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" } });
+const useFetchModel = (url: string, arg1: boolean, arg2: boolean) => ({ pageContent: { NEW: "New", STARTING_AT: "Starting At", items_per_page_options: "[]", items_per_page: "Items Per Page", LOAD_ALL: "Load All" } });
 const useParams = (props: any) => ({ no: "0", maxnrpp: "24", loadAll: "" });
 const useEnv = () => ({ FEATURE_PG_DEFAULT_ITEMS_PER_PAGE: "false" });
 const yn = (value: any) => value === "true";
@@ -17,6 +17,14 @@ const RHArrowIcon = (props: any) => <svg {...props} />;
 const getPGDefaultItemsPerPage = () => 24;
 const useSetSipId = () => (id: any) => {};
 // Removed Typography placeholder
+
+interface PageContentResult {
+  items_per_page_options: string;
+  items_per_page: string;
+  LOAD_ALL: string;
+  NEW?: string;
+  STARTING_AT?: string;
+}
 
 export interface ItemsPerPageProps {
   recsPerPage: number;
@@ -40,9 +48,14 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
   const [selectOpen, setSelectOpen] = useState(false);
   const { pathname, search } = useLocation();
   const isAemPage = !pathname?.includes(".jsp");
-  const { items_per_page_options, items_per_page, LOAD_ALL } = !isAemPage
-    ? (usePageContent() as { items_per_page_options: string; items_per_page: string; LOAD_ALL: string })
-    : (useFetchModel("/admin/products", false, false) as { items_per_page_options: string; items_per_page: string; LOAD_ALL: string });
+
+  // Corrected destructuring for pageContent
+  const { pageContent: pageContentFromHook } = !isAemPage
+    ? (usePageContent() as { pageContent: PageContentResult })
+    : (useFetchModel("/admin/products", false, false) as { pageContent: PageContentResult });
+
+  const { items_per_page_options, items_per_page, LOAD_ALL } = pageContentFromHook;
+
   const ItemsPerPageOptions = JSON.parse(
     items_per_page_options || "[]"
   )?.filter((item: number) =>
@@ -62,14 +75,17 @@ const ItemsPerPage: FC<ItemsPerPageProps> = ({
   });
 
   const changeRecsPerPage = useCallback(
-    (event: SelectChangeEvent<string | number>) => { // Changed event type here
+    (event: SelectChangeEvent<string | number>) => {
       const nrpp = event.target.value;
       const searchParams = new URLSearchParams(search);
       const currentPage = Math.floor(Number(params.no) / Number(params.maxnrpp));
       const newNrpp = nrpp === "load-all" ? totalNumRecs : Number(nrpp);
+      
+      // Corrected variable declaration and assignment order
       const newMaxPage = Math.floor(totalNumRecs / newNrpp);
       const newPage = Math.min(currentPage, newMaxPage);
       const newNo = newPage * newNrpp;
+
       setSipId(null);
       if (nrpp === "load-all") {
         searchParams.set("loadAll", "true");

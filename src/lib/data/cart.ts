@@ -61,6 +61,7 @@ export async function getOrSetCart(countryCode: string) {
     cart = cartResp.cart
 
     await setCartId(cart.id)
+    console.log("getOrSetCart: New cart created and ID set:", cart.id); // LOG
 
     const cartCacheTag = await getCacheTag("carts")
     revalidateTag(cartCacheTag)

@@ -56,10 +56,15 @@ export const removeAuthToken = async () => {
 export const getCartId = async () => {
   try {
     const res = await fetch("/api/cookies/auth?action=getCartId");
-    if (!res.ok) return undefined;
+    if (!res.ok) {
+      console.log("getCartId: Failed to fetch cart ID from API."); // LOG
+      return undefined;
+    }
     const data = await res.json();
+    console.log("getCartId: Retrieved cart ID from API:", data.cartId); // LOG
     return data.cartId;
-  } catch {
+  } catch (error) {
+    console.error("getCartId: Error fetching cart ID via API:", error); // LOG
     return undefined;
   }
 };
@@ -71,8 +76,9 @@ export const setCartId = async (cartId: string) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "setCartId", cartId }),
     });
+    console.log("setCartId: Successfully set cart ID via API:", cartId); // LOG
   } catch (error) {
-    console.error("Error setting cart ID via API:", error);
+    console.error("setCartId: Error setting cart ID via API:", error); // LOG
   }
 };
 
@@ -87,4 +93,3 @@ export const removeCartId = async () => {
     console.error("Error removing cart ID via API:", error);
   }
 };
-

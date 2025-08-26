@@ -85,16 +85,15 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
   const currencyCode = countryCurrencyMapper?.[getCountryFromUrl() || "US"];
   const [memberShipLoading, setMembershipLoading] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
-  const { cartUpdateloading, cart, setCart } = useContext(
+  const { cartUpdateloading, setCart } = useContext(
     UserPreferencesContext
-  );
+  ); // Removed cart from destructuring to avoid direct dependency
   const env = useEnv();
   const FEATURE_CART_ID_ATOM = false; // Simplified yn(env?.FEATURE_CART_ID_ATOM);
   const sessionLoading = (!FEATURE_CART_ID_ATOM && loadingSession) || false;
   const { debounce } = useDebounce();
-  const [cartLoading, setCartLoading] = useState(
-    () => !(cart?.lineItems?.length || !Object.keys(cart || {}).length)
-  );
+  const [cartLoading, setCartLoading] = useState(true); // Initialize as true to show loading state initially
+  const [internalCart, setInternalCart] = useState<IknkCart | null>(null); // Use internal state for cart
 
   const cartId = useMemo(
     () => currentCartId || cartProjectionCartId,
@@ -103,28 +102,31 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
 
   const fetchCart = useCallback(async () => {
     setCartLoading(true);
+    console.log("IknkShoppingCartContextProvider: Attempting to fetch cart with ID:", cartId); // LOG
     try {
       const medusaCart = await retrieveCart(cartId || undefined);
       if (medusaCart) {
         const iknkCart = adaptMedusaCartToIknkCart(medusaCart);
-        setCart(iknkCart);
+        setInternalCart(iknkCart); // Update internal cart state
+        setCart(iknkCart); // Also update context's cart state
         await setCartId(iknkCart.id);
+        console.log("IknkShoppingCartContextProvider: Successfully fetched and set cart:", iknkCart); // LOG
       } else {
-        setCart(null);
-        // Optionally create a new cart if none exists
-        // const newMedusaCart = await sdk.store.cart.create({ region_id: "your_region_id" });
-        // setCart(adaptMedusaCartToIknkCart(newMedusaCart.cart));
-        // await setCartId(newMedusaCart.cart.id);
+        setInternalCart(null); // Update internal cart state
+        setCart(null); // Also update context's cart state
+        console.log("IknkShoppingCartContextProvider: No cart found or retrieved."); // LOG
       }
     } catch (error) {
-      console.error("Error fetching cart:", error);
-      setCart(null);
+      console.error("IknkShoppingCartContextProvider: Error fetching cart:", error); // LOG
+      setInternalCart(null); // Update internal cart state
+      setCart(null); // Also update context's cart state
     } finally {
       setCartLoading(false);
     }
   }, [cartId, setCart]);
 
   const refetch = useCallback(async () => {
+    console.log("IknkShoppingCartContextProvider: refetch() called."); // LOG
     await fetchCart();
   }, [fetchCart]);
 
@@ -139,38 +141,24 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
     [refetch]
   );
 
-  useEffectOnce(
-    () => {
-      fetchCart();
-    },
-    !(
-      !cartId ||
-      (sessionLoading && !!cart) ||
-      memberShipLoading ||
-      cartUpdateloading ||
-      promoLoading ||
-      loadingUpdateUserSession
-    ),
-    [cartId, sessionLoading, cart, memberShipLoading, cartUpdateloading, promoLoading, loadingUpdateUserSession, fetchCart]
-  );
-
+  // Simplified useEffect to trigger fetchCart
   useEffect(() => {
-    if (
-      !(
-        !cartId ||
-        (sessionLoading && !!cart) ||
-        memberShipLoading ||
-        cartUpdateloading ||
-        promoLoading ||
-        loadingUpdateUserSession
-      )
-    ) {
+    // Only fetch if cartId is available or if we need to initialize
+    if (cartId) {
       fetchCart();
+    } else {
+      // If cartId is null, ensure cart is null
+      setInternalCart(null);
+      setCart(null);
     }
-  }, [promoLoading, cartUpdateloading, cartId, sessionLoading, cart, memberShipLoading, loadingUpdateUserSession, fetchCart]);
+  }, [cartId, fetchCart, setCart]); // Depend on cartId, fetchCart, and setCart
+
+  // useEffectOnce is removed as it prevents re-fetching
+  // The logic is now handled by the simplified useEffect above.
 
   const handleSetCart = useCallback(
     (nextCart: IknkCart | null) => {
+      setInternalCart(nextCart);
       setCart(nextCart);
     },
     [setCart]
@@ -180,7 +168,7 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
     <IknkShoppingCartContext.Provider
       value={{
         cartId,
-        cart,
+        cart: internalCart, // Use internalCart state
         setCart: handleSetCart,
         loading: cartLoading,
         refetch,
