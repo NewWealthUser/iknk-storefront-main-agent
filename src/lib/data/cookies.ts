@@ -16,7 +16,9 @@ export const getAuthHeaders = async (): Promise<
   } else {
     try {
       const url = `${getBaseURL()}/api/cookies/auth?action=getAuthHeaders`;
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        credentials: 'include', // IMPORTANT: Include cookies
+      });
       if (!res.ok) return {};
       const data = await res.json();
       return data;
@@ -57,6 +59,7 @@ export const setAuthToken = async (token: string) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "setAuthToken", token }),
+        credentials: 'include', // IMPORTANT: Include cookies
       });
     } catch (error) {
       console.error("Client (setAuthToken): Error setting auth token via API:", error);
@@ -75,6 +78,7 @@ export const removeAuthToken = async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "removeAuthToken" }),
+        credentials: 'include', // IMPORTANT: Include cookies
       });
     } catch (error) {
       console.error("Client (removeAuthToken): Error removing auth token via API:", error);
@@ -90,7 +94,9 @@ export const getCartId = async () => {
   } else {
     try {
       const url = `${getBaseURL()}/api/cookies/auth?action=getCartId`;
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        credentials: 'include', // IMPORTANT: Include cookies
+      });
       if (!res.ok) {
         return undefined;
       }
@@ -120,6 +126,7 @@ export const setCartId = async (cartId: string) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "setCartId", cartId }),
+        credentials: 'include', // IMPORTANT: Include cookies
       });
     } catch (error) {
       console.error("Client (setCartId): Error setting cart ID via API:", error);
@@ -138,6 +145,7 @@ export const removeCartId = async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "removeCartId" }),
+        credentials: 'include', // IMPORTANT: Include cookies
       });
     } catch (error) {
       console.error("Client (removeCartId): Error removing cart ID via API:", error);
