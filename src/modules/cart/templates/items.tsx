@@ -8,7 +8,7 @@ import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
 import { IknkCart, IknkLineItem } from "@lib/util/iknk-cart-adapter" // Import IknkCart and IknkLineItem
 
 type ItemsTemplateProps = {
-  cart?: IknkCart // Changed to IknkCart
+  cart: IknkCart | null // Changed to IknkCart | null
 }
 
 const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {

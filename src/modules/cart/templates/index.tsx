@@ -20,7 +20,8 @@ const CartTemplate = () => {
   return (
     <div className="py-12">
       <div className="content-container" data-testid="cart-container">
-        {cart?.lineItems?.length ? ( {/* Changed from cart?.items?.length */}
+        {/* Changed from cart?.items?.length */}
+        {cart?.lineItems?.length ? (
           <div className="grid grid-cols-1 small:grid-cols-[1fr_360px] gap-x-40">
             <div className="flex flex-col bg-white py-6 gap-y-6">
               {/* {!customer && (
@@ -33,7 +34,8 @@ const CartTemplate = () => {
             </div>
             <div className="relative">
               <div className="flex flex-col gap-y-8 sticky top-12">
-                {cart && cart.cartPrice && ( {/* Changed from cart.region */}
+                {/* Changed from cart.region */}
+                {cart && cart.cartPrice && (
                   <>
                     <div className="bg-white py-6">
                       <Summary cart={cart} /> {/* Pass IknkCart directly */}
