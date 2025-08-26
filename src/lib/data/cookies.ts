@@ -4,7 +4,9 @@ export const getAuthHeaders = async (): Promise<
   { authorization: string } | {}
 > => {
   try {
-    const res = await fetch(`${getBaseURL()}/api/cookies/auth?action=getAuthHeaders`); // Use absolute URL
+    const url = `${getBaseURL()}/api/cookies/auth?action=getAuthHeaders`;
+    console.log("Fetching auth headers from:", url); // Added log
+    const res = await fetch(url);
     if (!res.ok) return {};
     const data = await res.json();
     return data;
@@ -34,7 +36,9 @@ export const getCacheOptions = async (
 
 export const setAuthToken = async (token: string) => {
   try {
-    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
+    const url = `${getBaseURL()}/api/cookies/auth`;
+    console.log("Setting auth token via API to:", url); // Added log
+    await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "setAuthToken", token }),
@@ -46,7 +50,9 @@ export const setAuthToken = async (token: string) => {
 
 export const removeAuthToken = async () => {
   try {
-    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
+    const url = `${getBaseURL()}/api/cookies/auth`;
+    console.log("Removing auth token via API from:", url); // Added log
+    await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "removeAuthToken" }),
@@ -58,7 +64,9 @@ export const removeAuthToken = async () => {
 
 export const getCartId = async () => {
   try {
-    const res = await fetch(`${getBaseURL()}/api/cookies/auth?action=getCartId`); // Use absolute URL
+    const url = `${getBaseURL()}/api/cookies/auth?action=getCartId`;
+    console.log("Fetching cart ID from:", url); // Added log
+    const res = await fetch(url);
     if (!res.ok) {
       console.log("getCartId: Failed to fetch cart ID from API."); // LOG
       return undefined;
@@ -74,7 +82,9 @@ export const getCartId = async () => {
 
 export const setCartId = async (cartId: string) => {
   try {
-    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
+    const url = `${getBaseURL()}/api/cookies/auth`;
+    console.log("Setting cart ID via API to:", url); // Added log
+    await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "setCartId", cartId }),
@@ -87,7 +97,9 @@ export const setCartId = async (cartId: string) => {
 
 export const removeCartId = async () => {
   try {
-    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
+    const url = `${getBaseURL()}/api/cookies/auth`;
+    console.log("Removing cart ID via API from:", url); // Added log
+    await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "removeCartId" }),
