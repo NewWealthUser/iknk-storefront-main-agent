@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { serialize, parse } from 'cookie';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   if (req.method === 'POST') {
     const { action, token, cartId } = req.body;
 
@@ -10,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         maxAge: 60 * 60 * 24 * 7,
         httpOnly: true,
         sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+        secure: isProduction, // Use isProduction for JWT
         path: '/',
       }));
       console.log(`API: Set _medusa_jwt cookie for token: ${token ? 'present' : 'missing'}`); // LOG
@@ -27,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         maxAge: 60 * 60 * 24 * 7,
         httpOnly: true,
         sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Explicitly set to false for cart ID in development
         path: '/',
       }));
       console.log(`API: Set _medusa_cart_id cookie for cartId: ${cartId}`); // LOG
