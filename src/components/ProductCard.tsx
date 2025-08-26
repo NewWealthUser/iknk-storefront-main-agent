@@ -29,13 +29,17 @@ export const IknkProductCard: FC<IknkProductCardProps> = React.memo(({ data }) =
 
   // Format price display
   const formatPrice = (price: number | undefined, currencySymbol: string | undefined) => {
-    if (typeof price !== 'number' || !currencySymbol) return ""
-    return `${currencySymbol}${price.toFixed(2)}`
+    if (typeof price !== 'number') return ""
+    // Always use "R" for ZAR
+    if (currencySymbol === "ZAR" || currencySymbol === "R") {
+      return `R${(price / 100).toFixed(2)}`
+    }
+    return `${currencySymbol || ""}${(price / 100).toFixed(2)}`
   }
 
   const minPrice = priceRangeDisplay?.listPrices?.[0] || priceRangeDisplay?.memberPrices?.[0]
   const maxPrice = priceRangeDisplay?.listPrices?.[0] || priceRangeDisplay?.memberPrices?.[0]
-  const currencySymbol = priceRangeDisplay?.currencySymbol || "$"
+  const currencySymbol = priceRangeDisplay?.currencySymbol || "R"
 
   const priceText = (minPrice && maxPrice && minPrice !== maxPrice)
     ? `Starts at ${formatPrice(minPrice, currencySymbol)} to ${formatPrice(maxPrice, currencySymbol)}`
@@ -56,7 +60,7 @@ export const IknkProductCard: FC<IknkProductCardProps> = React.memo(({ data }) =
             className="group/item group relative z-10 block w-full overflow-hidden"
             style={{
               height: "auto",
-              maxHeight: "350px", // Adjust as needed
+              maxHeight: "350px",
             }}
           >
             <Link href={redirectPath}>
@@ -70,7 +74,7 @@ export const IknkProductCard: FC<IknkProductCardProps> = React.memo(({ data }) =
                     objectFit: "contain",
                     alignSelf: "flex-end",
                     maxWidth: "100%",
-                    maxHeight: "350px", // Adjust as needed
+                    maxHeight: "350px",
                     width: "auto",
                     height: "auto",
                     transitionProperty: "opacity",

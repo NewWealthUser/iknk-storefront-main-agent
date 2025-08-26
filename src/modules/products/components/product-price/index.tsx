@@ -19,12 +19,11 @@ export default function ProductPrice({
     currencyCode: string | undefined
   ) => {
     if (typeof amount !== "number" || !currencyCode) return ""
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currencyCode,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount / 100) // Assuming amount is in cents
+    // Always use "R" for ZAR
+    if (currencyCode === "ZAR" || currencyCode === "R") {
+      return `R${(amount / 100).toFixed(2)}`
+    }
+    return `${currencyCode}${(amount / 100).toFixed(2)}`
   }
 
   const displayPrice = () => {

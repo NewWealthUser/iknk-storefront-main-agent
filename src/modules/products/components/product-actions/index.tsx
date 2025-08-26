@@ -11,14 +11,15 @@ import { useParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
-import { RhProduct, RhVariant, RhOption } from "@lib/util/rh-product-adapter"; // Import RhProduct and related types
+import { RhProduct, RhVariant, RhOption } from "@lib/util/rh-product-adapter"
+import { toast } from "react-hot-toast"
 
 type ProductActionsProps = {
   product: RhProduct
   region: HttpTypes.StoreRegion
   disabled?: boolean
-  selectedOptions: Record<string, string | undefined>; // New prop
-  onOptionChange: (optionId: string, value: string) => void; // New prop
+  selectedOptions: Record<string, string | undefined>
+  onOptionChange: (optionId: string, value: string) => void
 }
 
 const optionsAsKeymap = (
@@ -33,19 +34,16 @@ const optionsAsKeymap = (
 export default function ProductActions({
   product,
   disabled,
-  selectedOptions, // Destructure new prop
-  onOptionChange, // Destructure new prop
+  selectedOptions,
+  onOptionChange,
 }: ProductActionsProps) {
-  // const [options, setOptions] = useState<Record<string, string | undefined>>({}) // Removed local state
   const [isAdding, setIsAdding] = useState(false)
   const params = useParams()
   const countryCode = typeof params?.countryCode === 'string' ? params.countryCode : '';
 
-  // If there is only 1 variant, preselect the options
   useEffect(() => {
     if (product.variants?.length === 1) {
       const variantOptions = product.variants[0].options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
-      // setOptions(optionsAsKeymap(variantOptions) ?? {}) // Use onOptionChange
       const mappedOptions = optionsAsKeymap(variantOptions) ?? {};
       for (const key in mappedOptions) {
         if (mappedOptions.hasOwnProperty(key)) {
@@ -62,52 +60,34 @@ export default function ProductActions({
 
     return product.variants.find((v: RhVariant) => {
       const variantOptions = v.options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
-      return isEqual(optionsAsKeymap(variantOptions), selectedOptions) // Use selectedOptions
+      return isEqual(optionsAsKeymap(variantOptions), selectedOptions)
     })
-  }, [product.variants, selectedOptions]) // Use selectedOptions
+  }, [product.variants, selectedOptions])
 
-  // update the options when a variant is selected
-  // const setOptionValue = (optionId: string, value: string) => { // Removed local function
-  //   setOptions((prev) => ({
-  //     ...prev,
-  //     [optionId]: value,
-  //   }))
-  // }
-
-  //check if the selected options produce a valid variant
   const isValidVariant = useMemo(() => {
     return product.variants?.some((v: RhVariant) => {
       const variantOptions = v.options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
-      return isEqual(optionsAsKeymap(variantOptions), selectedOptions) // Use selectedOptions
+      return isEqual(optionsAsKeymap(variantOptions), selectedOptions)
     })
-  }, [product.variants, selectedOptions]) // Use selectedOptions
+  }, [product.variants, selectedOptions])
 
-  // check if the selected variant is in stock
   const inStock = useMemo(() => {
-    // If we don't manage inventory, we can always add to cart
     if (selectedVariant && !selectedVariant.manage_inventory) {
       return true
     }
-
-    // If we allow back orders on the variant, we can add to cart
     if (selectedVariant?.allow_backorder) {
       return true
     }
-
-    // If there is inventory available, we can add to cart
     if (
       selectedVariant?.manage_inventory &&
       (selectedVariant?.inventory_quantity ?? 0) > 0
     ) {
       return true
     }
-
-    // Otherwise, we can't add to cart
     return false
   }, [selectedVariant])
 
   const actionsRef = useRef<HTMLDivElement>(null)
-
   const inView = useIntersection(actionsRef, "0px")
 
   // add the selected variant to the cart
@@ -116,13 +96,18 @@ export default function ProductActions({
 
     setIsAdding(true)
 
-    await addToCart({
-      variantId: selectedVariant.id,
-      quantity: 1,
-      countryCode,
-    })
-
-    setIsAdding(false)
+    try {
+      await addToCart({
+        variantId: selectedVariant.id,
+        quantity: 1,
+        countryCode,
+      })
+      toast.success("Successfully added to cart!", { position: "top-center" })
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to add to cart", { position: "top-center" })
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   return (

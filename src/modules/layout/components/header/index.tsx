@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import LocalizedClientLink from '@modules/common/components/localized-client-link';
 import SidebarNav from '../sidebar-nav';
+import { IknkShoppingCartContext } from "@lib/context/iknk-cart-context";
 
 type NavItem = {
   title: string;
@@ -13,6 +14,9 @@ type NavItem = {
 const Header = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const { cart } = useContext(IknkShoppingCartContext);
+  const cartCount = cart?.lineItems?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
 
   const headerStyle: React.CSSProperties = {
     position: 'absolute',
@@ -156,7 +160,7 @@ const Header = () => {
                       </div>
                     </LocalizedClientLink>
                     <LocalizedClientLink href="/cart" className="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineNone flex items-end css-1bklnqp" id="container-rhrHeader_cart-btn" data-analytics-id="link" aria-label="0 Items in Cart" data-ctaname="0 Items in Cart">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 relative">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-black" style={iconAndTextStyle}>
                           <path d="M4.51758 7.75806H18.7976V17.342C18.7976 18.8089 17.6084 19.9981 16.1415 19.9981H7.17363C5.70673 19.9981 4.51758 18.8089 4.51758 17.342V7.75806Z" stroke="currentColor" strokeWidth="0.75"></path>
                           <mask id="mask0_5301_119153" maskUnits="userSpaceOnUse" x="4" y="2" width="16" height="7">
@@ -166,6 +170,11 @@ const Header = () => {
                             <path d="M15.0225 6.73622C15.0225 8.59465 13.516 10.1012 11.6575 10.1012C9.7991 10.1012 8.29254 8.59465 8.29254 6.73622C8.29254 4.87778 9.7991 3.37122 11.6575 3.37122C13.516 3.37122 15.0225 4.87778 15.0225 6.73622Z" stroke="currentColor" strokeWidth="0.75"></path>
                           </g>
                         </svg>
+                        {cartCount > 0 && (
+                          <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold z-10 border-2 border-white">
+                            {cartCount}
+                          </span>
+                        )}
                       </div>
                     </LocalizedClientLink>
                   </div>
