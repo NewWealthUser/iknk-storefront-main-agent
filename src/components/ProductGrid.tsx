@@ -45,7 +45,7 @@ import _chunk from "lodash/chunk";
 
 // import prasePGCropRules from "@RHCommerceDev/utils/prasePGCropRules";
 
-import IknkProductCard from "./ProductCard"; // Corrected import for PC
+import { ProductGridCard as PC } from "./ProductGrid/ProductCard"; // Corrected import for PC
 // import { showPGPaginationModule } from "@RHCommerceDev/utils/showPaginationModule";
 // import { useMediaQuery, useTheme } from "@mui/material";
 // import maxBy from "lodash.maxby";
@@ -575,7 +575,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                     }}
                     ref={index === selectedItemId ? selectedProductRef : null}
                   >
-                    <IknkProductCard
+                    <PC
                       data={item}
                       isSale={isSale}
                       isSaleFilterEnabled={isSaleFilterEnabled}
@@ -644,7 +644,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                   width: imageFlexBoxWidth
                 }}
               >
-                <IknkProductCard
+                <PC
                   data={item}
                   isSale={isSale}
                   isSaleFilterEnabled={isSaleFilterEnabled}

@@ -43,7 +43,7 @@ import _chunk from "lodash/chunk";
 
 // import prasePGCropRules from "@RHCommerceDev/utils/prasePGCropRules";
 
-import { PC } from "./ProductCard";
+import { ProductGridCard as PC } from "./ProductCard"; // Corrected import for PC
 // import { showPGPaginationModule } from "@RHCommerceDev/utils/showPaginationModule";
 // import { useMediaQuery, useTheme } from "@mui/material";
 // import maxBy from "lodash.maxby";
@@ -51,6 +51,8 @@ import { PC } from "./ProductCard";
 // import { useInfiniteScroll } from "@RHCommerceDev/hooks/useInfiniteScroll";
 // import { getReqContext } from "@RHCommerceDev/utils/reqContext";
 // import { getSelectorsByUserAgent } from "react-device-detect";
+
+import { RhProduct } from "@lib/util/rh-product-adapter"; // Import RhProduct
 
 // Placeholder implementations
 const RHPagination = (props: any) => <div>Pagination</div>;
@@ -99,49 +101,6 @@ function extractSkuOtions(option: string) {
   }, {});
 
   return facets;
-}
-
-interface SearchRecordProduct {
-  anchor?: string;
-  pgCropRules?: { height: number };
-  rhr?: boolean;
-  galleryDescription?: string;
-  displayName?: string;
-  repositoryId?: string;
-  skuOptiondata?: string;
-  priceInfo?: any; // Added priceInfo
-  imageContainerStyle?: any; // Added imageContainerStyle
-  captionMinHeight?: number; // Added captionMinHeight
-  imageStyle?: any; // Added imageStyle
-  imageFlip?: boolean;
-  imageUrl?: string;
-  altImageUrl?: string;
-  alternateImages?: { imageUrl: string }[];
-  colorizable?: boolean;
-  displaySwatch?: string;
-  swatchInfo?: {
-    swatchesToDisplay?: {
-      swatchId?: string;
-      displayName?: string;
-      imageUrl?: string;
-    }[];
-  };
-  percentSaleSkus?: number;
-  memberSavingsMin?: number;
-  memberSavingsMax?: number;
-  uxAttributes?: {
-    membershipProduct?: string;
-    giftCert?: string;
-  };
-  customProduct?: boolean;
-}
-
-interface SearchRecordSku {
-  fullSkuId?: string;
-}
-
-interface ProductGridItem extends SearchRecordProduct {
-  loader?: boolean;
 }
 
 export const getUrl = (
@@ -201,13 +160,17 @@ export const getUrl = (
   };
 };
 
+interface ProductGridItem extends RhProduct {
+  loader?: boolean;
+}
+
 interface ProductGridProps {
-  isStockedFilterActive: boolean;
-  isRefinementFilterActive: boolean;
-  gridColumns: any;
-  view: string;
+  isStockedFilterActive?: boolean;
+  isRefinementFilterActive?: boolean;
+  gridColumns?: any;
+  view?: string;
   totalNumRecs: number;
-  loadMoreData: () => any;
+  loadMoreData?: () => any;
   productList: ProductGridItem[];
   noLazy?: boolean;
   host?: string;
@@ -221,7 +184,7 @@ interface ProductGridProps {
   pgCropRulesFromCg?: string;
   infiniteScrollEnabled?: boolean;
   isNextPageLoading?: boolean;
-  recsPerPage: number;
+  recsPerPage?: number;
   firstRecNum?: number;
   lastRecNum?: number;
   filterQueries?: string[];
@@ -230,11 +193,11 @@ interface ProductGridProps {
   activeTab?: any;
 }
 const ProductGrid: FC<ProductGridProps> = ({
-  gridColumns,
-  isStockedFilterActive,
-  isRefinementFilterActive,
-  totalNumRecs,
-  productList,
+  gridColumns = DEFAULT_GRID_COLUMNS,
+  isStockedFilterActive = false,
+  isRefinementFilterActive = false,
+  totalNumRecs = ZERO_RESULTS,
+  productList = [],
   loadMoreData,
   recsPerPage,
   noLazy = false,
@@ -244,7 +207,7 @@ const ProductGrid: FC<ProductGridProps> = ({
   isSale,
   isSaleFilterEnabled,
   productTitle,
-  view,
+  view = DEFAULT_VIEW,
   infiniteScrollEnabled = true,
   isNextPageLoading = false,
   filterQueries,
@@ -318,8 +281,8 @@ const ProductGrid: FC<ProductGridProps> = ({
 
       if (
         i > 0 &&
-        item?.product?.anchor &&
-        derivedProductList[i - 1]?.product?.anchor !== item?.product?.anchor &&
+        item?.metadata?.anchor &&
+        derivedProductList[i - 1]?.metadata?.anchor !== item?.metadata?.anchor &&
         !isSort
       ) {
         sections[counter].push(i - 1);
@@ -351,11 +314,11 @@ const ProductGrid: FC<ProductGridProps> = ({
     () =>
       derivedProductList?.reduce(
         (acc: ProductGridItem[][], rec: ProductGridItem) => {
-          const pgCropRules = prasePGCropRules(rec?.product?.pgCropRules);
+          const pgCropRules = prasePGCropRules(rec?.metadata?.pgCropRules);
 
           const record = {
             ...rec,
-            product: { ...rec?.product, pgCropRules }
+            metadata: { ...rec?.metadata, pgCropRules }
           };
 
           const arrayLastIndex = acc?.length - 1;
@@ -364,12 +327,12 @@ const ProductGrid: FC<ProductGridProps> = ({
           const arrayRecord = acc?.[arrayLastIndex];
           const innerArrayRecord = arrayRecord?.[innerArrayLastIndex];
 
-          if (record?.product?.anchor) {
+          if (record?.metadata?.anchor) {
             const isTitleEqualToAnchor =
               productTitle?.toLowerCase() !==
-              record?.product?.anchor?.toLowerCase();
+              record?.metadata?.anchor?.toLowerCase();
             const isPrevAnchorNotEqualToNextAnchor =
-              innerArrayRecord?.product?.anchor !== record?.product?.anchor;
+              innerArrayRecord?.metadata?.anchor !== record?.metadata?.anchor;
 
             if (
               isTitleEqualToAnchor &&
@@ -430,15 +393,15 @@ const ProductGrid: FC<ProductGridProps> = ({
       _chunk(derivedProductList, 12 / gridColumns)?.flatMap(
         (groupedDerivedProduct: ProductGridItem[]) => {
           const imgContainerHeight = groupedDerivedProduct?.map(
-            (derivedProduct: ProductGridItem) => derivedProduct?.product?.pgCropRules?.height
+            (derivedProduct: ProductGridItem) => derivedProduct?.metadata?.pgCropRules?.height
           ).filter((h): h is number => h !== undefined);
 
           const areAllRhr = groupedDerivedProduct?.every(
-            (derivedProduct: ProductGridItem) => derivedProduct?.product?.rhr
+            (derivedProduct: ProductGridItem) => derivedProduct?.metadata?.rhr
           );
 
           const imagCaptionsArr = groupedDerivedProduct?.map(
-            (derivedProduct: ProductGridItem) => derivedProduct?.product?.galleryDescription
+            (derivedProduct: ProductGridItem) => derivedProduct?.galleryDescription
           ).filter((caption): caption is string => caption !== undefined);
 
           const maxImageContainerHeight = Math?.max(...imgContainerHeight.filter(h => h !== undefined));
@@ -454,7 +417,7 @@ const ProductGrid: FC<ProductGridProps> = ({
               : IMAGE_ASPECT_RATIO?.horizontalProductTile;
           return groupedDerivedProduct?.map((derivedProduct: ProductGridItem) => {
             const imgHeight = `${
-              ((derivedProduct?.product?.pgCropRules?.height ?? 0) / 100) *
+              ((derivedProduct?.metadata?.pgCropRules?.height ?? 0) / 100) *
               MAX_IMG_CONTAINER_HEIGHT
             }px`;
 
@@ -465,14 +428,14 @@ const ProductGrid: FC<ProductGridProps> = ({
 
             return {
               ...derivedProduct,
-              product: {
-                ...derivedProduct?.product,
+              metadata: {
+                ...derivedProduct?.metadata,
                 captionMinHeight: captionMinHeight,
                 imageStyle: {
                   objectFit: "contain",
                   alignSelf: "flex-end",
                   maxWidth: "100%",
-                  maxHeight: derivedProduct?.product?.rhr
+                  maxHeight: derivedProduct?.metadata?.rhr
                     ? imgHeight
                     : MAX_IMG_CONTAINER_HEIGHT,
                   width: "auto",
@@ -483,7 +446,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "flex-end",
-                  aspectRatio: derivedProduct?.product?.rhr
+                  aspectRatio: derivedProduct?.metadata?.rhr
                     ? null
                     : aspectRatio?.toString(),
                   height: areAllRhr
@@ -523,7 +486,7 @@ const ProductGrid: FC<ProductGridProps> = ({
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
-      if (target.isIntersecting && productList.length < totalNumRecs) {
+      if (loadMoreData && target.isIntersecting && productList.length < totalNumRecs) {
         loadMoreData();
       }
     },
@@ -560,7 +523,7 @@ const ProductGrid: FC<ProductGridProps> = ({
   );
 
   const { ref: infiniteScrollSkeletonRef } = useInfiniteScroll({
-    callback: noLazy ? () => {} : loadMoreData,
+    callback: noLazy || !loadMoreData ? () => {} : loadMoreData,
     hasMore,
     loading: isNextPageLoading
   });
@@ -584,18 +547,18 @@ const ProductGrid: FC<ProductGridProps> = ({
             {parsedDerivedProductListWithLoader?.map((item: ProductGridItem, index: number) => {
               return (
                 <>
-                  {item?.product?.anchor &&
+                  {item?.metadata?.anchor &&
                   productTitle?.toLowerCase() !==
-                  item?.product?.anchor?.toLowerCase() ? (
+                  item?.metadata?.anchor?.toLowerCase() ? (
                     <>
-                      {item?.product?.anchor &&
-                        parsedDerivedProductList[index - 1]?.product?.anchor !==
-                          item?.product?.anchor &&
+                      {item?.metadata?.anchor &&
+                        parsedDerivedProductList[index - 1]?.metadata?.anchor !==
+                          item?.metadata?.anchor &&
                         !isSort && (
                           <div className="col-span-full  w-full">
                             {index > 0 && <RHDivider className="!mb-[60px]" />}{" "}
                             <div className="font-primary-ultra-thin !text-[24px] uppercase">
-                              {item?.product?.anchor}
+                              {item?.metadata?.anchor}
                             </div>
                           </div>
                         )}
@@ -603,7 +566,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                   ) : null}
                   <div
                     key={`innerGrid_item_${index}`}
-                    id={`${brand}__${item?.sku?.fullSkuId}__${index}`}
+                    id={`${brand}__${item?.fullSkuId}__${index}`}
                     className="productVisible mb-3 flex justify-center"
                     style={{
                       width: imageFlexBoxWidth
@@ -611,7 +574,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                     ref={index === selectedItemId ? selectedProductRef : null}
                   >
                     <PC
-                      item={item}
+                      data={item}
                       isSale={isSale}
                       isSaleFilterEnabled={isSaleFilterEnabled}
                       totalNumRecs={totalNumRecs}
@@ -650,18 +613,18 @@ const ProductGrid: FC<ProductGridProps> = ({
         <div className={clsx(flexboxContainerClasses)}>
           {parsedDerivedProductList?.map((item, index) => (
             <>
-              {item?.product?.anchor &&
+              {item?.metadata?.anchor &&
               productTitle?.toLowerCase() !==
-              item?.product?.anchor?.toLowerCase() ? (
+              item?.metadata?.anchor?.toLowerCase() ? (
                 <>
-                  {item?.product?.anchor &&
-                    parsedDerivedProductList[index - 1]?.product?.anchor !==
-                      item?.product?.anchor &&
+                  {item?.metadata?.anchor &&
+                    parsedDerivedProductList[index - 1]?.metadata?.anchor !==
+                      item?.metadata?.anchor &&
                     !isSort && (
                       <div className="col-span-full w-full">
                         {index > 0 && <RHDivider className="!mb-[60px]" />}{" "}
                         <div className="font-primary-ultra-thin !text-[24px] uppercase">
-                          {item?.product?.anchor}
+                          {item?.metadata?.anchor}
                         </div>
                       </div>
                     )}
@@ -669,7 +632,7 @@ const ProductGrid: FC<ProductGridProps> = ({
               ) : null}
               <div
                 key={`innerGrid_item_${index}`}
-                id={`${brand}__${item?.sku?.fullSkuId}__${index}`}
+                id={`${brand}__${item?.fullSkuId}__${index}`}
                 className={clsx(
                   !processEnvServer
                     ? "productVisible mb-3 flex w-full justify-center"
@@ -680,7 +643,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                 }}
               >
                 <PC
-                  item={item}
+                  data={item}
                   isSale={isSale}
                   isSaleFilterEnabled={isSaleFilterEnabled}
                   totalNumRecs={totalNumRecs}

@@ -43,7 +43,7 @@ import _chunk from "lodash/chunk";
 
 // import prasePGCropRules from "@RHCommerceDev/utils/prasePGCropRules"; // RH.COM specific
 
-import { IknkProductCard as PC } from "./iknk-product-card"; // Corrected import for PC
+import { ProductGridCard as PC } from "../../../components/ProductGrid/ProductCard"; // Corrected import for PC
 // import { showPGPaginationModule } from "@RHCommerceDev/utils/showPaginationModule"; // RH.COM specific
 // import { useMediaQuery, useTheme } from "@mui/material"; // MUI components
 // import maxBy from "lodash.maxby"; // lodash
@@ -58,7 +58,7 @@ import { RhProduct } from "@lib/util/rh-product-adapter"; // Import RhProduct
 const RHPagination = (props: any) => <div>Pagination Placeholder</div>;
 const ItemsPerPage = (props: any) => <div>Items Per Page Placeholder</div>;
 const RHDivider = (props: any) => <div className="my-4 border-t border-gray-300"></div>;
-const RHRProductCardSkeleton = (props: any) => <div style={{ width: props.width, height: 300, backgroundColor: '#f0f0f0' }}>Skeleton</div>;
+const RHRProductCardSkeleton = (props: any) => <div>Skeleton</div>;
 const showPGPaginationModule = (loading: boolean, total: number) => false; // Simplified
 const useMediaQuery = (query: any) => true; // Simplified
 const useTheme = () => ({ breakpoints: { up: (bp: string) => true } }); // Simplified
@@ -334,7 +334,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
     () =>
       derivedProductList?.reduce(
         (acc: RhProduct[][], rec: RhProduct) => {
-          const pgCropRules = rec?.metadata?.pgCropRules;
+          const pgCropRules = prasePGCropRules(rec?.metadata?.pgCropRules);
 
           const record = {
             ...rec,
@@ -505,7 +505,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
-      if (target.isIntersecting && productList.length < totalNumRecs) {
+      if (loadMoreData && target.isIntersecting && productList.length < totalNumRecs) {
         loadMoreData();
       }
     },
@@ -542,7 +542,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
   );
 
   const { ref: infiniteScrollSkeletonRef } = useInfiniteScroll({
-    callback: noLazy ? () => {} : loadMoreData,
+    callback: noLazy || !loadMoreData ? () => {} : loadMoreData,
     hasMore,
     loading: isNextPageLoading
   });
