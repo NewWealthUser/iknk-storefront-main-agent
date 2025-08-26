@@ -11,6 +11,11 @@ const requiredEnvs = [
     description:
       "This is the URL of your Medusa backend. It should be accessible from the storefront.",
   },
+  {
+    key: "NEXT_PUBLIC_BASE_URL",
+    description:
+      "This is the base URL of your Next.js storefront. E.g., http://localhost:8000 for local development.",
+  },
 ]
 
 function checkEnvVariables() {

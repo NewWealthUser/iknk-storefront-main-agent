@@ -1,12 +1,15 @@
+import { getBaseURL } from "@lib/util/env"; // Import getBaseURL
+
 export const getAuthHeaders = async (): Promise<
   { authorization: string } | {}
 > => {
   try {
-    const res = await fetch("/api/cookies/auth?action=getAuthHeaders");
+    const res = await fetch(`${getBaseURL()}/api/cookies/auth?action=getAuthHeaders`); // Use absolute URL
     if (!res.ok) return {};
     const data = await res.json();
     return data;
-  } catch {
+  } catch (error) {
+    console.error("getAuthHeaders: Error fetching auth headers via API:", error);
     return {};
   }
 };
@@ -31,7 +34,7 @@ export const getCacheOptions = async (
 
 export const setAuthToken = async (token: string) => {
   try {
-    await fetch("/api/cookies/auth", {
+    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "setAuthToken", token }),
@@ -43,7 +46,7 @@ export const setAuthToken = async (token: string) => {
 
 export const removeAuthToken = async () => {
   try {
-    await fetch("/api/cookies/auth", {
+    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "removeAuthToken" }),
@@ -55,7 +58,7 @@ export const removeAuthToken = async () => {
 
 export const getCartId = async () => {
   try {
-    const res = await fetch("/api/cookies/auth?action=getCartId");
+    const res = await fetch(`${getBaseURL()}/api/cookies/auth?action=getCartId`); // Use absolute URL
     if (!res.ok) {
       console.log("getCartId: Failed to fetch cart ID from API."); // LOG
       return undefined;
@@ -71,7 +74,7 @@ export const getCartId = async () => {
 
 export const setCartId = async (cartId: string) => {
   try {
-    await fetch("/api/cookies/auth", {
+    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "setCartId", cartId }),
@@ -84,7 +87,7 @@ export const setCartId = async (cartId: string) => {
 
 export const removeCartId = async () => {
   try {
-    await fetch("/api/cookies/auth", {
+    await fetch(`${getBaseURL()}/api/cookies/auth`, { // Use absolute URL
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "removeCartId" }),
