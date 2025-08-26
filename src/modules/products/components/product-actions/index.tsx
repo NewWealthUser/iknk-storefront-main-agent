@@ -8,11 +8,12 @@ import Divider from "@modules/common/components/divider"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
 import { isEqual } from "lodash"
 import { useParams } from "next/navigation"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useContext, useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
 import { RhProduct, RhVariant, RhOption } from "@lib/util/rh-product-adapter"
 import { toast } from "react-hot-toast"
+import { IknkShoppingCartContext } from "@lib/context/iknk-cart-context" // Import cart context
 
 type ProductActionsProps = {
   product: RhProduct
@@ -40,6 +41,7 @@ export default function ProductActions({
   const [isAdding, setIsAdding] = useState(false)
   const params = useParams()
   const countryCode = typeof params?.countryCode === 'string' ? params.countryCode : '';
+  const { refetch } = useContext(IknkShoppingCartContext); // Get refetch from context
 
   useEffect(() => {
     if (product.variants?.length === 1) {
@@ -92,7 +94,10 @@ export default function ProductActions({
 
   // add the selected variant to the cart
   const handleAddToCart = async () => {
-    if (!selectedVariant?.id) return null
+    if (!selectedVariant?.id) {
+      toast.error("Please select a valid variant.", { position: "top-center" });
+      return null;
+    }
 
     setIsAdding(true)
 
@@ -103,8 +108,10 @@ export default function ProductActions({
         countryCode,
       })
       toast.success("Successfully added to cart!", { position: "top-center" })
+      refetch(); // Refetch cart data after successful addition
     } catch (e: any) {
-      toast.error(e?.message || "Failed to add to cart", { position: "top-center" })
+      console.error("Add to cart error:", e); // Log the full error for debugging
+      toast.error(e?.message || "Failed to add to cart. Please check variant pricing in Medusa Admin.", { position: "top-center" })
     } finally {
       setIsAdding(false)
     }
