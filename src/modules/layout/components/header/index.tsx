@@ -36,7 +36,7 @@ const Header = () => {
   };
 
   const navLinkStyle: React.CSSProperties = {
-    ...iconAnd TextStyle,
+    ...iconAndTextStyle, // Fixed typo here
     lineHeight: '1.75rem',
   };
 
