@@ -3,6 +3,7 @@
 import React, { FC } from "react"
 import Link from "next/link"
 import { RhProduct, RhSwatch } from "@lib/util/rh-product-adapter"
+import { convertToLocale } from "@lib/util/money"
 
 export interface IknkProductCardProps {
   data: RhProduct
@@ -27,23 +28,13 @@ export const IknkProductCard: FC<IknkProductCardProps> = React.memo(({ data }) =
   // Determine the subtitle text
   const subtitleText = metadata?.subTitle || "Available in multiple sizes & colours"
 
-  // Format price display
-  const formatPrice = (price: number | undefined, currencySymbol: string | undefined) => {
-    if (typeof price !== 'number') return ""
-    // Always use "R" for ZAR
-    if (currencySymbol === "ZAR" || currencySymbol === "R") {
-      return `R${(price / 100).toFixed(2)}`
-    }
-    return `${currencySymbol || ""}${(price / 100).toFixed(2)}`
-  }
-
   const minPrice = priceRangeDisplay?.listPrices?.[0] || priceRangeDisplay?.memberPrices?.[0]
   const maxPrice = priceRangeDisplay?.listPrices?.[0] || priceRangeDisplay?.memberPrices?.[0]
-  const currencySymbol = priceRangeDisplay?.currencySymbol || "R"
+  const currencyCode = priceRangeDisplay?.currencySymbol || "ZAR" // Use ZAR as default currency code
 
   const priceText = (minPrice && maxPrice && minPrice !== maxPrice)
-    ? `Starts at ${formatPrice(minPrice, currencySymbol)} to ${formatPrice(maxPrice, currencySymbol)}`
-    : (minPrice ? `Starts at ${formatPrice(minPrice, currencySymbol)}` : "")
+    ? `Starts at ${convertToLocale({ amount: minPrice, currency_code: currencyCode })} to ${convertToLocale({ amount: maxPrice, currency_code: currencyCode })}`
+    : (minPrice ? `Starts at ${convertToLocale({ amount: minPrice, currency_code: currencyCode })}` : "")
 
   return (
     <div

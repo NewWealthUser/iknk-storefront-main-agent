@@ -13,14 +13,23 @@ export const convertToLocale = ({
   maximumFractionDigits?: number
   locale?: string
 }) => {
-  return currency_code && !isEmpty(currency_code)
-    ? new Intl.NumberFormat(locale, {
-        style: "currency",
-        currency: currency_code,
-        minimumFractionDigits,
-        maximumFractionDigits,
-      }).format(amount)
-    : amount.toString()
+  if (!currency_code || isEmpty(currency_code)) {
+    return amount.toString()
+  }
+
+  const formattedAmount = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency_code,
+    minimumFractionDigits,
+    maximumFractionDigits,
+  }).format(amount)
+
+  // Explicitly replace "ZAR" with "R" for South African Rand
+  if (currency_code.toLowerCase() === "zar") {
+    return formattedAmount.replace("ZAR", "R")
+  }
+
+  return formattedAmount
 }
 
 /**

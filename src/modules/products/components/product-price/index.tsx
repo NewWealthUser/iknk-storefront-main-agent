@@ -1,5 +1,6 @@
 import { clx } from "@medusajs/ui"
 import { RhProduct, RhVariant } from "@lib/util/rh-product-adapter"
+import { convertToLocale } from "@lib/util/money"
 
 export default function ProductPrice({
   product,
@@ -14,23 +15,11 @@ export default function ProductPrice({
     return <div className="block w-32 h-9 bg-gray-100 animate-pulse" />
   }
 
-  const formatPrice = (
-    amount: number | undefined | null,
-    currencyCode: string | undefined
-  ) => {
-    if (typeof amount !== "number" || !currencyCode) return ""
-    // Always use "R" for ZAR
-    if (currencyCode === "ZAR" || currencyCode === "R") {
-      return `R${(amount / 100).toFixed(2)}`
-    }
-    return `${currencyCode}${(amount / 100).toFixed(2)}`
-  }
-
   const displayPrice = () => {
     if (variant) {
       const price = variant.calculated_price
       const currency = variant.currency_code
-      return formatPrice(price, currency)
+      return convertToLocale({ amount: price ?? 0, currency_code: currency ?? "ZAR" })
     } else if (priceRangeDisplay) {
       const minPrice =
         priceRangeDisplay.listPrices?.[0] || priceRangeDisplay.memberPrices?.[0]
@@ -39,18 +28,15 @@ export default function ProductPrice({
       const currency = priceRangeDisplay.currencySymbol
 
       if (minPrice && maxPrice && minPrice !== maxPrice) {
-        return `Starts at ${formatPrice(
-          minPrice,
-          currency
-        )} to ${formatPrice(maxPrice, currency)}`
+        return `Starts at ${convertToLocale({ amount: minPrice, currency_code: currency ?? "ZAR" })} to ${convertToLocale({ amount: maxPrice, currency_code: currency ?? "ZAR" })}`
       } else if (minPrice) {
-        return `Starts at ${formatPrice(minPrice, currency)}`
+        return `Starts at ${convertToLocale({ amount: minPrice, currency_code: currency ?? "ZAR" })}`
       }
     } else if (skuPriceInfo) {
       const price = skuPriceInfo.salePrice || skuPriceInfo.listPrice
       const currency = skuPriceInfo.currencySymbol
       if (price) {
-        return formatPrice(price, currency)
+        return convertToLocale({ amount: price, currency_code: currency ?? "ZAR" })
       }
     }
     return ""
@@ -72,10 +58,10 @@ export default function ProductPrice({
                 className="line-through"
                 data-testid="original-product-price"
               >
-                {formatPrice(
-                  priceRangeDisplay.listPrices[0],
-                  priceRangeDisplay.currencySymbol
-                )}
+                {convertToLocale({
+                  amount: priceRangeDisplay.listPrices[0],
+                  currency_code: priceRangeDisplay.currencySymbol ?? "ZAR",
+                })}
               </span>
             </p>
             {/* Calculate percentage diff if needed */}
