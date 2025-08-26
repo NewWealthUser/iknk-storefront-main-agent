@@ -10,7 +10,7 @@ export const getAuthHeaders = async (): Promise<
   { authorization: string } | {}
 > => {
   if (isServerContext) {
-    const cookieStore = nextCookies(); // Corrected: call nextCookies() directly
+    const cookieStore = await nextCookies(); // Corrected: await nextCookies()
     const token = cookieStore.get("_medusa_jwt")?.value;
     return token ? { authorization: `Bearer ${token}` } : {};
   } else {
@@ -44,7 +44,7 @@ export const getCacheOptions = async (
 
 export const setAuthToken = async (token: string) => {
   if (isServerContext) {
-    const cookieStore = nextCookies(); // Corrected: call nextCookies() directly
+    const cookieStore = await nextCookies(); // Corrected: await nextCookies()
     cookieStore.set("_medusa_jwt", token, {
       maxAge: 60 * 60 * 24 * 7,
       httpOnly: true,
@@ -69,7 +69,7 @@ export const setAuthToken = async (token: string) => {
 
 export const removeAuthToken = async () => {
   if (isServerContext) {
-    const cookieStore = nextCookies(); // Corrected: call nextCookies() directly
+    const cookieStore = await nextCookies(); // Corrected: await nextCookies()
     cookieStore.delete("_medusa_jwt");
   } else {
     try {
@@ -88,7 +88,7 @@ export const removeAuthToken = async () => {
 
 export const getCartId = async () => {
   if (isServerContext) {
-    const cookieStore = nextCookies(); // Corrected: call nextCookies() directly
+    const cookieStore = await nextCookies(); // Corrected: await nextCookies()
     const cartId = cookieStore.get("_medusa_cart_id")?.value;
     return cartId;
   } else {
@@ -111,7 +111,7 @@ export const getCartId = async () => {
 
 export const setCartId = async (cartId: string) => {
   if (isServerContext) {
-    const cookieStore = nextCookies(); // Corrected: call nextCookies() directly
+    const cookieStore = await nextCookies(); // Corrected: await nextCookies()
     cookieStore.set("_medusa_cart_id", cartId, {
       maxAge: 60 * 60 * 24 * 7,
       httpOnly: true,
@@ -136,7 +136,7 @@ export const setCartId = async (cartId: string) => {
 
 export const removeCartId = async () => {
   if (isServerContext) {
-    const cookieStore = nextCookies(); // Corrected: call nextCookies() directly
+    const cookieStore = await nextCookies(); // Corrected: await nextCookies()
     cookieStore.delete("_medusa_cart_id");
   } else {
     try {

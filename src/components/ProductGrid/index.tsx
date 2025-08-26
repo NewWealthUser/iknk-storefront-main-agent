@@ -88,6 +88,9 @@ const useInfiniteScroll = (props: any) => ({ ref: null });
 const getReqContext = () => ({ headers: { "user-agent": "" } });
 const getSelectorsByUserAgent = (userAgent: string) => ({ isMobile: false });
 
+// Define FEATURE_PG_DEFAULT_ITEMS_PER_PAGE
+const FEATURE_PG_DEFAULT_ITEMS_PER_PAGE = false; // Assuming false for now, adjust as needed
+
 function extractSkuOtions(option: string) {
   const facets: { [key: string]: string } = option?.split("|")?.reduce((acc: { [key: string]: string }, part) => {
     const [id, type, value] = part?.split("~~");
@@ -98,26 +101,107 @@ function extractSkuOtions(option: string) {
   return facets;
 }
 
-interface SearchResultRecord {
-  product?: {
-    anchor?: string;
-    pgCropRules?: { height: number };
-    rhr?: boolean;
-    galleryDescription?: string;
-    displayName?: string;
-    repositoryId?: string;
-    skuOptiondata?: string;
+interface SearchRecordProduct {
+  anchor?: string;
+  pgCropRules?: { height: number };
+  rhr?: boolean;
+  galleryDescription?: string;
+  displayName?: string;
+  repositoryId?: string;
+  skuOptiondata?: string;
+  priceInfo?: any; // Added priceInfo
+  imageContainerStyle?: any; // Added imageContainerStyle
+  captionMinHeight?: number; // Added captionMinHeight
+  imageStyle?: any; // Added imageStyle
+  imageFlip?: boolean;
+  imageUrl?: string;
+  altImageUrl?: string;
+  alternateImages?: { imageUrl: string }[];
+  colorizable?: boolean;
+  displaySwatch?: string;
+  swatchInfo?: {
+    swatchesToDisplay?: {
+      swatchId?: string;
+      displayName?: string;
+      imageUrl?: string;
+    }[];
   };
-  sku?: {
-    fullSkuId?: string;
+  percentSaleSkus?: number;
+  memberSavingsMin?: number;
+  memberSavingsMax?: number;
+  uxAttributes?: {
+    membershipProduct?: string;
+    giftCert?: string;
   };
+  customProduct?: boolean;
 }
 
-interface ProductGridItem extends SearchResultRecord {
+interface SearchRecordSku {
+  fullSkuId?: string;
+}
+
+interface ProductGridItem extends SearchRecordProduct {
   loader?: boolean;
 }
 
-interface ProductGrid {
+export const getUrl = (
+  item: any,
+  host: string = "",
+  stocked: boolean,
+  isRefinementFilterActive: boolean,
+  totalNumRecs: number,
+  isSale: boolean,
+  isConcierge?: boolean,
+  filterQueries?: string[],
+  selectedSwatch?: string | null,
+  isNextGen = false,
+  inStockFlow = true,
+  isNewURLFeatureEnabled: boolean = false,
+  category: string = ""
+) => {
+  const saleParamString = isSale ? "true" : "";
+  const formattedDisplayName = item?.product?.displayName
+    ?.toLowerCase()
+    .replace(/\s+/g, "-");
+
+  const urlPath =
+    isNewURLFeatureEnabled && category
+      ? `/${category}/pdp/${formattedDisplayName}`
+      : `/catalog/product/product.jsp/${item?.product?.repositoryId}`;
+
+  const url = new URL(urlPath, host || "http://www.example.com");
+
+  {
+    isSale && url.searchParams.set("sale", saleParamString);
+  }
+
+  if (item?.product?.skuOptiondata?.length && isNextGen && !stocked) {
+    const skuOptiondata = extractSkuOtions(item?.product?.skuOptiondata);
+    Object.keys(skuOptiondata)?.map(key => {
+      if (skuOptiondata[key] && key) {
+        url.searchParams?.set(key, skuOptiondata[key]);
+      }
+    });
+  }
+
+  if (selectedSwatch) {
+    url.searchParams.set("swatch", selectedSwatch);
+  }
+
+  if (stocked) {
+    if (inStockFlow) {
+      url.searchParams.set("fullSkuId", item?.sku?.fullSkuId ?? "");
+    } else {
+      url.searchParams.set("inStock", "true");
+    }
+  }
+
+  return {
+    to: !host ? url.pathname + url.search : undefined
+  };
+};
+
+interface ProductGridProps {
   isStockedFilterActive: boolean;
   isRefinementFilterActive: boolean;
   gridColumns: any;
@@ -145,7 +229,7 @@ interface ProductGrid {
   inStockFlow?: boolean;
   activeTab?: any;
 }
-const ProductGrid: FC<ProductGrid> = ({
+const ProductGrid: FC<ProductGridProps> = ({
   gridColumns,
   isStockedFilterActive,
   isRefinementFilterActive,

@@ -23,13 +23,13 @@ import clsx from "clsx";
 // import {
 //   processEnvServer as isServer,
 //   processEnvServer
-// } from "hooks/useSsrHooks";
+// } from "@RHCommerceDev/hooks/useSsrHooks";
 // import useTypographyStyles from "hooks/useTypographyStyles";
 // import { COLOR_PREVIEW_AVAILABLE_SOON } from "resources/page-level-resources-schemas/products.json";
 // import memoize from "utils/memoize";
 // import stringToObject from "utils/stringToObject";
 // import yn from "yn";
-import { getUrl } from "..";
+import { getUrl } from "../index"; // Corrected import path
 import { PD } from "../ProductDetails";
 import { RhSwatch } from "@lib/util/rh-product-adapter";
 // import { useNewURLStructureParams } from "hooks/useParams";
@@ -297,7 +297,12 @@ export const ProductCard: FC<ProductCard> = memo(
       selectedSwatch,
       params?.site,
       searchPage,
-      siteId
+      siteId,
+      env.FEATURE_BCT_SUNSET,
+      prefix,
+      inStockFlow,
+      isNewURLFeatureEnabled,
+      category
     ]);
     let saleUrl = "";
     const generatedSaleUrl = useMemo(() => {
@@ -328,7 +333,11 @@ export const ProductCard: FC<ProductCard> = memo(
       Boolean(isSale || isSaleFilterEnabled),
       isConcierge,
       filterQueries,
-      selectedSwatch
+      selectedSwatch,
+      prefix,
+      inStockFlow,
+      isNewURLFeatureEnabled,
+      category
     ]);
     if (
       item?.product?.percentSaleSkus !== 0 &&
@@ -412,7 +421,7 @@ export const ProductCard: FC<ProductCard> = memo(
           );
         }
       }
-    }, []);
+    }, [item?.product?.displaySwatch, item?.product?.swatchInfo?.swatchesToDisplay, onSwatchClickHandler]);
 
     const PRESET_MAP = useMemo(() => {
       return getPresetMap(
@@ -474,7 +483,8 @@ export const ProductCard: FC<ProductCard> = memo(
         PRESET_MAP.mdUp,
         PRESET_MAP.smUp,
         PRESET_MAP.xsUp,
-        cols
+        cols,
+        env?.FEATURE_TEST_PRESET
       ]
     );
 
@@ -534,7 +544,7 @@ export const ProductCard: FC<ProductCard> = memo(
       return images.map(item => ({
         imageUrl: item
       })) as ProductAlternateImage[];
-    }, [item?.product, productSwatchImage]);
+    }, [item?.product, productSwatchImage?.imageUrl]);
 
     const imageAlternativeName = useMemo(() => {
       let name = "";

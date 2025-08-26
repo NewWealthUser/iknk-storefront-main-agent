@@ -43,7 +43,7 @@ import _chunk from "lodash/chunk";
 
 // import prasePGCropRules from "@RHCommerceDev/utils/prasePGCropRules"; // RH.COM specific
 
-import { IknkProductCard } from "./iknk-product-card"; // Our new ProductCard
+import { IknkProductCard as PC } from "./iknk-product-card"; // Corrected import for PC
 // import { showPGPaginationModule } from "@RHCommerceDev/utils/showPaginationModule"; // RH.COM specific
 // import { useMediaQuery, useTheme } from "@mui/material"; // MUI components
 // import maxBy from "lodash.maxby"; // lodash
@@ -51,6 +51,8 @@ import { IknkProductCard } from "./iknk-product-card"; // Our new ProductCard
 // import { useInfiniteScroll } from "@RHCommerceDev/hooks/useInfiniteScroll"; // RH.COM specific
 // import { getReqContext } = "@RHCommerceDev/utils/reqContext"; // RH.COM specific
 // import { getSelectorsByUserAgent } from "react-device-detect"; // RH.COM specific
+
+import { RhProduct } from "@lib/util/rh-product-adapter"; // Import RhProduct
 
 // Placeholder for RH.COM specific utilities/components
 const RHPagination = (props: any) => <div>Pagination Placeholder</div>;
@@ -76,6 +78,9 @@ type PgImageContainerDimension = {
 
 const PG_IMAGE_CONTAINER_DIMENSION: PgImageContainerDimension = { 4: { xl: [0], xs: [0] } };
 const ZERO_RESULTS = 0;
+
+// Define FEATURE_PG_DEFAULT_ITEMS_PER_PAGE
+const FEATURE_PG_DEFAULT_ITEMS_PER_PAGE = false; // Assuming false for now, adjust as needed
 
 // Simplified hooks
 interface PageContent {
@@ -588,7 +593,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                     ref={index === selectedItemId ? selectedProductRef : null}
                   >
                     <PC
-                      item={item}
+                      data={item}
                       isSale={isSale}
                       isSaleFilterEnabled={isSaleFilterEnabled}
                       totalNumRecs={totalNumRecs}
@@ -657,7 +662,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
                 }}
               >
                 <PC
-                  item={item}
+                  data={item}
                   isSale={isSale}
                   isSaleFilterEnabled={isSaleFilterEnabled}
                   totalNumRecs={totalNumRecs}
@@ -702,4 +707,4 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
   );
 };
 
-export default ProductGrid;
+export default IknkProductGrid;
