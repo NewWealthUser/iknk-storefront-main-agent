@@ -41,7 +41,7 @@ export async function retrieveCart(cartId?: string) {
     return { cart: null }
   })
 
-  console.log("retrieveCart: Retrieved cart:", cart?.id, "Items:", cart?.items?.length); // LOG
+  console.log("retrieveCart: Retrieved cart:", JSON.stringify(cart, null, 2)); // LOG
   return cart
 }
 

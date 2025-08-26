@@ -4,7 +4,7 @@ import { HttpTypes } from "@medusajs/types";
 // Define the RH.COM-like cart structure based on our analysis of RH.COM GraphQL fragments
 export interface IknkCart {
   id: string;
-  lineItems: IknkLineItem[];
+  items: IknkLineItem[];
   cartPrice: IknkCartPrice;
   shipAddress?: IknkAddress;
   billAddress?: IknkAddress;
@@ -66,7 +66,7 @@ export function adaptMedusaLineItemToIknkLineItem(item: HttpTypes.StoreCartLineI
 export function adaptMedusaCartToIknkCart(medusaCart: HttpTypes.StoreCart): IknkCart {
   const iknkCart: IknkCart = {
     id: medusaCart.id,
-    lineItems: medusaCart.items?.map(item => ({
+    items: medusaCart.items?.map(item => ({
       productId: item.product_id || '',
       sku: item.variant?.sku || '',
       displayName: item.title,
@@ -122,5 +122,6 @@ export function adaptMedusaCartToIknkCart(medusaCart: HttpTypes.StoreCart): Iknk
     }
   }
 
+  console.log("adaptMedusaCartToIknkCart: Adapted cart:", JSON.stringify(iknkCart, null, 2)); // LOG
   return iknkCart;
 }

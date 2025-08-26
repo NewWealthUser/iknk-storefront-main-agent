@@ -5,13 +5,14 @@ import { Heading, Table } from "@medusajs/ui"
 
 import Item from "@modules/cart/components/item"
 import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
+import { IknkCart, IknkLineItem } from "@lib/util/iknk-cart-adapter" // Import IknkCart and IknkLineItem
 
 type ItemsTemplateProps = {
-  cart?: HttpTypes.StoreCart
+  cart?: IknkCart // Changed to IknkCart
 }
 
 const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
-  const items = cart?.items
+  const items = cart?.lineItems // Changed from cart?.items
   return (
     <div>
       <div className="pb-3 flex items-center">
@@ -34,16 +35,16 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
         <Table.Body>
           {items
             ? items
-                .sort((a, b) => {
-                  return (a.created_at ?? "") > (b.created_at ?? "") ? -1 : 1
+                .sort((a: IknkLineItem, b: IknkLineItem) => { // Explicitly type a and b
+                  return (a.id || "") > (b.id || "") ? -1 : 1 // Simplified sorting by ID
                 })
-                .map((item) => {
-                  const iknkItem = adaptMedusaLineItemToIknkLineItem(item);
+                .map((item: IknkLineItem) => { // Explicitly type item
+                  // No need to adapt here, as item is already IknkLineItem
                   return (
                     <Item
-                      key={iknkItem.id}
-                      item={iknkItem}
-                      currencyCode={cart?.currency_code}
+                      key={item.id}
+                      item={item}
+                      currencyCode={cart?.cartPrice.currencySymbol ?? ''} // Changed from cart?.currency_code
                     />
                   )
                 })

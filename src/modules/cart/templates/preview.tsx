@@ -6,7 +6,7 @@ import { Table, clx } from "@medusajs/ui"
 
 import Item from "@modules/cart/components/item"
 import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
-import { IknkCart } from "@lib/util/iknk-cart-adapter"; // Import IknkCart
+import { IknkCart, IknkLineItem } from "@lib/util/iknk-cart-adapter"; // Import IknkCart and IknkLineItem
 
 type ItemsTemplateProps = {
   cart: IknkCart
@@ -27,11 +27,11 @@ const ItemsPreviewTemplate = ({ cart }: ItemsTemplateProps) => {
         <Table.Body data-testid="items-table">
           {items
             ? items
-                .sort((a, b) => {
+                .sort((a: IknkLineItem, b: IknkLineItem) => { // Explicitly type a and b
                   // Assuming IknkLineItem has a created_at or similar for sorting
                   return (a.id || "") > (b.id || "") ? -1 : 1 // Simplified sorting by ID
                 })
-                .map((item) => {
+                .map((item: IknkLineItem) => { // Explicitly type item
                   return (
                     <Item
                       key={item.id}

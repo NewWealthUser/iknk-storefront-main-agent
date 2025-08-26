@@ -10,15 +10,13 @@ import { HttpTypes } from "@medusajs/types"
 import { adaptMedusaCartToIknkCart, IknkCart } from "@lib/util/iknk-cart-adapter"
 
 type SummaryProps = {
-  cart: HttpTypes.StoreCart & {
-    promotions: HttpTypes.StorePromotion[]
-  }
+  cart: IknkCart // Changed to IknkCart
 }
 
-function getCheckoutStep(cart: HttpTypes.StoreCart) {
-  if (!cart?.shipping_address?.address_1 || !cart.email) {
+function getCheckoutStep(cart: IknkCart) { // Changed to IknkCart
+  if (!cart?.shipAddress?.address1 || !cart.metadata?.email) { // Adjusted to IknkCart properties
     return "address"
-  } else if (cart?.shipping_methods?.length === 0) {
+  } else if (cart?.metadata?.shipping_methods?.length === 0) { // Adjusted to IknkCart properties
     return "delivery"
   } else {
     return "payment"
@@ -26,7 +24,7 @@ function getCheckoutStep(cart: HttpTypes.StoreCart) {
 }
 
 const Summary = ({ cart }: SummaryProps) => {
-  const iknkCart: IknkCart = adaptMedusaCartToIknkCart(cart);
+  // No need to adapt here, cart is already IknkCart
   const step = getCheckoutStep(cart)
 
   return (
@@ -34,17 +32,17 @@ const Summary = ({ cart }: SummaryProps) => {
       <Heading level="h2" className="text-[2rem] leading-[2.75rem">
         Summary
       </Heading>
-      <DiscountCode cart={iknkCart} />
+      <DiscountCode cart={cart} />
       <Divider />
       <CartTotals
         totals={{
-          subtotal: iknkCart.cartPrice.subtotal,
-          tax: iknkCart.cartPrice.tax,
-          totalPrice: iknkCart.cartPrice.totalPrice,
-          discount_total: iknkCart.discount_total,
-          gift_card_total: iknkCart.gift_card_total,
-          shipping_total: iknkCart.shipping_total,
-          currency_code: iknkCart.cartPrice.currencySymbol || "",
+          subtotal: cart.cartPrice.subtotal,
+          tax: cart.cartPrice.tax,
+          totalPrice: cart.cartPrice.totalPrice,
+          discount_total: cart.discount_total,
+          gift_card_total: cart.gift_card_total,
+          shipping_total: cart.shipping_total,
+          currency_code: cart.cartPrice.currencySymbol || "",
         }}
       />
       <LocalizedClientLink

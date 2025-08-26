@@ -21,11 +21,7 @@ const useSite = () => "default";
 const useMembershipInfoAtomValue = () => ({ userHasActiveMembership: false });
 const useCartProjectionAtomValue = () => ({ id: "" });
 const useUserSessionAtomValue = () => ({ loading: false, loadingUpdateUserSession: false, rhUser: { userType: "", email: "" } });
-const useEffectOnce = (cb: () => void, condition: boolean, deps: any[]) => {
-  useEffect(() => {
-    if (condition) cb();
-  }, deps);
-};
+
 const useEnv = () => ({ FEATURE_CART_ID_ATOM: "false" });
 const useCurrentCartIdValue = () => "";
 const useDebounce = () => ({ debounce: (delay: number, cb: () => void) => setTimeout(cb, delay) });
@@ -111,6 +107,7 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
   );
 
   const fetchCart = useCallback(async () => {
+    console.log("IknkShoppingCartContextProvider: fetchCart() called."); // LOG
     setCartLoading(true);
     console.log("IknkShoppingCartContextProvider: Attempting to fetch cart with ID:", cartId); // LOG
     try {
@@ -133,7 +130,7 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
     } finally {
       setCartLoading(false);
     }
-  }, [cartId, setCart]);
+  }, [cartId]);
 
   const refetch = useCallback(async () => {
     console.log("IknkShoppingCartContextProvider: refetch() called."); // LOG
@@ -161,7 +158,7 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
       setInternalCart(null);
       setCart(null);
     }
-  }, [cartId, fetchCart, setCart]); // Depend on cartId, fetchCart, and setCart
+  }, [cartId]); // Depend only on cartId
 
   // useEffectOnce is removed as it prevents re-fetching
   // The logic is now handled by the simplified useEffect above.
