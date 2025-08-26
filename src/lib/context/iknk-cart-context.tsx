@@ -95,9 +95,19 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
   const [cartLoading, setCartLoading] = useState(true); // Initialize as true to show loading state initially
   const [internalCart, setInternalCart] = useState<IknkCart | null>(null); // Use internal state for cart
 
+  // Directly get cartId from cookies
+  const [cookieCartId, setCookieCartId] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchCookieCartId = async () => {
+      const id = await getCartId();
+      setCookieCartId(id || null);
+    };
+    fetchCookieCartId();
+  }, []);
+
   const cartId = useMemo(
-    () => currentCartId || cartProjectionCartId,
-    [cartProjectionCartId, currentCartId]
+    () => cookieCartId, // Use the cartId from cookies directly
+    [cookieCartId]
   );
 
   const fetchCart = useCallback(async () => {

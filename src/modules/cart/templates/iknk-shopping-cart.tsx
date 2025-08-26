@@ -11,6 +11,8 @@ type IknkShoppingCartProps = {};
 const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
   const { cart, loading, refetch } = useContext(IknkShoppingCartContext);
 
+  console.log("IknkShoppingCart: Cart object from context:", cart); // LOG
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
