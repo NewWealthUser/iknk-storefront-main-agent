@@ -5,13 +5,14 @@ import Link from "next/link";
 import { IknkShoppingCartContext } from "@lib/context/iknk-cart-context";
 import { updateLineItem, deleteLineItem } from "@lib/data/cart";
 import { TrashIcon } from "@radix-ui/react-icons"; 
+import { IknkLineItem } from "@lib/util/iknk-cart-adapter"; // Import IknkLineItem
 
 type IknkShoppingCartProps = {};
 
 const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
   const { cart, loading, refetch } = useContext(IknkShoppingCartContext);
 
-  console.log("IknkShoppingCart: Cart object from context:", JSON.stringify(cart, null, 2)); // LOG
+  console.log("IknkShoppingCart: Cart object from context:", cart); // LOG
 
   if (loading) {
     return (
@@ -21,7 +22,7 @@ const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
     );
   }
 
-  if (!cart || !cart.items || cart.items.length === 0) {
+  if (!cart || cart.lineItems.length === 0) {
     return (
       <div className="text-center py-20">
         <h1 className="text-2xl font-primary-thin mb-4">Your Shopping Cart is Empty</h1>
@@ -59,7 +60,7 @@ const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
               <div className="col-span-1 text-right">Total</div>
             </div>
           </div>
-          {cart.items.map((item) => (
+          {cart.lineItems.map((item: IknkLineItem) => (
             <div key={item.sku} className="grid grid-cols-6 gap-4 items-center border-b border-gray-200 py-4">
               <div className="col-span-3 flex items-center">
                 <img src={item.imageUrl} alt={item.displayName} className="w-24 h-24 object-contain mr-6" />

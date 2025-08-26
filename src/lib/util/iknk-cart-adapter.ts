@@ -1,10 +1,9 @@
-
 import { HttpTypes } from "@medusajs/types";
 
 // Define the RH.COM-like cart structure based on our analysis of RH.COM GraphQL fragments
 export interface IknkCart {
   id: string;
-  items: IknkLineItem[];
+  lineItems: IknkLineItem[]; // Changed from 'items' to 'lineItems'
   cartPrice: IknkCartPrice;
   shipAddress?: IknkAddress;
   billAddress?: IknkAddress;
@@ -15,6 +14,7 @@ export interface IknkCart {
 }
 
 export interface IknkLineItem {
+  id: string; // Added id for unique key
   productId: string;
   sku: string;
   displayName: string;
@@ -54,25 +54,26 @@ export interface IknkPayment extends HttpTypes.StorePaymentSession {
 export function adaptMedusaLineItemToIknkLineItem(item: HttpTypes.StoreCartLineItem | HttpTypes.StoreOrderLineItem): IknkLineItem {
   return {
     id: item.id,
-    productId: item.variant?.product_id || '',
+    productId: item.product_id || item.variant?.product_id || '', // Use product_id directly from item if available
     sku: item.variant?.sku || '',
     displayName: item.title,
     imageUrl: item.thumbnail || '',
     quantity: item.quantity,
-    price: item.unit_price || 0,
+    price: item.unit_price || 0, // Use unit_price for individual item price
   }
 }
 
 export function adaptMedusaCartToIknkCart(medusaCart: HttpTypes.StoreCart): IknkCart {
   const iknkCart: IknkCart = {
     id: medusaCart.id,
-    items: medusaCart.items?.map(item => ({
-      productId: item.product_id || '',
+    lineItems: medusaCart.items?.map(item => ({ // Changed to 'lineItems'
+      id: item.id,
+      productId: item.product_id || item.variant?.product_id || '', // Use product_id directly from item if available
       sku: item.variant?.sku || '',
       displayName: item.title,
       imageUrl: item.thumbnail || '',
       quantity: item.quantity,
-      price: item.unit_price || 0, // Simplified, will need to map from calculated prices
+      price: item.unit_price || 0, // Use unit_price for individual item price
       // Map other line item properties from Medusa's item and variant
     })) || [],
     cartPrice: {
