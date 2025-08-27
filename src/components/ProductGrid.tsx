@@ -547,7 +547,7 @@ const ProductGrid: FC<ProductGridProps> = ({
           <div className={flexboxContainerClasses}>
             {parsedDerivedProductListWithLoader?.map((item: ProductGridItem, index: number) => {
               return (
-                <>
+                <React.Fragment key={item.id}>
                   {item?.metadata?.anchor &&
                   productTitle?.toLowerCase() !==
                   item?.metadata?.anchor?.toLowerCase() ? (
@@ -593,7 +593,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                     />
                     {item.loader && <div ref={loaderRef} key="loader"></div>}
                   </div>
-                </>
+                </React.Fragment>
               );
             })}
           </div>

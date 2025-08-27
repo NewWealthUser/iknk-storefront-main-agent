@@ -47,6 +47,8 @@ import RHLink from "next/link"; // Placeholder
 // import { PG_GRID_CHOICE } from "@RHCommerceDev/nextgen-product-gallery/constants";
 // import { useIsoCookies } from "@RHCommerceDev/hooks/useIsoCookies";
 
+import { useParams } from "next/navigation";
+
 // New modular components
 import ProductGridImageDisplay from "./ProductGridImageDisplay";
 import ProductGridInfoSection from "./ProductGridInfoSection";
@@ -150,6 +152,8 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
     onProductClick,
     isSelectedItem
   }) => {
+    const { countryCode } = useParams();
+    console.log('countryCode', countryCode);
     const env = useEnv();
     const siteId = useSite();
     const locale = useLocale();
@@ -291,17 +295,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
       );
     }, [
       data, // Changed from item
-      host,
-      isStockedFilterActive,
-      isRefinementFilterActive,
-      totalNumRecs,
-      Boolean(isSale || isSaleFilterEnabled),
-      isConcierge,
-      filterQueries,
-      selectedSwatch,
-      prefix,
-      isNewURLFeatureEnabled,
-      category
+      countryCode,
     ]);
     if (
       data?.percentSaleSkus !== 0 && // Changed from item?.product?.percentSaleSkus

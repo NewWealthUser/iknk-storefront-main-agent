@@ -68,12 +68,13 @@ export default async function ProductPage(props: Props) {
   if (region?.id) {
     queryParams.region_id = region.id
   }
-  if (adaptedPricedProduct.collection) {
-    queryParams.collection_id = [adaptedPricedProduct.collection.id]
+  // Use pricedProduct (original Medusa product) for collection_id and tags
+  if (pricedProduct.collection) {
+    queryParams.collection_id = [pricedProduct.collection.id]
   }
-  if (adaptedPricedProduct.tags) {
+  if (pricedProduct.tags && pricedProduct.tags.length > 0) {
     queryParams.tags = {
-      value: adaptedPricedProduct.tags
+      value: pricedProduct.tags
         .map((t: HttpTypes.StoreProductTag) => t.id)
         .filter(Boolean) as string[],
     }

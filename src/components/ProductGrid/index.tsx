@@ -3,12 +3,14 @@
 import React, { FC } from "react";
 import clsx from "clsx";
 
-import { ProductGridCard as PC } from "./ProductGrid/ProductCard"; // Corrected import path
+import { ProductGridCard as PC } from "./ProductCard"; // Corrected import path
 import { RhProduct } from "@lib/util/rh-product-adapter";
 
+import { useParams } from "next/navigation";
+
 // Simplified getUrl function for Medusa storefront
-export const getUrl = (item: RhProduct) => {
-  const urlPath = `/products/${item?.handle}`;
+export const getUrl = (item: RhProduct, countryCode: string) => {
+  const urlPath = `/${countryCode}/products/${item?.handle}`;
   return { to: urlPath };
 };
 
@@ -23,6 +25,7 @@ interface ProductGridProps {
   productTitle?: string;
   filterQueries?: string[];
   inStockFlow?: boolean;
+  countryCode: string;
   // Removed all other props related to internal pagination, infinite scroll, etc.
 }
 
