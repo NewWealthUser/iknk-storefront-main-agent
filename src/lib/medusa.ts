@@ -1,6 +1,6 @@
 import { sdk } from "@lib/config"
 import { adaptMedusaProductToRhProduct, RhProduct } from "./util/rh-product-adapter";
-import { HttpTypes }s from "@medusajs/types"; // Ensure HttpTypes is imported
+import { HttpTypes } from "@medusajs/types"; // Ensure HttpTypes is imported
 
 export const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_URL as string
 const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY; // Get key here
