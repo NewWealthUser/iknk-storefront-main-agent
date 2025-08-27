@@ -21,30 +21,31 @@ export async function medusaGet<T>(path: string, queryParams?: Record<string, an
     });
     return data;
   } catch (error: any) {
-    let parsedError = error;
+    console.error("Raw error from medusaGet:", error); // Log the raw error object
 
-    // Attempt to parse the error if it's a stringified JSON
-    if (typeof error === 'string') {
+    let errorMessage = "An unknown error occurred.";
+
+    if (error.response) {
+      // Medusa SDK errors often have a 'response' property with status and data
+      const message = error.response.data?.message || error.response.statusText || "An unknown error occurred.";
+      errorMessage = `Medusa request failed: ${error.response.status} - ${message}`;
+    } else if (error.request) {
+      // The request was made but no response was received
+      errorMessage = "No response received from Medusa backend. Is it running?";
+    } else if (error.message) {
+      // Generic error message
+      errorMessage = `Error setting up Medusa request: ${error.message}`;
+    } else {
+      // Fallback for completely unknown error structures
       try {
-        parsedError = JSON.parse(error);
+        errorMessage = `Unknown error: ${JSON.stringify(error)}`;
       } catch (e) {
-        // Not a JSON string, keep original error
+        errorMessage = `Unknown error: ${String(error)}`;
       }
     }
-
-    if (parsedError.response) {
-      // Medusa SDK errors often have a 'response' property with status and data
-      const message = parsedError.response.data?.message || parsedError.response.statusText || "An unknown error occurred.";
-      throw new Error(`Medusa request failed: ${parsedError.response.status} - ${message}`);
-    } else if (parsedError.request) {
-      // The request was made but no response was received
-      throw new Error("No response received from Medusa backend. Is it running?");
-    } else {
-      // Fallback for generic or unknown error structures
-      const errorMessage = parsedError.message || JSON.stringify(parsedError) || "An unknown error occurred.";
-      console.error("Unknown error in medusaGet:", errorMessage);
-      throw new Error(`Error setting up Medusa request: ${errorMessage}`);
-    }
+    
+    console.error("Processed error in medusaGet:", errorMessage);
+    throw new Error(errorMessage);
   }
 }
 
