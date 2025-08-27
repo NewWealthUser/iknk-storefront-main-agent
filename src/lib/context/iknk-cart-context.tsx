@@ -107,9 +107,7 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
   );
 
   const fetchCart = useCallback(async () => {
-    console.log("IknkShoppingCartContextProvider: fetchCart() called."); // LOG
     setCartLoading(true);
-    console.log("IknkShoppingCartContextProvider: Attempting to fetch cart with ID:", cartId); // LOG
     try {
       const medusaCart = await retrieveCart(cartId || undefined);
       if (medusaCart) {
@@ -117,14 +115,11 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
         setInternalCart(iknkCart); // Update internal cart state
         setCart(iknkCart); // Also update context's cart state
         await setCartId(iknkCart.id);
-        console.log("IknkShoppingCartContextProvider: Successfully fetched and set cart:", iknkCart); // LOG
       } else {
         setInternalCart(null); // Update internal cart state
         setCart(null); // Also update context's cart state
-        console.log("IknkShoppingCartContextProvider: No cart found or retrieved."); // LOG
       }
     } catch (error) {
-      console.error("IknkShoppingCartContextProvider: Error fetching cart:", error); // LOG
       setInternalCart(null); // Update internal cart state
       setCart(null); // Also update context's cart state
     } finally {
@@ -133,7 +128,6 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
   }, [cartId]);
 
   const refetch = useCallback(async () => {
-    console.log("IknkShoppingCartContextProvider: refetch() called."); // LOG
     await fetchCart();
   }, [fetchCart]);
 

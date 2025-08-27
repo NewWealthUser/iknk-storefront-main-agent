@@ -23,10 +23,8 @@ import { getRegion } from "./regions"
  */
 export async function retrieveCart(cartId?: string) {
   const id = cartId || (await getCartId())
-  console.log("retrieveCart: Attempting to retrieve cart with ID:", id); // LOG
 
   if (!id) {
-    console.log("retrieveCart: No cart ID found, returning null."); // LOG
     return null
   }
 
@@ -40,11 +38,9 @@ export async function retrieveCart(cartId?: string) {
       cache: "no-store", // Ensure fresh data is always fetched
     }
   ).catch((err) => {
-    console.error("retrieveCart: Error fetching cart:", err); // LOG
     return { cart: null }
   })
 
-  console.log("retrieveCart: Retrieved cart:", cart?.id, "Items:", cart?.items?.length); // LOG
   return cart
 }
 

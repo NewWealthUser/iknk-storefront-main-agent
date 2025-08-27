@@ -3,10 +3,7 @@ import clsx from "clsx";
 import { PD } from "../ProductDetails"; // Placeholder
 import { RhProduct } from "@lib/util/rh-product-adapter";
 import { Text } from "@medusajs/ui"; // Placeholder replaced with Medusa Text
-import { useTypographyStyles } from "@lib/hooks/use-typography-styles"; // Placeholder replaced with local placeholder
 
-// Placeholder for useTypographyStyles
-const useTypographyStyles = (props: any) => ({ rhBaseBody1: "" });
 
 interface ProductGridInfoSectionProps {
   data: RhProduct; // Changed from item: { product?: RhProduct; sku?: any };
@@ -39,9 +36,7 @@ const ProductGridInfoSection: FC<ProductGridInfoSectionProps> = ({
   inStockFlow,
   saleUrl,
 }) => {
-  const typographyStyles = useTypographyStyles({
-    keys: ["rhBaseBody1"],
-  });
+  
 
   return (
     <>

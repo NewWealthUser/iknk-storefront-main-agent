@@ -1,15 +1,11 @@
 import React, { FC, useCallback, useMemo } from "react";
 import clsx from "clsx";
-import RHSpinner from "../../common/icons/spinner"; // Placeholder replaced with Medusa spinner
+import Spinner from "@modules/common/icons/spinner"
 import ImageCarousel from "../ImageCarousel"; // Placeholder
 import RHImageV2 from "next/image"; // Placeholder replaced with Next.js Image
 import { RhProduct, RhImage } from "@lib/util/rh-product-adapter";
 import { Text } from "@medusajs/ui"; // Placeholder replaced with Medusa Text
-import { useTypographyStyles } from "@lib/hooks/use-typography-styles"; // Placeholder replaced with local placeholder
-const COLOR_PREVIEW_AVAILABLE_SOON = "Color preview available soon"; // Placeholder replaced with direct constant
 
-// Placeholder for useTypographyStyles
-const useTypographyStyles = (props: any) => ({ rhBaseBody1: "" });
 
 interface ProductAlternateImage {
   imageUrl: string;
@@ -66,9 +62,7 @@ const ProductGridImageDisplay: FC<ProductGridImageDisplayProps> = ({
   COLOR_PREVIEW_AVAILABLE_SOON,
   spinnerHeight,
 }) => {
-  const typographyStyles = useTypographyStyles({
-    keys: ["rhBaseBody1"],
-  });
+  
   const processEnvServer = false; // Placeholder
 
   return (
@@ -81,7 +75,7 @@ const ProductGridImageDisplay: FC<ProductGridImageDisplayProps> = ({
             height: spinnerHeight,
           }}
         >
-          <RHSpinner />
+          <Spinner />
         </div>
       ) : !!slides?.length ? (
         <ImageCarousel
@@ -117,7 +111,8 @@ const ProductGridImageDisplay: FC<ProductGridImageDisplayProps> = ({
           className="absolute z-40 flex h-16 w-full items-center justify-center bg-black/40"
         >
           <Text
-            className={clsx(typographyStyles.rhBaseBody1, "!text-white")}
+            size="base"
+            className="!text-white"
           >
             {pageContent?.COLOR_PREVIEW_AVAILABLE_SOON ||
               COLOR_PREVIEW_AVAILABLE_SOON}

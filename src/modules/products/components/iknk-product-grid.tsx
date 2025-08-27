@@ -41,7 +41,7 @@ import _chunk from "lodash/chunk";
 //   ZERO_RESULTS
 // } from "@RHCommerceDev/utils/constants"; // RH.COM specific
 
-// import prasePGCropRules from "@RHCommerceDev/utils/prasePGCropRules"; // RH.COM specific
+// import pgCropRules from "@RHCommerceDev/utils/pgCropRules"; // RH.COM specific
 
 import { ProductGridCard as PC } from "../../../components/ProductGrid/ProductCard"; // Corrected import for PC
 // import { showPGPaginationModule } from "@RHCommerceDev/utils/showPaginationModule"; // RH.COM specific
@@ -334,7 +334,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
     () =>
       derivedProductList?.reduce(
         (acc: RhProduct[][], rec: RhProduct) => {
-          const pgCropRules = prasePGCropRules(rec?.metadata?.pgCropRules);
+          
 
           const record = {
             ...rec,
@@ -373,7 +373,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
           return acc;
         },
         [[]]
-      ),
+      ) ?? [],
     [derivedProductList, isSort, productTitle]
   );
   let mediaString;

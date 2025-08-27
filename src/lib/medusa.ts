@@ -1,4 +1,4 @@
-import { sdk } from "@lib/config" // Import sdk
+import { sdk } from "@lib/config"
 import { adaptMedusaProductToRhProduct, RhProduct } from "./util/rh-product-adapter";
 import { HttpTypes } from "@medusajs/types"; // Ensure HttpTypes is imported
 
@@ -21,17 +21,31 @@ export async function medusaGet<T>(path: string, queryParams?: Record<string, an
     });
     return data;
   } catch (error: any) {
-    // The sdk.client.fetch already handles non-2xx responses by throwing an error
-    // We can re-throw it or wrap it for more context if needed.
-    if (error.response) {
+    let parsedError = error;
+
+    // Attempt to parse the error if it's a stringified JSON
+    if (typeof error === 'string') {
+      try {
+        parsedError = JSON.parse(error);
+      } catch (e) {
+        // Not a JSON string, keep original error
+      }
+    }
+
+    if (parsedError.response) {
       // Medusa SDK errors often have a 'response' property with status and data
-      throw new Error(`Medusa request failed: ${error.response.status} ${error.response.data?.message || error.response.statusText}`);
-    } else if (error.request) {
+      const message = parsedError.response.data?.message || parsedError.response.statusText || "An unknown error occurred.";
+      throw new Error(`Medusa request failed: ${parsedError.response.status} - ${message}`);
+    } else if (parsedError.request) {
       // The request was made but no response was received
       throw new Error("No response received from Medusa backend. Is it running?");
+    } else if (parsedError.message) {
+      // Generic error message
+      throw new Error(`Error setting up Medusa request: ${parsedError.message}`);
     } else {
-      console.error("Unknown error in medusaGet:", error);
-      throw new Error(`Error setting up Medusa request: ${error.message}`);
+      // Fallback for completely unknown error structures
+      console.error("Unknown error in medusaGet:", JSON.stringify(parsedError, null, 2));
+      throw new Error("An unknown error occurred during Medusa request.");
     }
   }
 }

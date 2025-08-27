@@ -123,6 +123,5 @@ export function adaptMedusaCartToIknkCart(medusaCart: HttpTypes.StoreCart): Iknk
     }
   }
 
-  console.log("adaptMedusaCartToIknkCart: Adapted cart:", JSON.stringify(iknkCart, null, 2)); // LOG
   return iknkCart;
 }

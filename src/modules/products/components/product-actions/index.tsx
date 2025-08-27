@@ -102,14 +102,12 @@ export default function ProductActions({
     setIsAdding(true)
 
     try {
-      console.log("ProductActions: handleAddToCart called"); // LOG
       await addToCart({
         variantId: selectedVariant.id,
         quantity: 1,
         countryCode,
       })
       toast.success("Successfully added to cart!", { position: "top-center" })
-      console.log("ProductActions: addToCart successful, calling refetch()"); // LOG
       refetch(); // Refetch cart data after successful addition
     } catch (e: any) {
       console.error("Add to cart error:", e); // Log the full error for debugging
