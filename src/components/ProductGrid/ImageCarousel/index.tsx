@@ -7,43 +7,44 @@ import React, {
   useRef,
   useState
 } from "react";
-// import { Box, Grid } from "@mui/material";
-// import { RHImageContext } from "@RHCommerceDev/rh-image-component/RHImageContext";
-// import RHLink from "@RHCommerceDev/component-rh-link";
-// import RHSpinner from "@RHCommerceDev/component-rh-spinner";
-// import RHImageV2 from "@RHCommerceDev/rh-image-component";
+// import { Box, Grid } from "@mui/material"; // Removed MUI imports
+// import { RHImageContext } from "@RHCommerceDev/rh-image-component/RHImageContext"; // Removed
+// import RHLink from "@RHCommerceDev/component-rh-link"; // Removed
+// import RHSpinner from "@RHCommerceDev/component-rh-spinner"; // Removed
+// import RHImageV2 from "@RHCommerceDev/rh-image-component"; // Removed
 import clsx from "clsx";
-// import { useDebounce } from "hooks/useDebounce";
-// import { isMobileOrTablet } from "hooks/useDeviceOrientation";
-// import PlayIcon from "icons/PlayIcon";
-// import RHZoomInIcon from "icons/RHZoomInIcon";
-// import { COUNTER_ONE, COUNTER_TWO } from "utils/constants";
-// import { ProductImagePresetKeys } from "utils/getImageUrlWithPreset";
-// import memoize from "utils/memoize";
-import Arrows from "./Arrows";
-import DotsCarousel from "./DotsCarousel";
+import { useDebounce } from "@lib/hooks/useDebounce"; // Using local debounce hook
+// import { isMobileOrTablet } from "hooks/useDeviceOrientation"; // Removed
+// import PlayIcon from "icons/PlayIcon"; // Moved to CarouselSlides
+import RHZoomInIcon from "@modules/common/icons/zoom-in"; // Assuming a ZoomInIcon exists or creating one
+// import { COUNTER_ONE, COUNTER_TWO } from "utils/constants"; // Removed
+// import { ProductImagePresetKeys } from "utils/getImageUrlWithPreset"; // Removed
+// import memoize from "utils/memoize"; // Removed
+import Arrows from "./Arrows"; // Now used by CarouselControls
+// import DotsCarousel from "./DotsCarousel"; // Moved to CarouselControls
 import ImageThumbnailWrapper from "./ImageThumbnailWrapper";
-// import { useEnv } from "hooks/useEnv";
-// import TailwindButton from "@RHCommerceDev/component-tailwind-button";
+// import { useEnv } from "hooks/useEnv"; // Removed
+// import TailwindButton from "@RHCommerceDev/component-tailwind-button"; // Removed
+import CarouselSlides from "./CarouselSlides";
+import CarouselControls from "./CarouselControls";
+import { Button } from "@medusajs/ui"; // Using Medusa UI Button
 
-// Placeholder implementations
-const Box = (props: any) => <div>{props.children}</div>;
-const Grid = (props: any) => <div {...props} />;
-const RHImageContext = React.createContext({});
-const RHLink = (props: any) => <a href={props.to}>{props.children}</a>;
-const RHSpinner = (props: any) => <div>Loading...</div>;
-const RHImageV2 = (props: any) => <img src={props.src} alt={props.alt} className={props.className} />;
-const useDebounce = () => ({ debounce: (delay: number, callback: () => void) => setTimeout(callback, delay) });
-const isMobileOrTablet = false;
-const PlayIcon = (props: any) => <div>PlayIcon</div>;
-const RHZoomInIcon = (props: any) => <div>RHZoomInIcon</div>;
-const COUNTER_ONE = 1;
-const COUNTER_TWO = 2;
-const ProductImagePresetKeys = "";
-const memoize = (Component: any) => Component;
-const useEnv = () => ({});
-const TailwindButton = (props: any) => <button>{props.children}</button>;
-const IMAGE_ASPECT_RATIO = { thumbnail: "1/1", heroImage: "1/1" };
+// Placeholder implementations (simplified or removed)
+const Box = (props: any) => <div {...props}>{props.children}</div>; // Simplified
+const Grid = (props: any) => <div {...props} />; // Simplified
+const RHImageContext = React.createContext({}); // Removed
+const RHLink = (props: any) => <a href={props.to}>{props.children}</a>; // Removed
+const RHSpinner = (props: any) => <div>Loading...</div>; // Removed
+const RHImageV2 = (props: any) => <img src={props.src} alt={props.alt} className={props.className} />; // Removed
+const isMobileOrTablet = false; // Simplified
+const PlayIcon = (props: any) => <div>PlayIcon</div>; // Removed
+const COUNTER_ONE = 1; // Re-added if needed for internal logic
+const COUNTER_TWO = 2; // Re-added if needed for internal logic
+const ProductImagePresetKeys = ""; // Removed
+// Removed memoize, using React.memo directly
+const useEnv = () => ({}); // Simplified
+const TailwindButton = (props: any) => <button {...props}>{props.children}</button>; // Replaced with Medusa Button
+const IMAGE_ASPECT_RATIO = { thumbnail: "1/1", heroImage: "1/1" }; // Re-added if needed
 
 interface ProductAlternateImage {
   imageUrl: string;
@@ -126,29 +127,27 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
   setActualImgHeight
 }) => {
   const [currentIndex, setCurrentIndex] = useState(1);
-  // const [isAutoplay, setIsAutoplay] = useState(false);  // AutoPlay Play Feature not required for time being
   const [transitionEnabled, setTransitionEnabled] = useState(true);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const ref = useRef<HTMLImageElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null); // Still needed for touch/hover events
+  const ref = useRef<HTMLImageElement>(null); // Not directly used in this component anymore
   const slideCount = slides.length;
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
-  const [previousIndex, setPreviousIndex] = useState(0); // Track the previous index
+  const [previousIndex, setPreviousIndex] = useState(0);
   const [reverseCount, setReverseCount] = useState(0);
   const [reverseIndex, setReverseIndex] = useState(0);
   const [showCarousel, setShowCarousel] = useState(false);
   const [stopFlip, setStopFLip] = useState(false);
   const { debounce } = useDebounce();
   const [isArrowsClicked, setIsArrowsClicked] = useState(false);
-  const env = useEnv();
+  const env = useEnv(); // Still needed if env vars are used for logic
 
   useEffect(() => {
-    // is used for colorization
     if (isClicked) {
       setCurrentIndex(1);
       setIsClicked?.(false);
     }
-  }, [isClicked]);
+  }, [isClicked, setIsClicked]);
 
   useEffect(() => {
     if (currentIndex && setActiveIndex) {
@@ -165,24 +164,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
     }
   }, [selectedSwatchUrl?.selectedSwatchImageUrl]);
 
-  useEffect(() => {
-    // added below code as there was layout shift in safari small devices SR-3266
-    if (isMobileOrTablet) {
-      return;
-    }
-    const element = ref?.current;
-
-    const handleOnPointerOver = async () => {
-      if (slides?.length) {
-        setShowCarousel(true);
-      }
-    };
-    element?.addEventListener("pointerover", handleOnPointerOver);
-
-    return () => {
-      element?.removeEventListener("pointerover", handleOnPointerOver);
-    };
-  }, [currentIndex, ref, slides?.length]);
+  // Removed pointerover listener as it's now handled by CarouselSlides
 
   const goToNextSlide = useCallback(
     (e: React.MouseEvent | React.TouchEvent | any) => {
@@ -196,7 +178,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
         });
       }
     },
-    [showCarousel, currentIndex]
+    [showCarousel, currentIndex, slides?.length]
   );
 
   const goToPrevSlide = useCallback(
@@ -213,39 +195,6 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
     },
     [currentIndex, showCarousel]
   );
-
-  // AutoPlay Play Feature not required for time being
-
-  // const startAutoplay = useCallback(() => {
-  //   setIsAutoplay(true);
-  // }, []);
-
-  // const stopAutoplay = useCallback(() => {
-  //   setIsAutoplay(false);
-  // }, []);
-
-  // useEffect(() => {
-  //   if (!isAutoplay) return;
-  //   const intervalId = setInterval(e => {
-  //     goToNextSlide(e);
-  //   }, 1000); // Adjust time interval as needed
-  //   return () => clearInterval(intervalId);
-  // }, [isAutoplay, goToNextSlide]);
-
-  // useEffect(() => {
-  //   if (isAutoplay && !isMobileOrTablet) {
-  //     if (carouselRef.current) {
-  //       carouselRef.current.addEventListener("mouseenter", startAutoplay);
-  //       carouselRef.current.addEventListener("mouseleave", stopAutoplay);
-  //     }
-  //     return () => {
-  //       if (carouselRef.current && !isMobileOrTablet) {
-  //         carouselRef.current.removeEventListener("mouseenter", startAutoplay);
-  //         carouselRef.current.removeEventListener("mouseleave", stopAutoplay);
-  //       }
-  //     };
-  //   }
-  // }, [ isAutoplay, stopAutoplay]);
 
   const scrollTo = useCallback((index: number, e?: any) => {
     if (e) {
@@ -302,64 +251,14 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
       setReverseCount(0);
       setReverseIndex(0);
     }
-  }, [currentIndex]);
-
-  useEffect(() => {
-    if (reverseCount == 1) {
-      setReverseIndex(previousIndex);
-    }
-  }, [reverseCount]);
-
-  useEffect(() => {
-    if (reverseCount == 1) {
-      setReverseIndex(previousIndex);
-    }
-  }, [reverseCount]);
-
-  const getVisibleDots = () => {
-    const totalDots = slides.length;
-    if (totalDots <= 5) {
-      return slides.map((_, index) => index);
-    }
-    return Array.from({ length: slides.length }, (_, i) => i);
-  };
-
-  const alternateImagesList = useMemo(() => {
-    let newImageLists = isPDP
-      ? [...slides]
-      : [
-          ...(slides?.length && showCarousel
-            ? slides
-            : imageFlip
-            ? slides?.slice(0, 2)
-            : [slides?.[0]])
-        ];
-
-    if (
-      newImageLists?.length &&
-      selectedSwatchUrl?.isColorizable &&
-      selectedSwatchUrl?.selectedSwatchImageUrl
-    ) {
-      newImageLists.splice(0, 1, {
-        imageUrl: selectedSwatchUrl?.selectedSwatchImageUrl
-      });
-    }
-    return newImageLists;
-  }, [
-    imageFlip,
-    isPDP,
-    selectedSwatchUrl?.isColorizable,
-    selectedSwatchUrl?.selectedSwatchImageUrl,
-    showCarousel,
-    slides
-  ]);
+  }, [currentIndex, previousIndex]);
 
   const handleFlip = useCallback(() => {
     if (
       !isMobileOrTablet &&
       imageFlip &&
       currentIndex === 1 &&
-      alternateImagesList?.length > 1 &&
+      slides?.length > 1 &&
       !stopFlip
     ) {
       setCurrentIndex(() => {
@@ -367,12 +266,12 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
         return COUNTER_TWO;
       });
     }
-  }, [alternateImagesList?.length, currentIndex, imageFlip, stopFlip]);
+  }, [slides?.length, currentIndex, imageFlip, stopFlip]);
   const handleRemoveFlip = useCallback(() => {
     if (
       !isMobileOrTablet &&
       !stopFlip &&
-      alternateImagesList?.length > 1 &&
+      slides?.length > 1 &&
       !isPDP &&
       imageFlip &&
       !stopFlip
@@ -385,17 +284,12 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
         });
       });
     }
-  }, [alternateImagesList?.length, debounce, imageFlip, isPDP, stopFlip]);
+  }, [slides?.length, debounce, imageFlip, isPDP, stopFlip]);
 
   const stopClickPropogation = (e: React.MouseEvent | React.TouchEvent | any) => {
     e.stopPropagation();
     e.preventDefault();
   };
-
-  const handleImageClick = useCallback(() => {
-    triggerAnalyticsEvent?.();
-    onProductClick?.();
-  }, []);
 
   if (!slides?.length) {
     return null;
@@ -406,223 +300,42 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
       <div
         className="group/item group relative flex flex-col items-end justify-center"
         style={{ touchAction: "pan-y", height: "auto" }}
-        ref={ref}
       >
-        <div
-          className={`embla group/item group relative z-10 block w-full overflow-hidden  max-h-[${imageContainerStyle?.height}px]`}
-          ref={carouselRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            height: imageContainerStyle?.height ?? "auto"
-          }}
-        >
-          <div
-            className="embla__container flex h-full items-center"
-            style={{
-              ...styles.emblaContainer,
-              transform: `translateX(-${(currentIndex - 1) * 100}%)`,
-              transition: transitionEnabled
-                ? "transform 0.3s ease-in-out"
-                : "none"
-            }}
-            onMouseLeave={handleRemoveFlip}
-            onMouseOver={handleFlip}
-          >
-            {alternateImagesList?.map((item, idx) => (
-              <div
-                key={idx}
-                className={`embla__slide relative z-20 min-w-0 flex-[0_0_100%] justify-around`}
-                style={{
-                  height: item ? imageContainerStyle?.height || "auto" : 250,
-                  cursor: isPDP && item.video ? "pointer" : "default"
-                }}
-                onClick={() => {
-                  if (isPDP && item.video) {
-                    setVideo?.(
-                      item.video.includes(".com")
-                        ? item.video // scene 7 url
-                        : item.video.split("&")[0] // youtube id
-                    );
-                  }
-                }}
-              >
-                {isPDP ? (
-                  <>
-                    <RHImageV2
-                      key={`productImage-${idx}`}
-                      data-testid={"mobile-pdp-image"}
-                      loading="eager"
-                      className={clsx(pdpImageProps?.objectFit)}
-                      style={{
-                        objectFit: "contain",
-                        height: "-webkit-fill-available",
-                        aspectRatio:
-                          pdpImageProps?.IMAGE_ASPECT_RATIO["heroImage"]
-                      }}
-                      src={
-                        pdpImageProps?.isHeroImageUrlFailed
-                          ? (slides || [])[0]?.imageUrl
-                          : presetImage
-                          ? presetImage(item?.imageUrl)
-                          : item?.imageUrl
-                      }
-                      containerProps={{
-                        className: "flex justify-center"
-                      }}
-                      alt={item?.caption || item?.imageUrl}
-                      preset={`${
-                          pdpImageProps?.imagePresetOverride?.length
-                            ? pdpImageProps?.imagePresetOverride
-                            : "pdp-hero"
-                        }-${
-                          pdpImageProps?.mediaString
-                        }`
-                      }
-                      onClick={() => {
-                        if (item.video) {
-                          setVideo?.(
-                            item.video.includes(".com")
-                              ? item.video // scene 7 url
-                              : item.video.split("&")[0] // youtube id
-                          );
-                        }
-                      }}
-                      skeletonComponent={() => null}
-                    />
+        <CarouselSlides
+          slides={slides}
+          currentIndex={currentIndex}
+          transitionEnabled={transitionEnabled}
+          imageContainerStyle={imageContainerStyle}
+          imageStyle={imageStyle}
+          presetImage={presetImage}
+          imageAlternativeName={imageAlternativeName || "Product image"}
+          isPDP={isPDP}
+          pdpImageProps={pdpImageProps}
+          setVideo={setVideo}
+          onProductClick={onProductClick}
+          triggerAnalyticsEvent={triggerAnalyticsEvent}
+          linkToPage={linkToPage}
+          openInNewTab={openInNewTab}
+          setActualImgHeight={setActualImgHeight}
+          handleTouchStart={handleTouchStart}
+          handleTouchMove={handleTouchMove}
+          handleTouchEnd={handleTouchEnd}
+          handleFlip={handleFlip}
+          handleRemoveFlip={handleRemoveFlip}
+        />
 
-                    {item.video !== "" && Boolean(item?.video) && (
-                      <PlayIcon
-                        className={
-                          "pointer-events-none absolute bottom-0 left-0 right-0  top-0 z-10 m-auto cursor-pointer text-[60px] text-white  "
-                        }
-                      />
-                    )}
-                  </>
-                ) : (
-                  <RHLink
-                    to={linkToPage}
-                    onClick={handleImageClick}
-                    aria-label={
-                      alternateImagesList?.length > 1
-                        ? `${idx + 1} of ${
-                            alternateImagesList?.length
-                          }, ${imageAlternativeName}`
-                        : `${imageAlternativeName}`
-                    }
-                    tabIndex={0}
-                    target={openInNewTab ? "_blank" : "_self"}
-                    className="cursor-pointer"
-                    id={`rhlink-image-carousel-${idx}-${imageAlternativeName}`}
-                    data-testid={`rhlink-image-carousel-${idx}-${imageAlternativeName}`}
-                  >
-                    <RHImageV2
-                      className="mx-auto grid content-end"
-                      src={
-                        presetImage
-                          ? presetImage(item?.imageUrl)
-                          : item?.imageUrl
-                      }
-                      style={imageStyle}
-                      alt={imageAlternativeName}
-                      containerProps={{
-                        className: "grid content-end",
-                        style: {
-                          height: imageContainerStyle.height ?? 250
-                        }
-                      }}
-                      refreshImageOnSourceChange={idx === 0}
-                      skeletonComponent={RHSpinner}
-                      setActualImgHeight={setActualImgHeight}
-                    />
-                  </RHLink>
-                )}
-              </div>
-            ))}
-          </div>
+        <CarouselControls
+          slideCount={slideCount}
+          currentIndex={currentIndex}
+          goToPrevSlide={goToPrevSlide}
+          goToNextSlide={goToNextSlide}
+          scrollTo={scrollTo}
+          isPDP={isPDP}
+          stopClickPropogation={stopClickPropogation}
+        />
 
-          {/* Action handlers */}
-        </div>
-        <div
-          className={`embla__controls align-center flex w-full items-center justify-center ${
-            isPDP ? "mb-2 mt-3 md:mb-3" : "my-1.5 sm:my-2 md:my-2.5"
-          } `}
-        >
-          {/* Dots */}
-
-          {!isPDP && !isMobileOrTablet && (
-            <button
-              className={`embla__prev relative m-0 inline-flex p-0 pr-2.5 opacity-0 transition-opacity duration-300 ${
-                currentIndex !== 1
-                  ? "group-hover:cursor-pointer group-hover:opacity-100"
-                  : "group-hover:cursor-default group-hover:opacity-0"
-              }`}
-              onClick={goToPrevSlide}
-              aria-label="previous"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                className="rotate-180"
-              >
-                <path d="M6 4L10 8L6 12" stroke="black" />
-              </svg>
-            </button>
-          )}
-          {/* dots */}
-          <span
-            id={`dots-image-carousel-${id}`}
-            onClick={stopClickPropogation}
-            className="flex h-[8px]"
-          >
-            {slides.length > 1 && (
-              <DotsCarousel
-                length={slides?.length}
-                maxVisibleIndicators={5}
-                current={currentIndex - 1}
-              />
-            )}
-          </span>
-
-          {!isPDP && !isMobileOrTablet && (
-            <button
-              className={`embla__next relative m-0 inline-flex p-0 pl-2.5 opacity-0 transition-opacity duration-300 ${
-                currentIndex !== slides?.length
-                  ? "group-hover:cursor-pointer group-hover:opacity-100"
-                  : "group-hover:cursor-default group-hover:opacity-0"
-              }`}
-              onClick={goToNextSlide}
-              aria-label="next"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-              >
-                <path d="M6 4L10 8L6 12" stroke="black" />
-              </svg>
-            </button>
-          )}
-        </div>
-        {/* Arrows */}
-        {isPDP && (
-          <div className="absolute z-0 hidden h-full w-full self-center md:block">
-            <Arrows
-              scrollPrev={goToPrevSlide}
-              scrollNext={goToNextSlide}
-              index={currentIndex}
-              slides={slideCount}
-            />
-          </div>
-        )}
         {isPDP ? (
-          <TailwindButton
+          <Button
             className="!absolute bottom-7 z-20 !bg-transparent p-0 sm:right-4 md:bottom-8"
             id="zoom-icon-v3"
             onClick={() => {
@@ -630,7 +343,7 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
             }}
           >
             <RHZoomInIcon className="!h-8 !w-8" />
-          </TailwindButton>
+          </Button>
         ) : null}
       </div>
 
@@ -666,4 +379,4 @@ const ImageCarousel: FC<ImageCarouselProps> = ({
     </>
   );
 };
-export default memoize(ImageCarousel);
+export default ImageCarousel;
