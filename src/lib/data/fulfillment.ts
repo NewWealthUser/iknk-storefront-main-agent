@@ -33,7 +33,7 @@ export const calculatePriceForShippingOption = async (
   }
 
   const next = {
-    ...(await getCacheOptions("fulfillment"),
+    ...(await getCacheOptions("fulfillment")), // Corrected: closing parenthesis moved
   }
 
   const body = { cart_id: cartId, data }
