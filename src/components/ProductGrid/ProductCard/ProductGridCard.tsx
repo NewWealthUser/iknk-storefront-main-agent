@@ -15,7 +15,7 @@ import React, {
 import clsx from "clsx";
 // import RHSpinner from "component-rh-spinner";
 // import { queryProductImage } from "graphql-client/queries/product-image"; // Removed
-// import { useAppId } from "hooks-use-app-id";
+// import { useAppId } = "hooks-use-app-id";
 // import { useEnv } = "hooks/useEnv";
 // import useLocale from "hooks/useLocale/useLocale";
 // import { useLocalization } from "hooks/useLocalization";
@@ -40,7 +40,7 @@ import { RhProduct, RhSwatch } from "@lib/util/rh-product-adapter";
 // import useParams from "@RHCommerceDev/hooks/useParams";
 // import { getReqContext } from "utils/reqContext";
 // import { BCT_PATHS, SELECTED_BRAND_COOKIE } from "utils/constants";
-import RHLink from "next/link"; // Placeholder
+import LocalizedClientLink from "@modules/common/components/localized-client-link"; // Changed from RHLink
 // import Cookies from "universal-cookie";
 // import { useCookies } from "hooks/useCookies";
 // import { TailwindTypography as Typography } from "@RHCommerceDev/component-tailwind-typography"; // Now imported in sub-components
@@ -77,7 +77,6 @@ const processEnvServer = false;
 const isServer = false;
 const useTypographyStyles = (props: any) => ({ rhBaseBody1: "", rhBaseH2: "", rhBaseCaption: "", rhBaseBody2: "", rhBaseBody3: "", rhBaseCaption1: "", rhBaseCaption2: "" });
 const COLOR_PREVIEW_AVAILABLE_SOON = "Color preview available soon";
-// Removed: const memoize = (Component: any) => memoize(Component);
 const stringToObject = (str: string) => ({});
 const yn = (value: any) => Boolean(value);
 const useNewURLStructureParams = () => ({ category: "" });
@@ -99,7 +98,6 @@ const useParamsHook = (props: any) => ({ site: "" }); // Renamed to avoid confli
 const getReqContext = () => ({ cookies: {}, path: "" });
 const BCT_PATHS: { [key: string]: string } = {};
 const SELECTED_BRAND_COOKIE = "";
-// const RHLink = (props: any) => <a href={props.to}>{props.children}</a>; // Already defined above
 const Cookies = (initialCookies: any) => ({
   cookies: initialCookies,
   get: (name: string) => initialCookies?.[name]
@@ -229,8 +227,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
 
     const to = useMemo(() => {
       let productUrl = getUrl(
-        data,
-        countryCode // Pass countryCode here
+        data // Removed countryCode parameter
       )?.to;
       const site = searchPage ? getSite(paramsHook, productUrl) : siteId; // Use paramsHook
       const bctPath = BCT_PATHS[site] || "";
@@ -243,10 +240,9 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
           setOpenInNewTab(true);
         }
       }
-      return prefix + productUrl;
+      return productUrl; // Removed prefix, LocalizedClientLink will handle it
     }, [
       data, // Changed from item
-      countryCode, // Added countryCode to dependencies
       host,
       isStockedFilterActive,
       isRefinementFilterActive,
@@ -268,13 +264,11 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
       return (
         prefix +
         getUrl(
-          data, // Changed from item
-          countryCode // Pass countryCode here
+          data // Removed countryCode parameter
         )?.to
       );
     }, [
       data, // Changed from item
-      countryCode, // Added countryCode to dependencies
     ]);
     if (
       data?.percentSaleSkus !== 0 && // Changed from item?.product?.percentSaleSkus
@@ -621,7 +615,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
             className={`flex h-full flex-col`}
             style={{ width: `${productDetails?.imageContainerStyle?.width}px` }}
           >
-            <RHLink href={to} target={openInNewTab ? "_blank" : "_self"}>
+            <LocalizedClientLink href={to} target={openInNewTab ? "_blank" : "_self"}>
               <ProductGridInfoSection
                 data={data} // Changed from item={item}
                 productDetails={productDetails}
@@ -637,7 +631,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
                 inStockFlow={true} // inStockFlow
                 saleUrl={saleUrl}
               />
-            </RHLink>
+            </LocalizedClientLink>
             {data?.swatchData?.swatchGroups?.[0]?.stockedSwatches?.length ? ( // Changed from item?.product?.swatchInfo?.swatchesToDisplay?.length
               <ProductGridSwatchOptions
                 swatchesToDisplay={data?.swatchData?.swatchGroups?.[0]?.stockedSwatches} // Changed from item?.product?.swatchInfo?.swatchesToDisplay

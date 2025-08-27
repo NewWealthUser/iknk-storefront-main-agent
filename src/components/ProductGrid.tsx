@@ -7,8 +7,8 @@ import { ProductGridCard as PC } from "./ProductGrid/ProductCard/ProductGridCard
 import { RhProduct } from "@lib/util/rh-product-adapter";
 
 // Simplified getUrl function for Medusa storefront
-export const getUrl = (item: RhProduct, countryCode: string) => {
-  const urlPath = `/${countryCode}/products/${item?.handle}`;
+export const getUrl = (item: RhProduct) => { // Removed countryCode parameter
+  const urlPath = `/products/${item?.handle}`;
   return { to: urlPath };
 };
 
