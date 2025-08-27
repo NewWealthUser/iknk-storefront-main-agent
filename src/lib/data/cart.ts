@@ -294,14 +294,17 @@ export async function initiatePaymentSession(
     ...(await getAuthHeaders()),
   }
 
+  // Corrected: Pass the cart object as the first argument, and the data as the second
   const res = await sdk.store.payment
-    .initiatePaymentSession(cart.id, data, {}, headers) // Pass cart.id instead of cart object
+    .initiatePaymentSession(cart, data, {}, headers)
     .catch((err) => {
       console.error("[cart][error] Failed to initiate payment session:", medusaError(err));
-      return { payment_session: null };
+      // Corrected: Return an object matching the SDK's response structure on error
+      return { payment_collection: null };
     });
 
-  if (!res?.payment_session) {
+  // Corrected: Check for payment_collection and its payment_sessions
+  if (!res?.payment_collection?.payment_sessions?.[0]) {
     throw new Error("[cart][error] Failed to initiate payment session.");
   }
 
@@ -443,10 +446,11 @@ export async function placeOrder(cartId?: string): Promise<HttpTypes.StoreOrder 
   const cartRes = await sdk.store.cart
     .complete(id, {}, headers)
     .catch((err) => {
-      console.error("[cart][error] Failed to complete cart:", medusaError(err));
-      return { type: "error", message: medusaError(err) };
+      // medusaError throws, so this catch block will re-throw the error
+      medusaError(err);
     });
 
+  // cartRes can be { type: "order", order: StoreOrder } or { type: "cart", cart: StoreCart }
   if (cartRes?.type === "order") {
     const countryCode =
       cartRes.order.shipping_address?.country_code?.toLowerCase()
@@ -455,12 +459,14 @@ export async function placeOrder(cartId?: string): Promise<HttpTypes.StoreOrder 
     revalidateTag(orderCacheTag)
 
     removeCartId()
-    redirect(`/${countryCode}/order/${cartRes?.order.id}/confirmed`)
-  } else if (cartRes?.type === "error") {
-    throw new Error(`[cart][error] Failed to place order: ${cartRes.message}`);
+    redirect(`/${countryCode}/order/${cartRes.order.id}/confirmed`)
+  } else if (cartRes?.type === "cart") {
+    // If it's a cart, it means the order was not completed (e.g., payment failed)
+    // We should not redirect to order confirmed page, but perhaps to checkout with an error
+    throw new Error("[cart][error] Order could not be completed. Cart returned instead of order.");
   }
 
-  return null; // If it's not an order or error, it means it's a cart, but we redirect for orders.
+  return null; // Should ideally not be reached if redirects or throws
 }
 
 /**
@@ -492,20 +498,16 @@ export async function updateRegion(countryCode: string, currentPath: string) {
   redirect(`/${countryCode}${currentPath}`)
 }
 
-export async function listCartOptions(): Promise<{ shipping_options: HttpTypes.StoreCartShippingOption[] }> {
+export async function listCartOptions() {
   const cartId = await getCartId()
-  console.log("[cart] listCartOptions: Listing cart options for cart ID:", cartId);
 
-  const res = await medusaGet<{
+  if (!cartId) {
+    return null
+  }
+
+  return await medusaGet<{
     shipping_options: HttpTypes.StoreCartShippingOption[]
   }>("/store/shipping-options", {
     cart_id: cartId,
-  });
-
-  if (!res.ok || !res.data) {
-    console.warn(`[cart][fallback] Failed to list cart options: ${res.error?.message || 'Unknown error'}`);
-    return { shipping_options: [] };
-  }
-
-  return res.data;
+  })
 }

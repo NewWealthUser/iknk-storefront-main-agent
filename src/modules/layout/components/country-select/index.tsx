@@ -5,7 +5,7 @@ import NativeSelect, {
 } from "@modules/common/components/native-select"
 import { listRegions } from "@lib/data/regions";
 import ReactCountryFlag from "react-country-flag"
-import { HttpTypes } from "@medusajs/types" // Added missing import
+import { HttpTypes, StoreCountry } from "@medusajs/types" // Added missing import
 
 const CountrySelect = forwardRef<
   HTMLSelectElement,
@@ -25,11 +25,11 @@ const CountrySelect = forwardRef<
         const regions = await listRegions();
         if (regions) {
           const allCountries = regions.flatMap((region: HttpTypes.StoreRegion) => region.countries || []);
-          const uniqueCountries = Array.from(new Map(allCountries.map((country: HttpTypes.StoreCountry) => [country.iso_2, country])).values());
+          const uniqueCountries = Array.from(new Map(allCountries.map((country: StoreCountry) => [country.iso_2, country])).values());
           setCountryOptions(
             uniqueCountries
-              .filter((c: HttpTypes.StoreCountry) => !!c.iso_2 && !!c.display_name)
-              .map((country: HttpTypes.StoreCountry) => ({
+              .filter((c: StoreCountry) => !!c.iso_2 && !!c.display_name)
+              .map((country: StoreCountry) => ({
                 value: country.iso_2 as string,
                 label: country.display_name as string,
               }))

@@ -30,8 +30,10 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
       cart = await retrieveCart();
 
       if (cart) {
-        const { shipping_options } = await listCartOptions();
-        shippingOptions = shipping_options;
+        const res = await listCartOptions(); // Safely get the result
+        if (res?.ok && res.data) { // Check if res is ok and has data
+          shippingOptions = res.data.shipping_options;
+        }
         iknkCart = adaptMedusaCartToIknkCart(cart);
       }
     } catch (e: any) {

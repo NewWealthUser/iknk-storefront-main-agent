@@ -22,7 +22,7 @@ export default async function ProductRail({
   })
 
   if (!res.response.products) {
-    console.warn(`[product-rail][fallback] Failed to list products for collection '${collection.id}': ${res.error?.message || 'Unknown error'}`);
+    console.warn(`[product-rail][fallback] Failed to list products for collection '${collection.id}'.`);
     return null
   }
 

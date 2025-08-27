@@ -19,7 +19,7 @@ export default async function ProductActionsWrapper({
   })
 
   if (!res.response.products || res.response.products.length === 0) {
-    console.warn(`[product-actions-wrapper][fallback] Failed to fetch product '${id}': ${res.error?.message || 'Not found or unknown error'}`);
+    console.warn(`[product-actions-wrapper][fallback] Failed to fetch product '${id}'.`);
     return null;
   }
 

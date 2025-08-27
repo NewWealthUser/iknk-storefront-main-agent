@@ -33,6 +33,11 @@
     "tailwindcss-radix": "^2.8.0",
     "webpack": "^5"
   },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
   "devDependencies": {
     "@babel/core": "^7.17.5",
     "@medusajs/types": "latest",

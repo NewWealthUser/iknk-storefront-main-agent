@@ -117,7 +117,7 @@ function extractSkuOtions(option: string) {
 }
 
 export const getUrl = (
-  item: any,
+  item: RhProduct, // Changed type from 'any' to 'RhProduct'
   host: string = "",
   stocked: boolean,
   isRefinementFilterActive: boolean,
@@ -128,27 +128,31 @@ export const getUrl = (
   selectedSwatch?: string | null,
   isNextGen = false,
   inStockFlow = true,
-  isNewURLFeatureEnabled: boolean = false,
-  category: string = ""
+  isNewURLFeatureEnabled: boolean = false, // This flag will now be ignored for urlPath construction
+  category: string = "" // This parameter will now be ignored for urlPath construction
 ) => {
   const saleParamString = isSale ? "true" : "";
-  const formattedDisplayName = item?.product?.displayName
+  // The formattedDisplayName is not strictly needed for the new URL structure,
+  // but keeping it for now as it might be used elsewhere or for analytics.
+  const formattedDisplayName = item?.displayName
     ?.toLowerCase()
     .replace(/\s+/g, "-");
 
-  const urlPath =
-    isNewURLFeatureEnabled && category
-      ? `/${category}/pdp/${formattedDisplayName}`
-      : `/catalog/product/product.jsp/${item?.product?.repositoryId}`;
+  // Simplified to always use the Medusa storefront product handle structure
+  const urlPath = `/products/${item?.handle}`;
 
   const url = new URL(urlPath, host || "http://www.example.com");
 
-  {
-    isSale && url.searchParams.set("sale", saleParamString);
+  if (isSale) { // Keep sale param if needed
+    url.searchParams.set("sale", saleParamString);
   }
 
-  if (item?.product?.skuOptiondata?.length && isNextGen && !stocked) {
-    const skuOptiondata = extractSkuOtions(item?.product?.skuOptiondata);
+  // The following logic for skuOptiondata, selectedSwatch, and stocked
+  // seems to be for adding query parameters. This should be preserved
+  // if these parameters are still relevant for product pages.
+  // For now, I'll keep them as they are, assuming they add useful filters/context.
+  if (item?.skuOptiondata?.length && isNextGen && !stocked) {
+    const skuOptiondata = extractSkuOtions(item?.skuOptiondata);
     Object.keys(skuOptiondata)?.map(key => {
       if (skuOptiondata[key] && key) {
         url.searchParams?.set(key, skuOptiondata[key]);
@@ -162,7 +166,7 @@ export const getUrl = (
 
   if (stocked) {
     if (inStockFlow) {
-      url.searchParams.set("fullSkuId", item?.sku?.fullSkuId ?? "");
+      url.searchParams.set("fullSkuId", item?.fullSkuId ?? "");
     } else {
       url.searchParams.set("inStock", "true");
     }

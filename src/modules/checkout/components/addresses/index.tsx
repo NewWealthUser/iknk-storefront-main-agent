@@ -11,7 +11,7 @@ import { useActionState } from "react"
 import BillingAddress from "../billing_address"
 import ErrorMessage from "../error-message"
 import ShippingAddress from "../shipping-address"
-import { SubmitButton } => "../submit-button"
+import { SubmitButton } from "../submit-button"
 import { IknkCart } from "@lib/util/iknk-cart-adapter"
 import { HttpTypes } from "@medusajs/types" // Added missing import
 

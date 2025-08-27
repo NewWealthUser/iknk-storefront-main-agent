@@ -409,7 +409,7 @@ const ProductGrid: FC<ProductGridProps> = ({
           const maxImageContainerHeight = Math?.max(...imgContainerHeight.filter(h => h !== undefined));
           const [MAX_IMG_CONTAINER_HEIGHT] =
             PG_IMAGE_CONTAINER_DIMENSION?.[gridColumns]?.[mediaString] ??
-            INITIAL_PG_IMAGE_CONTAINER_DIMENSION;
+            [INITIAL_PG_IMAGE_CONTAINER_DIMENSION];
           const imageContainerHeight = `${
             (maxImageContainerHeight / 100) * MAX_IMG_CONTAINER_HEIGHT
           }px`;

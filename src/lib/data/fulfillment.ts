@@ -5,7 +5,7 @@ import { medusaGet, MedusaGetResult } from "@lib/medusa"
 import { HttpTypes } from "@medusajs/types"
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 
-export const listCartShippingMethods = async (cartId: string): Promise<HttpTypes.StoreShippingOption[] | null> => {
+export const listCartShippingMethods = async (cartId: string): Promise<HttpTypes.StoreCartShippingOption[] | null> => {
   const res = await medusaGet<HttpTypes.StoreShippingOptionListResponse>(
       `/store/shipping-options`,
       {
@@ -19,7 +19,8 @@ export const listCartShippingMethods = async (cartId: string): Promise<HttpTypes
     console.warn(`[fulfillment][fallback] Failed to list cart shipping methods: ${res.error?.message || 'Unknown error'}`);
     return null;
   }
-  return res.data.shipping_options;
+  // Cast to StoreCartShippingOption[] as the API returns this type when cart_id is provided
+  return res.data.shipping_options as HttpTypes.StoreCartShippingOption[];
 }
 
 export const calculatePriceForShippingOption = async (
@@ -32,7 +33,7 @@ export const calculatePriceForShippingOption = async (
   }
 
   const next = {
-    ...(await getCacheOptions("fulfillment")),
+    ...(await getCacheOptions("fulfillment"),
   }
 
   const body = { cart_id: cartId, data }
