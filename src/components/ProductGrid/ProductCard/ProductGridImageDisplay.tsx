@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import Spinner from "@modules/common/icons/spinner"
 import ImageCarousel from "../ImageCarousel"; // Placeholder
@@ -18,7 +18,7 @@ interface ProductGridImageDisplayProps {
   colorizable: boolean;
   slides: ProductAlternateImage[];
   linkToPage?: string;
-  openInNewTab: boolean;
+  openInNewTab?: boolean; // Made optional
   triggerAnalyticsEvent: () => void;
   presetImage: (rawURL: string | undefined, zoom?: boolean) => string;
   imageAlternativeName: string;
@@ -27,14 +27,13 @@ interface ProductGridImageDisplayProps {
   isClicked: boolean;
   setIsClicked: React.Dispatch<React.SetStateAction<boolean>>;
   imageStyle: React.CSSProperties;
-  setActualImgHeight: React.Dispatch<React.SetStateAction<number>>;
+  // Removed setActualImgHeight from props, will be managed internally
   imageContainerStyle: React.CSSProperties;
   productSwatchLoading: boolean;
-  showColorPreviewAvailableSoonBanner: boolean;
-  dynamicTopBanner: number;
+  // Removed showColorPreviewAvailableSoonBanner, dynamicTopBanner from props, will be managed internally
   pageContent: any;
   COLOR_PREVIEW_AVAILABLE_SOON: string;
-  spinnerHeight: string;
+  // Removed spinnerHeight from props, will be derived internally
 }
 
 const ProductGridImageDisplay: FC<ProductGridImageDisplayProps> = ({
@@ -44,7 +43,7 @@ const ProductGridImageDisplay: FC<ProductGridImageDisplayProps> = ({
   colorizable,
   slides,
   linkToPage,
-  openInNewTab,
+  openInNewTab = false, // Default to false
   triggerAnalyticsEvent,
   presetImage,
   imageAlternativeName,
@@ -53,17 +52,38 @@ const ProductGridImageDisplay: FC<ProductGridImageDisplayProps> = ({
   isClicked,
   setIsClicked,
   imageStyle,
-  setActualImgHeight,
   imageContainerStyle,
   productSwatchLoading,
-  showColorPreviewAvailableSoonBanner,
-  dynamicTopBanner,
   pageContent,
   COLOR_PREVIEW_AVAILABLE_SOON,
-  spinnerHeight,
 }) => {
-  
   const processEnvServer = false; // Placeholder
+  const mdUp = true; // Simplified useMediaQuery
+  const pgGridChoice = 4; // Simplified placeholder
+  const [actualImgHeight, setActualImgHeight] = useState(0);
+  const [dynamicTopBanner, setDynamicTopBanner] = useState(0);
+
+  const showColorPreviewAvailableSoonBanner = useMemo(() => {
+    // Simplified logic for demonstration
+    return false;
+  }, [colorizable]);
+
+  const spinnerHeight = `calc(${
+    (imageContainerStyle as any)?.height || 250
+  }px + ${mdUp ? "16" : "8"}px)`;
+
+  useEffect(() => {
+    if (!actualImgHeight || !pgGridChoice) return;
+
+    const timer = setTimeout(() => {
+      const imageContainerHeight = (imageContainerStyle as any)?.maxHeight || 0;
+      const offset = Math.abs(imageContainerHeight - actualImgHeight);
+      setDynamicTopBanner(offset);
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [pgGridChoice, actualImgHeight, (imageContainerStyle as any)?.maxHeight]);
+
 
   return (
     <>
