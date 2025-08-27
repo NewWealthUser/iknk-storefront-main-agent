@@ -39,13 +39,11 @@ export async function medusaGet<T>(path: string, queryParams?: Record<string, an
     } else if (parsedError.request) {
       // The request was made but no response was received
       throw new Error("No response received from Medusa backend. Is it running?");
-    } else if (parsedError.message) {
-      // Generic error message
-      throw new Error(`Error setting up Medusa request: ${parsedError.message}`);
     } else {
-      // Fallback for completely unknown error structures
-      console.error("Unknown error in medusaGet:", JSON.stringify(parsedError, null, 2));
-      throw new Error("An unknown error occurred during Medusa request.");
+      // Fallback for generic or unknown error structures
+      const errorMessage = parsedError.message || JSON.stringify(parsedError) || "An unknown error occurred.";
+      console.error("Unknown error in medusaGet:", errorMessage);
+      throw new Error(`Error setting up Medusa request: ${errorMessage}`);
     }
   }
 }
