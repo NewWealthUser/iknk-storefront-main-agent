@@ -1,65 +1,111 @@
 import { sdk } from "@lib/config"
 import { adaptMedusaProductToRhProduct, RhProduct } from "./util/rh-product-adapter";
-import { HttpTypes } from "@medusajs/types"; // Ensure HttpTypes is imported
+import { HttpTypes } from "@medusajs/types";
+import { resolveMedusaUrl } from "./util/medusa-url";
+import { fetchWithTimeout } from "./util/fetch-with-timeout";
 
-export const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_URL as string
-const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY; // Get key here
+const MEDUSA_URL_ENV = process.env.NEXT_PUBLIC_MEDUSA_URL;
+const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
 
-if (!MEDUSA_URL) {
-  throw new Error("NEXT_PUBLIC_MEDUSA_URL is not set")
+const BASE_MEDUSA_URL = resolveMedusaUrl(MEDUSA_URL_ENV);
+if (!BASE_MEDUSA_URL) {
+  throw new Error("[medusa][config] Invalid or missing NEXT_PUBLIC_MEDUSA_URL. Cannot initialize Medusa client.");
 }
-// Add a check for the publishable key here as well, for robustness
 if (!PUBLISHABLE_API_KEY) {
-  throw new Error("NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is not set. Please configure it in your .env.local file.");
+  throw new Error("[medusa][config] NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is not set. Cannot initialize Medusa client.");
 }
 
+interface MedusaGetError {
+  stage: 'config' | 'request' | 'response' | 'parse';
+  status?: number;
+  url?: string;
+  method?: string;
+  message: string;
+  raw?: any;
+  body?: any;
+}
 
-export async function medusaGet<T>(path: string, queryParams?: Record<string, any>, init?: RequestInit): Promise<T> {
-  console.log(`Medusa GET request to: ${path} with query: ${JSON.stringify(queryParams)}`); // Log the request path and query
+export interface MedusaGetResult<T> {
+  ok: boolean;
+  data?: T;
+  error?: MedusaGetError;
+}
+
+export async function medusaGet<T>(
+  path: string,
+  queryParams?: Record<string, any>,
+  init?: RequestInit,
+  opts?: { throwOnError?: boolean }
+): Promise<MedusaGetResult<T>> {
+  const url = `${BASE_MEDUSA_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const method = init?.method || "GET";
+
   try {
     const { headers, ...restInit } = init || {};
 
-    // Ensure x-publishable-api-key is always present
     const requestHeaders: Record<string, string> = {
       ...headers as Record<string, string>,
-      "x-publishable-api-key": PUBLISHABLE_API_KEY!, // Non-null assertion added here
+      "Content-Type": "application/json",
+      "x-publishable-api-key": PUBLISHABLE_API_KEY!,
     };
 
-    const data = await sdk.client.fetch<T>(path, {
-      method: "GET",
-      query: queryParams,
+    const res = await fetchWithTimeout(url, {
+      method,
       headers: requestHeaders,
       ...restInit,
-    });
-    return data;
-  } catch (error: any) {
-    console.error("Raw error object in medusaGet:", error); // Log the raw error object
+    }, 6000);
 
-    let errorMessage = "An unexpected error occurred during Medusa request.";
-
-    // Ensure error is an object to safely access properties
-    const safeError = typeof error === 'object' && error !== null ? error : {};
-
-    if (safeError.response) {
-      // Medusa SDK errors often have a 'response' property with status and data
-      const message = safeError.response.data?.message || safeError.response.statusText || "An unknown error occurred.";
-      errorMessage = `Medusa request failed: ${safeError.response.status} - ${message}`;
-    } else if (safeError.request) {
-      // The request was made but no response was received
-      errorMessage = "No response received from Medusa backend. Is it running?";
-    } else if (safeError.message) { // Fallback for objects with a message property
-      errorMessage = `Error setting up Medusa request: ${safeError.message}`;
-    } else {
-      // Fallback for generic objects or primitives without a specific message
+    if (!res.ok) {
+      let body: any = null;
       try {
-        errorMessage = `Unknown error: ${JSON.stringify(safeError)}`;
+        body = await res.json();
       } catch (e) {
-        errorMessage = `Unknown error: ${String(safeError)}`;
+        body = await res.text().catch(() => null);
       }
+
+      const message = `Medusa responded ${res.status} ${res.statusText} for ${url}` + (body?.message ? `: ${body.message}` : (typeof body === 'string' && body.length > 0 ? `: ${body}` : ""));
+      const error: MedusaGetError = {
+        stage: "response",
+        status: res.status,
+        url,
+        method,
+        message: `[medusa][response][${res.status}] ${message}`,
+        body,
+      };
+
+      console.error(error.message, error);
+      if (opts?.throwOnError) throw new Error(error.message);
+      return { ok: false, error };
     }
-    
-    console.error("Processed error in medusaGet:", errorMessage);
-    throw new Error(errorMessage);
+
+    const data = (await res.json()) as T;
+    return { ok: true, data };
+  } catch (e: any) {
+    let message: string;
+    let stage: MedusaGetError['stage'] = "request";
+    let rawError: any = e;
+
+    if (e?.name === "AbortError") {
+      message = `[medusa][timeout] Medusa request timed out for ${url}`;
+    } else if (e instanceof TypeError) {
+      message = `[medusa][network] Network error calling Medusa ${url}: ${e.message}`;
+    } else if (e?.message) {
+      message = `[medusa][request] Error calling Medusa ${url}: ${e.message}`;
+    } else {
+      message = `[medusa][unknown] An unknown error occurred during request to ${url}: ${String(e)}`;
+    }
+
+    const error: MedusaGetError = {
+      stage,
+      url,
+      method,
+      message,
+      raw: rawError,
+    };
+
+    console.error(error.message, error);
+    if (opts?.throwOnError) throw new Error(error.message);
+    return { ok: false, error };
   }
 }
 
@@ -73,16 +119,14 @@ export async function listProducts({
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
   countryCode?: string
   regionId?: string
-}): Promise<{ products: RhProduct[]; count: number; limit: number; offset: number }> {
+}): Promise<MedusaGetResult<{ products: RhProduct[]; count: number; limit: number; offset: number }>> {
   const limit = queryParams?.limit || 12
   const _pageParam = Math.max(pageParam, 1)
   const offset = _pageParam === 1 ? 0 : (_pageParam - 1) * limit
 
-  // For now, we'll assume regionId is passed or derived elsewhere if needed
-  // In a real scenario, you'd fetch the region based on countryCode here
   const region_id = regionId;
 
-  const data = await medusaGet<{ products: HttpTypes.StoreProduct[]; count: number }>(`/store/products`, {
+  const res = await medusaGet<{ products: HttpTypes.StoreProduct[]; count: number }>(`/store/products`, {
     limit,
     offset,
     region_id,
@@ -92,19 +136,31 @@ export async function listProducts({
     ...queryParams,
   });
 
-  const adaptedProducts = data.products.map(adaptMedusaProductToRhProduct);
+  if (!res.ok || !res.data) {
+    console.warn(`[products][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
+    return { ok: false, error: res.error };
+  }
+
+  const adaptedProducts = res.data.products.map(adaptMedusaProductToRhProduct);
 
   return {
-    products: adaptedProducts,
-    count: data.count,
-    limit: limit,
-    offset: offset,
+    ok: true,
+    data: {
+      products: adaptedProducts,
+      count: res.data.count,
+      limit: limit,
+      offset: offset,
+    },
   };
 }
 
 export async function getProductByHandle(handle: string, countryCode: string): Promise<RhProduct | null> {
-  const data = await listProducts({ queryParams: { handle, limit: 1 } as any, countryCode });
-  return data.products[0] || null;
+  const res = await listProducts({ queryParams: { handle, limit: 1 } as any, countryCode });
+  if (!res.ok || !res.data?.products || res.data.products.length === 0) {
+    console.warn(`[product][fallback] Failed to get product by handle '${handle}': ${res.error?.message || 'Not found or unknown error'}`);
+    return null;
+  }
+  return res.data.products[0];
 }
 
 export function formatMoney(amount: number, currency = "USD"): string {

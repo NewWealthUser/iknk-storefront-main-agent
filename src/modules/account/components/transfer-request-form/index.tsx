@@ -6,6 +6,7 @@ import { Text, Heading, Input, Button, IconButton, Toaster } from "@medusajs/ui"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import { CheckCircleMiniSolid, XCircleSolid } from "@medusajs/icons"
 import { useEffect, useState } from "react"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 export default function TransferRequestForm() {
   const [showSuccess, setShowSuccess] = useState(false)

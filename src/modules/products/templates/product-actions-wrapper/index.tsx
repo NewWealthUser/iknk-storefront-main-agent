@@ -13,14 +13,17 @@ export default async function ProductActionsWrapper({
   id: string
   region: HttpTypes.StoreRegion
 }) {
-  const product = await listProducts({
+  const res = await listProducts({
     queryParams: { id: [id] } as any,
     regionId: region.id,
-  }).then(({ response }) => response.products[0])
+  })
 
-  if (!product) {
-    return null
+  if (!res.response.products || res.response.products.length === 0) {
+    console.warn(`[product-actions-wrapper][fallback] Failed to fetch product '${id}': ${res.error?.message || 'Not found or unknown error'}`);
+    return null;
   }
+
+  const product = res.response.products[0];
 
   return <ProductActionsClient product={adaptMedusaProductToRhProduct(product)} region={region} />
 }

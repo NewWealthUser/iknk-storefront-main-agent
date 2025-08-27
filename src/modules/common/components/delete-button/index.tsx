@@ -2,6 +2,7 @@ import { deleteLineItem } from "@lib/data/cart"
 import { Spinner, Trash } from "@medusajs/icons"
 import { clx } from "@medusajs/ui"
 import { useState } from "react"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 const DeleteButton = ({
   id,

@@ -2,6 +2,7 @@ import { ArrowUpRightMini } from "@medusajs/icons"
 import { Text } from "@medusajs/ui"
 import { Metadata } from "next"
 import Link from "next/link"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 export const metadata: Metadata = {
   title: "404",

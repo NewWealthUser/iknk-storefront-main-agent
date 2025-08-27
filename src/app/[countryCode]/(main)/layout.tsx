@@ -8,20 +8,42 @@ import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
 import Footer from "@modules/layout/templates/footer"
 import Header from "@modules/layout/components/header"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
+import { adaptMedusaCartToIknkCart, IknkCart } from "@lib/util/iknk-cart-adapter"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
 }
 
+// Feature flag to bypass cart/region SSR if unstable
+const BYPASS_CART_ON_SSR = process.env.BYPASS_CART_ON_SSR === "true";
+
 export default async function PageLayout(props: { children: React.ReactNode }) {
-  const customer = await retrieveCustomer()
-  const cart = await retrieveCart()
-  let shippingOptions: StoreCartShippingOption[] = []
+  let customer = null;
+  let cart: HttpTypes.StoreCart | null = null;
+  let shippingOptions: StoreCartShippingOption[] = [];
+  let iknkCart: IknkCart | null = null;
 
-  if (cart) {
-    const { shipping_options } = await listCartOptions()
+  if (!BYPASS_CART_ON_SSR) {
+    try {
+      customer = await retrieveCustomer();
+      cart = await retrieveCart();
 
-    shippingOptions = shipping_options
+      if (cart) {
+        const { shipping_options } = await listCartOptions();
+        shippingOptions = shipping_options;
+        iknkCart = adaptMedusaCartToIknkCart(cart);
+      }
+    } catch (e: any) {
+      console.warn("[layout] Cart/customer bootstrap failed, using fallbacks:", e.message);
+      // Fallback to null/empty values
+      customer = null;
+      cart = null;
+      shippingOptions = [];
+      iknkCart = null;
+    }
+  } else {
+    console.log("[layout] BYPASS_CART_ON_SSR is true. Skipping cart/customer SSR.");
   }
 
   return (

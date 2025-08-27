@@ -3,14 +3,13 @@ import { forwardRef, useImperativeHandle, useMemo, useRef, useState, useEffect }
 import NativeSelect, {
   NativeSelectProps,
 } from "@modules/common/components/native-select"
-// import { HttpTypes } from "@medusajs/types" // Removed
-import { listRegions } from "@lib/data/regions"; // Import listRegions
+import { listRegions } from "@lib/data/regions";
+import ReactCountryFlag from "react-country-flag"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 const CountrySelect = forwardRef<
   HTMLSelectElement,
-  NativeSelectProps & {
-    // region?: HttpTypes.StoreRegion // Removed region prop
-  }
+  NativeSelectProps
 >(({ placeholder = "Country", defaultValue, ...props }, ref) => {
   const innerRef = useRef<HTMLSelectElement>(null)
   const [countryOptions, setCountryOptions] = useState<{ value: string; label: string }[]>([]);
@@ -25,12 +24,12 @@ const CountrySelect = forwardRef<
       try {
         const regions = await listRegions();
         if (regions) {
-          const allCountries = regions.flatMap(region => region.countries || []);
-          const uniqueCountries = Array.from(new Map(allCountries.map(country => [country.iso_2, country])).values());
+          const allCountries = regions.flatMap((region: HttpTypes.StoreRegion) => region.countries || []);
+          const uniqueCountries = Array.from(new Map(allCountries.map((country: HttpTypes.StoreCountry) => [country.iso_2, country])).values());
           setCountryOptions(
             uniqueCountries
-              .filter((c) => !!c.iso_2 && !!c.display_name)
-              .map((country) => ({
+              .filter((c: HttpTypes.StoreCountry) => !!c.iso_2 && !!c.display_name)
+              .map((country: HttpTypes.StoreCountry) => ({
                 value: country.iso_2 as string,
                 label: country.display_name as string,
               }))

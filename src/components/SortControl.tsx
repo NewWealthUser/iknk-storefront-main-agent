@@ -10,6 +10,7 @@ import {
 } from "@headlessui/react"
 import { ChevronUpDown } from "@medusajs/icons"
 import { clx } from "@medusajs/ui"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 type SortOption = {
   value: string

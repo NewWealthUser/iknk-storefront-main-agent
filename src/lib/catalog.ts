@@ -1,6 +1,7 @@
 import { medusaGet } from "./medusa";
 import { HttpTypes } from "@medusajs/types";
 import { SortOptions } from "types/sort-options";
+import { MedusaGetResult } from "./medusa"; // Import MedusaGetResult
 
 /**
  * Fetches a collection by its handle.
@@ -8,11 +9,15 @@ import { SortOptions } from "types/sort-options";
  * @returns The collection object or null if not found.
  */
 export async function fetchCollectionByHandle(handle: string) {
-  const { collections } = await medusaGet<HttpTypes.StoreCollectionListResponse>(
+  const res = await medusaGet<HttpTypes.StoreCollectionListResponse>(
     `/store/collections`,
     { handle }
   );
-  return collections[0] || null;
+  if (!res.ok || !res.data?.collections) {
+    console.warn(`[catalog][fallback] Failed to fetch collection by handle '${handle}': ${res.error?.message || 'Not found or unknown error'}`);
+    return null;
+  }
+  return res.data.collections[0] || null;
 }
 
 interface FetchProductsForListingOptions {
@@ -86,30 +91,31 @@ export async function fetchProductsForListing({
   let count: number = 0;
 
   if (sortOption === "featured") {
-    // Fetch a larger set of products for client-side sorting by featured_rank
-    const { products: fetchedProducts, count: fetchedCount } = await medusaGet<{
+    const res = await medusaGet<{
       products: HttpTypes.StoreProduct[];
       count: number;
     }>(`/store/products`, {
       ...queryParams,
-      limit: 100, // Fetch enough to sort and paginate client-side
+      limit: 100,
       offset: 0,
     });
-    products = fetchedProducts;
-    count = fetchedCount;
 
-    // Client-side sort by metadata.featured_rank descending (lower rank value means more featured)
+    if (!res.ok || !res.data) {
+      console.warn(`[catalog][fallback] Failed to fetch featured products: ${res.error?.message || 'Unknown error'}`);
+      return { items: [], pagination: { page, pageSize, total: 0, totalPages: 0 }, sort: sortOption };
+    }
+    products = res.data.products;
+    count = res.data.count;
+
     products.sort((a, b) => {
       const rankA = (a.metadata as any)?.featured_rank ?? Infinity;
       const rankB = (b.metadata as any)?.featured_rank ?? Infinity;
       return rankA - rankB;
     });
 
-    // Apply pagination after sorting
     products = products.slice((page - 1) * pageSize, page * pageSize);
 
   } else {
-    // For other sorts, use Medusa API's ordering
     queryParams.limit = pageSize;
     queryParams.offset = (page - 1) * pageSize;
 
@@ -124,12 +130,17 @@ export async function fetchProductsForListing({
       queryParams.order = "desc";
     }
 
-    const { products: fetchedProducts, count: fetchedCount } = await medusaGet<{
+    const res = await medusaGet<{
       products: HttpTypes.StoreProduct[];
       count: number;
     }>(`/store/products`, queryParams);
-    products = fetchedProducts;
-    count = fetchedCount;
+
+    if (!res.ok || !res.data) {
+      console.warn(`[catalog][fallback] Failed to fetch products for listing: ${res.error?.message || 'Unknown error'}`);
+      return { items: [], pagination: { page, pageSize, total: 0, totalPages: 0 }, sort: sortOption };
+    }
+    products = res.data.products;
+    count = res.data.count;
   }
 
   const totalPages = Math.ceil(count / pageSize);
@@ -172,21 +183,27 @@ export async function fetchFacetsForListing({
     resolvedCategoryId = categoryId;
   }
 
-  const queryParams: any = { // Changed to any to resolve type issues with collection_id, tags
-    limit: 200, // Fetch up to 200 products for facets
-    fields: "id,tags,metadata", // Light payload
+  const queryParams: any = {
+    limit: 200,
+    fields: "id,tags,metadata",
   };
 
   if (resolvedCollectionId) {
     queryParams.collection_id = [resolvedCollectionId];
-  } else if (resolvedCategoryId) { // Use category_id if resolved
+  } else if (resolvedCategoryId) {
     queryParams.category_id = [resolvedCategoryId];
   }
 
-  const { products } = await medusaGet<{
+  const res = await medusaGet<{
     products: HttpTypes.StoreProduct[];
     count: number;
   }>(`/store/products`, queryParams);
+
+  if (!res.ok || !res.data) {
+    console.warn(`[catalog][fallback] Failed to fetch facets: ${res.error?.message || 'Unknown error'}`);
+    return { material: [], seating: [], shape: [], size: [] };
+  }
+  const products = res.data.products;
 
   const materials = new Set<string>();
   const seatingCapacities = new Set<number>();
@@ -194,7 +211,6 @@ export async function fetchFacetsForListing({
   const sizes = new Set<string>();
 
   products.forEach((product: HttpTypes.StoreProduct) => {
-    // Extract from metadata
     if ((product.metadata as any)?.material) {
       materials.add(String((product.metadata as any).material));
     }
@@ -208,7 +224,6 @@ export async function fetchFacetsForListing({
       sizes.add(String((product.metadata as any).size));
     }
 
-    // Extract from tags (key:value format)
     product.tags?.forEach((tag: HttpTypes.StoreProductTag) => {
       const [key, value] = tag.value.split(":");
       if (key && value) {
@@ -222,7 +237,7 @@ export async function fetchFacetsForListing({
 
   return {
     material: Array.from(materials).sort(),
-    seating: Array.from(seatingCapacities).sort((a, b) => a - b).map(String), // Numeric sort and convert to string
+    seating: Array.from(seatingCapacities).sort((a, b) => a - b).map(String),
     shape: Array.from(shapes).sort(),
     size: Array.from(sizes).sort(),
   };

@@ -1,8 +1,9 @@
 import { Metadata } from "next"
 
-import { listProducts } from "@lib/medusa"; // Import our modified listProducts
+import { listProducts } from "@lib/medusa";
 import { getRegion } from "@lib/data/regions"
-import IknkProductGrid from "../../../components/ProductGrid"; // Import our IknkProductGrid
+import IknkProductGrid from "../../../components/ProductGrid";
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 export const metadata: Metadata = {
   title: "Medusa Next.js Starter Template",
@@ -23,12 +24,19 @@ export default async function Home(props: {
     return null
   }
 
-  // Fetch products using our adapted listProducts function
-  const { products, count } = await listProducts({
+  const res = await listProducts({
     countryCode,
-    regionId: region.id, // Pass region.id
-    queryParams: { limit: 12 }, // Adjust limit as needed
+    regionId: region.id,
+    queryParams: { limit: 12 },
   });
+
+  if (!res.ok || !res.data?.products) {
+    console.warn(`[home][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
+    return null;
+  }
+
+  const products = res.data.products;
+  const count = res.data.count;
 
   if (!products) {
     return null
@@ -41,7 +49,6 @@ export default async function Home(props: {
         <IknkProductGrid
           productList={products}
           totalNumRecs={count}
-          // Add other props as needed by IknkProductGrid
         />
       </div>
     </>

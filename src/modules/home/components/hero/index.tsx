@@ -1,5 +1,6 @@
 import { Github } from "@medusajs/icons"
 import { Button, Heading } from "@medusajs/ui"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 const Hero = () => {
   return (

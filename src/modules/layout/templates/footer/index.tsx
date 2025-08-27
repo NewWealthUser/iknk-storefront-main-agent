@@ -3,6 +3,7 @@ import LocalizedClientLink from '@modules/common/components/localized-client-lin
 import Input from '@modules/common/components/input';
 import { Button, Text, Heading } from '@medusajs/ui';
 import { ArrowUpRightMini } from '@medusajs/icons';
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 const Footer = () => {
   return (

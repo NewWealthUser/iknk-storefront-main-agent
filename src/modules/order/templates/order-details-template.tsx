@@ -9,6 +9,7 @@ import OrderDetails from "@modules/order/components/order-details"
 import OrderSummary from "@modules/order/components/order-summary"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import React from "react"
+import { HttpTypes as MedusaHttpTypes } from "@medusajs/types" // Added missing import
 
 type OrderDetailsTemplateProps = {
   order: HttpTypes.StoreOrder

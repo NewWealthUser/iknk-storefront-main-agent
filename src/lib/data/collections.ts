@@ -1,13 +1,17 @@
 "use server"
 
-import { medusaGet } from "@lib/medusa"
+import { medusaGet, MedusaGetResult } from "@lib/medusa"
 import { HttpTypes } from "@medusajs/types"
 
-export const retrieveCollection = async (id: string) => {
-  const { collection } = await medusaGet<{
+export const retrieveCollection = async (id: string): Promise<HttpTypes.StoreCollection | null> => {
+  const res = await medusaGet<{
     collection: HttpTypes.StoreCollection
-  }>(`/store/collections/${id}`)
-  return collection
+  }>(`/store/collections/${id}`);
+  if (!res.ok || !res.data?.collection) {
+    console.warn(`[collections][fallback] Failed to retrieve collection '${id}': ${res.error?.message || 'Not found or unknown error'}`);
+    return null;
+  }
+  return res.data.collection;
 }
 
 export const listCollections = async (
@@ -16,21 +20,29 @@ export const listCollections = async (
   queryParams.limit = queryParams.limit || "100"
   queryParams.offset = queryParams.offset || "0"
 
-  const { collections, count } = await medusaGet<{
+  const res = await medusaGet<{
     collections: HttpTypes.StoreCollection[]
     count: number
-  }>("/store/collections", queryParams)
+  }>("/store/collections", queryParams);
 
-  return { collections, count: count ?? collections.length }
+  if (!res.ok || !res.data) {
+    console.warn(`[collections][fallback] Failed to list collections: ${res.error?.message || 'Unknown error'}`);
+    return { collections: [], count: 0 };
+  }
+
+  return { collections: res.data.collections, count: res.data.count ?? res.data.collections.length };
 }
 
 export const getCollectionByHandle = async (
   handle: string
-): Promise<HttpTypes.StoreCollection> => {
-  const { collections } =
-    await medusaGet<HttpTypes.StoreCollectionListResponse>(
+): Promise<HttpTypes.StoreCollection | null> => {
+  const res = await medusaGet<HttpTypes.StoreCollectionListResponse>(
       `/store/collections`,
       { handle, fields: "*products" }
-    )
-  return collections[0]
+    );
+  if (!res.ok || !res.data?.collections || res.data.collections.length === 0) {
+    console.warn(`[collections][fallback] Failed to get collection by handle '${handle}': ${res.error?.message || 'Not found or unknown error'}`);
+    return null;
+  }
+  return res.data.collections[0];
 }

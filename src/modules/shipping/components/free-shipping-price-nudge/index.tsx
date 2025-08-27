@@ -12,6 +12,7 @@ import { Button, clx } from "@medusajs/ui"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { useState } from "react"
 import { StoreFreeShippingPrice } from "types/global"
+import { HttpTypes as MedusaHttpTypes } from "@medusajs/types" // Added missing import
 
 const computeTarget = (
   cart: HttpTypes.StoreCart,

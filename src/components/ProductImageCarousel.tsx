@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "@medusajs/icons"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 type ImageType = { id: string; url: string | null }
 

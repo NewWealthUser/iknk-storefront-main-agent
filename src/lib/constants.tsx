@@ -1,5 +1,6 @@
 import React from "react"
 import { CreditCard } from "@medusajs/icons"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 import Ideal from "@modules/common/icons/ideal"
 import Bancontact from "@modules/common/icons/bancontact"

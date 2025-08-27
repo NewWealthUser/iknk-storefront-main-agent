@@ -1,12 +1,13 @@
 "use server"
 
-import { medusaGet } from "@lib/medusa"
+import { medusaGet, MedusaGetResult } from "@lib/medusa"
 import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "types/sort-options"
 import { getRegion, retrieveRegion } from "./regions"
+import { adaptMedusaProductToRhProduct, RhProduct } from "@lib/util/rh-product-adapter"
 
-export const listProducts = async ({
+export async function listProducts({
   pageParam = 1,
   queryParams,
   countryCode,
@@ -20,7 +21,7 @@ export const listProducts = async ({
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
-}> => {
+}> {
   if (!countryCode && !regionId) {
     throw new Error("Country code or region ID is required")
   }
@@ -44,7 +45,7 @@ export const listProducts = async ({
     }
   }
 
-  const { products, count } = await medusaGet<{
+  const res = await medusaGet<{
     products: HttpTypes.StoreProduct[]
     count: number
   }>(`/store/products`, {
@@ -54,7 +55,14 @@ export const listProducts = async ({
     fields:
       "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags",
     ...queryParams,
-  })
+  });
+
+  if (!res.ok || !res.data) {
+    console.warn(`[products][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
+    return { response: { products: [], count: 0 }, nextPage: null };
+  }
+
+  const { products, count } = res.data;
 
   const nextPage = count > offset + limit ? pageParam + 1 : null
 

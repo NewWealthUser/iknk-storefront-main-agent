@@ -11,6 +11,7 @@ import Divider from "@modules/common/components/divider"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
 import { IknkCart } from "@lib/util/iknk-cart-adapter"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 const Payment = ({
   cart,

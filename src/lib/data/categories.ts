@@ -1,10 +1,10 @@
-import { medusaGet } from "@lib/medusa"
+import { medusaGet, MedusaGetResult } from "@lib/medusa"
 import { HttpTypes } from "@medusajs/types"
 
-export const listCategories = async (query?: Record<string, any>) => {
+export const listCategories = async (query?: Record<string, any>): Promise<HttpTypes.StoreProductCategory[]> => {
   const limit = query?.limit || 100
 
-  const { product_categories } = await medusaGet<{
+  const res = await medusaGet<{
     product_categories: HttpTypes.StoreProductCategory[]
   }>("/store/product-categories", {
     fields:
@@ -13,14 +13,17 @@ export const listCategories = async (query?: Record<string, any>) => {
     ...query,
   })
 
-  return product_categories
+  if (!res.ok || !res.data?.product_categories) {
+    console.warn(`[categories][fallback] Failed to list categories: ${res.error?.message || 'Unknown error'}`);
+    return [];
+  }
+  return res.data.product_categories;
 }
 
-export const getCategoryByHandle = async (categoryHandle: string[]) => {
+export const getCategoryByHandle = async (categoryHandle: string[]): Promise<HttpTypes.StoreProductCategory | null> => {
   const handle = `${categoryHandle.join("/")}`
 
-  const { product_categories } =
-    await medusaGet<HttpTypes.StoreProductCategoryListResponse>(
+  const res = await medusaGet<HttpTypes.StoreProductCategoryListResponse>(
       `/store/product-categories`,
       {
         fields: "*category_children, *products",
@@ -28,5 +31,9 @@ export const getCategoryByHandle = async (categoryHandle: string[]) => {
       }
     )
 
-  return product_categories[0]
+  if (!res.ok || !res.data?.product_categories || res.data.product_categories.length === 0) {
+    console.warn(`[categories][fallback] Failed to get category by handle '${handle}': ${res.error?.message || 'Not found or unknown error'}`);
+    return null;
+  }
+  return res.data.product_categories[0];
 }

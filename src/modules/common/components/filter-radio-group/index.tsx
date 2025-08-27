@@ -1,5 +1,6 @@
 import { EllipseMiniSolid } from "@medusajs/icons"
 import { Label, RadioGroup, Text, clx } from "@medusajs/ui"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 type FilterRadioGroupProps = {
   title: string

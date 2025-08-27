@@ -10,7 +10,7 @@ import Input from "@modules/common/components/input"
 import Modal from "@modules/common/components/modal"
 import Spinner from "@modules/common/icons/spinner"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
-import { HttpTypes } from "@medusajs/types"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 import {
   deleteCustomerAddress,
   updateCustomerAddress,
@@ -160,7 +160,7 @@ const EditAddress: React.FC<EditAddressProps> = ({
                 required
                 autoComplete="address-line1"
                 defaultValue={address.address_1 || undefined}
-                data-testid="address-1-input"
+                  data-testid="address-1-input"
               />
               <Input
                 label="Apartment, suite, etc."

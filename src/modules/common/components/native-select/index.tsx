@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 export type NativeSelectProps = {
   placeholder?: string

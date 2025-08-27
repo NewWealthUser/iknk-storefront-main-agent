@@ -13,9 +13,7 @@ export default async function ProductRail({
   collection: HttpTypes.StoreCollection
   region: HttpTypes.StoreRegion
 }) {
-  const {
-    response: { products: pricedProducts },
-  } = await listProducts({
+  const res = await listProducts({
     regionId: region.id,
     queryParams: {
       collection_id: [collection.id],
@@ -23,9 +21,12 @@ export default async function ProductRail({
     } as any,
   })
 
-  if (!pricedProducts) {
+  if (!res.response.products) {
+    console.warn(`[product-rail][fallback] Failed to list products for collection '${collection.id}': ${res.error?.message || 'Unknown error'}`);
     return null
   }
+
+  const pricedProducts = res.response.products;
 
   return (
     <div className="content-container py-12 small:py-24">

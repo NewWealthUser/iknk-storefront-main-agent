@@ -12,7 +12,7 @@ import MedusaRadio from "@modules/common/components/radio"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import React, { useEffect, useState } from "react"
 import { IknkCart } from "@lib/util/iknk-cart-adapter"
-import { HttpTypes } from "@medusajs/types"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 const PICKUP_OPTION_ON = "true"
 const PICKUP_OPTION_OFF = "false"
@@ -178,7 +178,7 @@ const Shipping: React.FC<ShippingProps> = ({
               {showPickupOptions === PICKUP_OPTION_ON ? "Choose a store near you" : "Shipping Method"}
             </RadioGroup.Label>
             {(showPickupOptions === PICKUP_OPTION_ON ? _pickupMethods : _shippingMethods)?.map((option) => {
-              const isDisabled = (showPickupOptions === PICKUP_OPTION_OFF && option.price_type === "calculated" && !isLoadingPrices && typeof calculatedPricesMap[option.id] !== "number") || option.insufficient_inventory;
+              const isDisabled = (showPickupOptions === PICKUP_OPTION_OFF && option.price_type === "calculated" && typeof calculatedPricesMap[option.id] !== "number") || option.insufficient_inventory;
               return (
                 <Radio
                   key={option.id}

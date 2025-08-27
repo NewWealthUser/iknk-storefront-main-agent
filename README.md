@@ -123,3 +123,96 @@ You'll also need to setup the integrations in your Medusa server. See the [Medus
 - [Website](https://nextjs.org/)
 - [GitHub](https://github.com/vercel/next.js)
 - [Documentation](https://nextjs.org/docs)
+
+---
+
+# Developer Diagnostics & Environment Troubleshooting
+
+If you encounter issues, especially with Medusa backend communication, follow these steps:
+
+### 1) Ensure only one package manager is used (Yarn)
+
+It's crucial to avoid mixed package managers. Clean up and reinstall:
+
+```bash
+cd "~/dyad-apps/iknk-storefront-main copy" # Adjust path if different
+rm -rf node_modules .pnpm-store
+rm -f package-lock.json pnpm-lock.yaml
+yarn cache clean
+yarn install
+```
+
+### 2) Verify environment variables
+
+Check if your `NEXT_PUBLIC_MEDUSA_URL` is correctly set and accessible. It should be a full, absolute URL (e.g., `https://your-medusa-host.com` or `http://localhost:9000`).
+
+```bash
+echo $NEXT_PUBLIC_MEDUSA_URL
+echo $NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+```
+
+### 3) Ping Medusa directly
+
+Test if your Medusa backend is reachable from your development environment:
+
+```bash
+curl -I "$NEXT_PUBLIC_MEDUSA_URL/store"
+curl -I "$NEXT_PUBLIC_MEDUSA_URL/store/regions"
+```
+
+You should see HTTP status codes like `200 OK` or `401 Unauthorized` (if no auth is sent, which is expected for these endpoints without a publishable key in `curl`). If you see "connection refused" or a timeout, your backend is likely not running or not accessible at that URL.
+
+### 4) Run local health route
+
+Start your Next.js development server:
+
+```bash
+yarn dev
+```
+
+Then, open your browser to `http://localhost:3000/api/medusa/health`. This route will attempt to ping your Medusa backend and report its status.
+
+### 5) (If CORS issues) Ensure Medusa backend ALLOWS your storefront origin
+
+If you see CORS errors in your browser console, ensure your Medusa backend is configured to allow requests from your storefront's origin (e.g., `http://localhost:3000`). This is typically configured in `medusa-config.js` or via environment variables on your Medusa server.
+
+Example `medusa-config.js` snippet:
+
+```javascript
+// ...
+const plugins = [
+  // ...
+];
+
+const modules = {
+  // ...
+};
+
+const projectConfig = {
+  // ...
+  store_cors: process.env.STORE_CORS || "http://localhost:3000",
+  admin_cors: process.env.ADMIN_CORS || "http://localhost:7001",
+  // ...
+};
+
+module.exports = {
+  plugins,
+  projectConfig,
+  modules,
+};
+```
+
+Ensure `STORE_CORS` includes your storefront's URL.
+
+### 6) (If still flaky) Temporarily bypass cart on SSR
+
+If the site is still unstable during server-side rendering, you can temporarily bypass cart and customer data fetching on the server:
+
+```bash
+echo 'BYPASS_CART_ON_SSR=true' >> .env.local
+yarn dev
+```
+
+This will allow the site to render with empty cart/customer data, and client-side fetching will attempt to populate it. This is a diagnostic step, not a permanent solution.
+
+---

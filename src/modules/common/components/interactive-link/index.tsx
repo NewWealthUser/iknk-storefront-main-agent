@@ -1,6 +1,7 @@
 import { ArrowUpRightMini } from "@medusajs/icons"
 import { Text } from "@medusajs/ui"
 import LocalizedClientLink from "../localized-client-link"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 type InteractiveLinkProps = {
   href: string

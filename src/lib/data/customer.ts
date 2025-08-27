@@ -1,7 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet } from "@lib/medusa"
+import { medusaGet, MedusaGetResult } from "@lib/medusa"
 import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
@@ -23,14 +23,18 @@ export const retrieveCustomer =
       return null
     }
 
-    const { customer } = await medusaGet<{ customer: HttpTypes.StoreCustomer }>(
+    const res = await medusaGet<{ customer: HttpTypes.StoreCustomer }>(
       `/store/customers/me`,
       {
         fields: "*orders",
       }
-    ).catch(() => ({ customer: null }))
+    );
 
-    return customer
+    if (!res.ok || !res.data?.customer) {
+      console.warn(`[customer][fallback] Failed to retrieve customer: ${res.error?.message || 'Not found or unknown error'}`);
+      return null;
+    }
+    return res.data.customer;
   }
 
 export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {

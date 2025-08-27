@@ -9,7 +9,7 @@ import CountrySelect from "@modules/checkout/components/country-select"
 import Input from "@modules/common/components/input"
 import Modal from "@modules/common/components/modal"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
-import { HttpTypes } from "@medusajs/types"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 import { addCustomerAddress } from "@lib/data/customer"
 
 const AddAddress = ({

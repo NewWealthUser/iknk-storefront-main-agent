@@ -9,14 +9,14 @@ import { HttpTypes, StoreRegion } from "@medusajs/types"
 
 interface Params extends ParsedUrlQuery {
   handle: string
-  countryCode: string // Ensure countryCode is part of params
+  countryCode: string
 }
 
 interface Props {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
   countryCode: string
-  relatedProducts: RhProduct[] // Added relatedProducts to Props
+  relatedProducts: RhProduct[]
 }
 
 export const getStaticPaths: GetStaticPaths<Params> = async () => {
@@ -69,10 +69,10 @@ export const getStaticPaths: GetStaticPaths<Params> = async () => {
 }
 
 export const getStaticProps: GetStaticProps<Props, Params> = async (context: GetStaticPropsContext<Params, PreviewData>) => {
-  const { handle, countryCode } = context.params as { handle: string; countryCode: string } // Assert countryCode as string
+  const { handle, countryCode } = context.params as { handle: string; countryCode: string }
   const queryClient = new QueryClient()
 
-  const region = await getRegion(countryCode) // Use asserted countryCode
+  const region = await getRegion(countryCode)
 
   if (!region) {
     return {
@@ -80,10 +80,12 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
     }
   }
 
-  const product = await listProducts({
-    countryCode: countryCode, // Use asserted countryCode
+  const { response: { products: responseProducts } } = await listProducts({
+    countryCode: countryCode,
     queryParams: { handle } as any,
-  }).then(({ response }) => response.products[0])
+  })
+
+  const product = responseProducts?.[0]
 
   if (!product) {
     return {
@@ -122,7 +124,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
       product,
       region,
       countryCode,
-      relatedProducts, // Pass relatedProducts here
+      relatedProducts,
       dehydratedState: dehydrate(queryClient),
     },
   }
@@ -132,7 +134,7 @@ export default function ProductPage({ product, region, countryCode, relatedProdu
   return (
     <ProductTemplate
       product={adaptMedusaProductToRhProduct(product)}
-      relatedProducts={relatedProducts} // Pass relatedProducts here
+      relatedProducts={relatedProducts}
       region={region}
       countryCode={countryCode}
     />

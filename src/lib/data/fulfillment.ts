@@ -1,29 +1,32 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet } from "@lib/medusa"
+import { medusaGet, MedusaGetResult } from "@lib/medusa"
 import { HttpTypes } from "@medusajs/types"
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 
-export const listCartShippingMethods = async (cartId: string) => {
-  const { shipping_options } =
-    await medusaGet<HttpTypes.StoreShippingOptionListResponse>(
+export const listCartShippingMethods = async (cartId: string): Promise<HttpTypes.StoreShippingOption[] | null> => {
+  const res = await medusaGet<HttpTypes.StoreShippingOptionListResponse>(
       `/store/shipping-options`,
       {
         cart_id: cartId,
         fields:
           "+service_zone.fulfllment_set.type,*service_zone.fulfillment_set.location.address",
       }
-    ).catch(() => ({ shipping_options: null }))
+    );
 
-  return shipping_options
+  if (!res.ok || !res.data?.shipping_options) {
+    console.warn(`[fulfillment][fallback] Failed to list cart shipping methods: ${res.error?.message || 'Unknown error'}`);
+    return null;
+  }
+  return res.data.shipping_options;
 }
 
 export const calculatePriceForShippingOption = async (
   optionId: string,
   cartId: string,
   data?: Record<string, unknown>
-) => {
+): Promise<HttpTypes.StoreCartShippingOption | null> => {
   const headers = {
     ...(await getAuthHeaders()),
   }
@@ -50,6 +53,7 @@ export const calculatePriceForShippingOption = async (
     )
     .then(({ shipping_option }) => shipping_option)
     .catch((e) => {
+      console.error(`[fulfillment][error] Failed to calculate price for shipping option '${optionId}': ${e.message}`);
       return null
     })
 }

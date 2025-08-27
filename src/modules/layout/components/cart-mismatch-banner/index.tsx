@@ -5,6 +5,7 @@ import { ExclamationCircleSolid } from "@medusajs/icons"
 import { StoreCart, StoreCustomer } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
 import { useState } from "react"
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 function CartMismatchBanner(props: {
   customer: StoreCustomer

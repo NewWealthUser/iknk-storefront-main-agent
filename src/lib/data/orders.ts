@@ -1,29 +1,32 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet } from "@lib/medusa"
+import { medusaGet, MedusaGetResult } from "@lib/medusa"
 import medusaError from "@lib/util/medusa-error"
 import { getAuthHeaders } from "./cookies"
 import { HttpTypes } from "@medusajs/types"
 
-export const retrieveOrder = async (id: string) => {
-  const { order } = await medusaGet<HttpTypes.StoreOrderResponse>(
+export const retrieveOrder = async (id: string): Promise<HttpTypes.StoreOrder | null> => {
+  const res = await medusaGet<HttpTypes.StoreOrderResponse>(
     `/store/orders/${id}`,
     {
       fields:
         "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
     }
-  ).catch((err: unknown) => medusaError(err))
-
-  return order
+  );
+  if (!res.ok || !res.data?.order) {
+    console.warn(`[orders][fallback] Failed to retrieve order '${id}': ${res.error?.message || 'Not found or unknown error'}`);
+    return null;
+  }
+  return res.data.order;
 }
 
 export const listOrders = async (
   limit: number = 10,
   offset: number = 0,
   filters?: Record<string, any>
-) => {
-  const { orders } = await medusaGet<HttpTypes.StoreOrderListResponse>(
+): Promise<HttpTypes.StoreOrder[] | null> => {
+  const res = await medusaGet<HttpTypes.StoreOrderListResponse>(
     `/store/orders`,
     {
       limit,
@@ -32,9 +35,12 @@ export const listOrders = async (
       fields: "*items,+items.metadata,*items.variant,*items.product",
       ...filters,
     }
-  ).catch((err: unknown) => medusaError(err))
-
-  return orders
+  );
+  if (!res.ok || !res.data?.orders) {
+    console.warn(`[orders][fallback] Failed to list orders: ${res.error?.message || 'Unknown error'}`);
+    return null;
+  }
+  return res.data.orders;
 }
 
 export const createTransferRequest = async (
