@@ -5,7 +5,7 @@ import NativeSelect, {
 } from "@modules/common/components/native-select"
 import { listRegions } from "@lib/data/regions";
 import ReactCountryFlag from "react-country-flag"
-import { HttpTypes, StoreCountry } from "@medusajs/types" // Added missing import
+import { HttpTypes } from "@medusajs/types" // Added missing import
 
 const CountrySelect = forwardRef<
   HTMLSelectElement,

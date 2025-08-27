@@ -49,6 +49,7 @@ export default async function Home(props: {
         <IknkProductGrid
           productList={products}
           totalNumRecs={count}
+          countryCode={countryCode} // Pass countryCode here
         />
       </div>
     </>

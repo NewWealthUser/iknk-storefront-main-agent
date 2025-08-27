@@ -77,7 +77,7 @@ const processEnvServer = false;
 const isServer = false;
 const useTypographyStyles = (props: any) => ({ rhBaseBody1: "", rhBaseH2: "", rhBaseCaption: "", rhBaseBody2: "", rhBaseBody3: "", rhBaseCaption1: "", rhBaseCaption2: "" });
 const COLOR_PREVIEW_AVAILABLE_SOON = "Color preview available soon";
-const memoize = (Component: any) => Component;
+// Removed: const memoize = (Component: any) => memoize(Component);
 const stringToObject = (str: string) => ({});
 const yn = (value: any) => Boolean(value);
 const useNewURLStructureParams = () => ({ category: "" });
@@ -95,7 +95,7 @@ interface PresetMap {
 const getPresetMap = (a: any, b: any, c: any): PresetMap => ({ rhrThreeK: "", threeK: "", xlUp: {}, lgUp: {}, mdUp: {}, smUp: {}, xsUp: {} });
 const RHImageV2 = (props: any) => <img src={props.src} alt={props.alt} className={props.className} />;
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-const useParams = (props: any) => ({ site: "" });
+const useParamsHook = (props: any) => ({ site: "" }); // Renamed to avoid conflict with Next.js useParams
 const getReqContext = () => ({ cookies: {}, path: "" });
 const BCT_PATHS: { [key: string]: string } = {};
 const SELECTED_BRAND_COOKIE = "";
@@ -132,6 +132,7 @@ interface ProductCardProps {
   productTitle?: string;
   inStockFlow?: boolean;
   isSelectedItem?: boolean;
+  countryCode: string; // Added countryCode prop
 }
 
 
@@ -150,10 +151,9 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
     pageContent,
     productTitle,
     onProductClick,
-    isSelectedItem
+    isSelectedItem,
+    countryCode, // Destructure countryCode prop
   }) => {
-    const { countryCode } = useParams();
-    console.log('countryCode', countryCode);
     const env = useEnv();
     const siteId = useSite();
     const locale = useLocale();
@@ -186,7 +186,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
     const mdUp = useMediaQuery(true);
     const smUp = useMediaQuery(true);
     const req = getReqContext();
-    const params: { site: string } = useParams({
+    const paramsHook: { site: string } = useParamsHook({ // Renamed to avoid conflict
       site: ""
     });
 
@@ -229,21 +229,10 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
 
     const to = useMemo(() => {
       let productUrl = getUrl(
-        data, // Changed from item
-        host,
-        isStockedFilterActive,
-        isRefinementFilterActive,
-        totalNumRecs,
-        Boolean(isSale || isSaleFilterEnabled),
-        isConcierge,
-        filterQueries,
-        selectedSwatch,
-        nextgenCookie === "true",
-        true, // inStockFlow
-        isNewURLFeatureEnabled,
-        category
+        data,
+        countryCode // Pass countryCode here
       )?.to;
-      const site = searchPage ? getSite(params, productUrl) : siteId;
+      const site = searchPage ? getSite(paramsHook, productUrl) : siteId; // Use paramsHook
       const bctPath = BCT_PATHS[site] || "";
 
       if (yn(env.FEATURE_BCT_SUNSET) && !isConcierge) {
@@ -257,6 +246,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
       return prefix + productUrl;
     }, [
       data, // Changed from item
+      countryCode, // Added countryCode to dependencies
       host,
       isStockedFilterActive,
       isRefinementFilterActive,
@@ -265,7 +255,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
       isConcierge,
       filterQueries,
       selectedSwatch,
-      params?.site,
+      paramsHook?.site, // Use paramsHook
       searchPage,
       siteId,
       env.FEATURE_BCT_SUNSET,
@@ -279,23 +269,12 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
         prefix +
         getUrl(
           data, // Changed from item
-          host,
-          isStockedFilterActive,
-          isRefinementFilterActive,
-          totalNumRecs,
-          true,
-          isConcierge,
-          filterQueries,
-          selectedSwatch,
-          nextgenCookie === "true",
-          true, // inStockFlow
-          isNewURLFeatureEnabled,
-          category
+          countryCode // Pass countryCode here
         )?.to
       );
     }, [
       data, // Changed from item
-      countryCode,
+      countryCode, // Added countryCode to dependencies
     ]);
     if (
       data?.percentSaleSkus !== 0 && // Changed from item?.product?.percentSaleSkus
@@ -361,7 +340,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
     );
     useEffect(() => {
       const swatchToDisplayId = data?.displaySwatch; // Changed from item?.product?.displaySwatch
-      const swatchesToDisplay = data?.swatchData?.swatchGroups?.[0]?.stockedSwatches; // Changed from item?.product?.swatchInfo?.swatchesToDisplay
+      const swatchesToDisplay = data?.swatchData?.swatchGroups?.[0]?.stockedSwatches || []; // Changed from item?.product?.swatchInfo?.swatchesToDisplay
       if (
         swatchToDisplayId &&
         Array.isArray(swatchesToDisplay) &&
@@ -613,7 +592,8 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
           imageFlip={Boolean(data?.imageFlip)} // Changed from item?.product?.imageFlip
           isClicked={IsClicked}
           setIsClicked={setIsClicked}
-          imageStyle={productDetails?.imageStyle || {}}
+          imageStyle={productDetails?.imageStyle || {}
+          }
           setActualImgHeight={setActualImgHeight}
           imageContainerStyle={{
             justifyContent: "center",

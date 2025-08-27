@@ -80,7 +80,11 @@ export default async function PaginatedProducts({
 
   return (
     <>
-      <ProductGrid productList={products} totalNumRecs={count} />
+      <ProductGrid
+        productList={products}
+        totalNumRecs={count}
+        countryCode={countryCode} // Pass countryCode here
+      />
       {totalPages > 1 && (
         <Pagination
           data-testid="product-pagination"

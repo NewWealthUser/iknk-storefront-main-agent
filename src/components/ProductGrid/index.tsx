@@ -3,10 +3,8 @@
 import React, { FC } from "react";
 import clsx from "clsx";
 
-import { ProductGridCard as PC } from "./ProductCard"; // Corrected import path
+import { ProductGridCard as PC } from "./ProductGrid/ProductCard/ProductGridCard";
 import { RhProduct } from "@lib/util/rh-product-adapter";
-
-import { useParams } from "next/navigation";
 
 // Simplified getUrl function for Medusa storefront
 export const getUrl = (item: RhProduct, countryCode: string) => {
@@ -25,7 +23,7 @@ interface ProductGridProps {
   productTitle?: string;
   filterQueries?: string[];
   inStockFlow?: boolean;
-  countryCode: string;
+  countryCode: string; // Added countryCode prop
   // Removed all other props related to internal pagination, infinite scroll, etc.
 }
 
@@ -39,6 +37,7 @@ const ProductGrid: FC<ProductGridProps> = ({
   productTitle,
   filterQueries,
   inStockFlow,
+  countryCode, // Destructure countryCode
 }) => {
   // Simplified imageFlexBoxWidth for basic grid layout
   const imageFlexBoxWidth = `${100 / gridColumns}%`;
@@ -71,6 +70,7 @@ const ProductGrid: FC<ProductGridProps> = ({
               onProductClick={() => {}} // Simplified placeholder
               inStockFlow={inStockFlow}
               isSelectedItem={false} // Simplified
+              countryCode={countryCode} // Pass countryCode to ProductGridCard
             />
           </div>
         ))}

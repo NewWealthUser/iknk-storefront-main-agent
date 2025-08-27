@@ -5,8 +5,8 @@ import { ProductGridCard as PC } from "../../../components/ProductGrid/ProductCa
 import { RhProduct } from "@lib/util/rh-product-adapter";
 
 // Simplified getUrl function for Medusa storefront
-export const getUrl = (item: RhProduct) => {
-  const urlPath = `/products/${item?.handle}`;
+export const getUrl = (item: RhProduct, countryCode: string) => {
+  const urlPath = `/${countryCode}/products/${item?.handle}`;
   return { to: urlPath };
 };
 
@@ -33,6 +33,7 @@ interface IknkProductGridProps {
   productTitle?: string;
   filterQueries?: string[];
   inStockFlow?: boolean;
+  countryCode: string; // Added countryCode prop
   // Removed all other props related to internal pagination, infinite scroll, etc.
 }
 
@@ -46,6 +47,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
   productTitle,
   filterQueries,
   inStockFlow,
+  countryCode, // Destructure countryCode
 }) => {
   // Simplified imageFlexBoxWidth for basic grid layout
   const imageFlexBoxWidth = `${100 / gridColumns}%`;
@@ -78,6 +80,7 @@ const IknkProductGrid: FC<IknkProductGridProps> = ({
               onProductClick={() => {}} // Simplified placeholder
               inStockFlow={inStockFlow}
               isSelectedItem={false} // Simplified
+              countryCode={countryCode} // Pass countryCode to ProductGridCard
             />
           </div>
         ))}
