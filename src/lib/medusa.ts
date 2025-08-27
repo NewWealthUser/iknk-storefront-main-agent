@@ -1,22 +1,33 @@
 import { sdk } from "@lib/config"
 import { adaptMedusaProductToRhProduct, RhProduct } from "./util/rh-product-adapter";
-import { HttpTypes } from "@medusajs/types"; // Ensure HttpTypes is imported
+import { HttpTypes }s from "@medusajs/types"; // Ensure HttpTypes is imported
 
 export const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_URL as string
+const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY; // Get key here
 
 if (!MEDUSA_URL) {
   throw new Error("NEXT_PUBLIC_MEDUSA_URL is not set")
 }
+// Add a check for the publishable key here as well, for robustness
+if (!PUBLISHABLE_API_KEY) {
+  throw new Error("NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is not set. Please configure it in your .env.local file.");
+}
+
 
 export async function medusaGet<T>(path: string, queryParams?: Record<string, any>, init?: RequestInit): Promise<T> {
   try {
-    // Separate headers and query from init to pass them as FetchArgs
     const { headers, ...restInit } = init || {};
+
+    // Ensure x-publishable-api-key is always present
+    const requestHeaders: Record<string, string> = {
+      ...headers as Record<string, string>,
+      "x-publishable-api-key": PUBLISHABLE_API_KEY!, // Non-null assertion added here
+    };
 
     const data = await sdk.client.fetch<T>(path, {
       method: "GET",
       query: queryParams,
-      headers: headers as Record<string, string>, // Cast HeadersInit to Record<string, string>
+      headers: requestHeaders,
       ...restInit,
     });
     return data;
