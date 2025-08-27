@@ -15,6 +15,7 @@ if (!PUBLISHABLE_API_KEY) {
 
 
 export async function medusaGet<T>(path: string, queryParams?: Record<string, any>, init?: RequestInit): Promise<T> {
+  console.log(`Medusa GET request to: ${path} with query: ${JSON.stringify(queryParams)}`); // Log the request path and query
   try {
     const { headers, ...restInit } = init || {};
 
@@ -36,28 +37,25 @@ export async function medusaGet<T>(path: string, queryParams?: Record<string, an
 
     let errorMessage = "An unexpected error occurred during Medusa request.";
 
-    if (error instanceof Error) {
-      errorMessage = `Error setting up Medusa request: ${error.message}`;
-    } else if (error && typeof error === 'object') {
-      if (error.response) {
-        // Medusa SDK errors often have a 'response' property with status and data
-        const message = error.response.data?.message || error.response.statusText || "An unknown error occurred.";
-        errorMessage = `Medusa request failed: ${error.response.status} - ${message}`;
-      } else if (error.request) {
-        // The request was made but no response was received
-        errorMessage = "No response received from Medusa backend. Is it running?";
-      } else if (error.message) { // Fallback for objects with a message property
-        errorMessage = `Error setting up Medusa request: ${error.message}`;
-      } else {
-        // Fallback for generic objects without a specific message
-        errorMessage = `Unknown object error: ${JSON.stringify(error)}`;
-      }
-    } else if (typeof error === 'string') {
-      // If the error is a string
-      errorMessage = `String error: ${error}`;
+    // Ensure error is an object to safely access properties
+    const safeError = typeof error === 'object' && error !== null ? error : {};
+
+    if (safeError.response) {
+      // Medusa SDK errors often have a 'response' property with status and data
+      const message = safeError.response.data?.message || safeError.response.statusText || "An unknown error occurred.";
+      errorMessage = `Medusa request failed: ${safeError.response.status} - ${message}`;
+    } else if (safeError.request) {
+      // The request was made but no response was received
+      errorMessage = "No response received from Medusa backend. Is it running?";
+    } else if (safeError.message) { // Fallback for objects with a message property
+      errorMessage = `Error setting up Medusa request: ${safeError.message}`;
     } else {
-      // Fallback for completely unknown or primitive error types (e.g., null, undefined)
-      errorMessage = `Non-object/non-string error: ${String(error)}`;
+      // Fallback for generic objects or primitives without a specific message
+      try {
+        errorMessage = `Unknown error: ${JSON.stringify(safeError)}`;
+      } catch (e) {
+        errorMessage = `Unknown error: ${String(safeError)}`;
+      }
     }
     
     console.error("Processed error in medusaGet:", errorMessage);
