@@ -70,7 +70,7 @@ export async function getOrSetCart(countryCode: string): Promise<HttpTypes.Store
       { region_id: region.id },
       {},
       headers
-    ).catch((err) => {
+    ).catch((err: unknown) => {
       console.error("[cart][error] Failed to create new cart:", medusaError(err));
       return { cart: null };
     });
@@ -91,7 +91,7 @@ export async function getOrSetCart(countryCode: string): Promise<HttpTypes.Store
   if (cart && cart?.region_id !== region.id) {
     console.log("[cart] getOrSetCart: Cart region mismatch, updating cart region from", cart.region_id, "to", region.id);
     await sdk.store.cart.update(cart.id, { region_id: region.id }, {}, headers)
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error("[cart][error] Failed to update cart region:", medusaError(err));
         return { cart: null };
       });
@@ -118,7 +118,7 @@ export async function updateCart(data: HttpTypes.StoreUpdateCart): Promise<HttpT
 
   const res = await sdk.store.cart
     .update(cartId, data, {}, headers)
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error("[cart][error] Failed to update cart:", medusaError(err));
       return { cart: null };
     });
@@ -173,7 +173,7 @@ export async function addToCart({
       {},
       headers
     )
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error("[cart][error] Failed to create line item:", medusaError(err));
       return { cart: null };
     });
@@ -222,7 +222,7 @@ export async function updateLineItem({
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
     })
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error("[cart][error] Failed to update line item:", medusaError(err));
       throw new Error(`[cart][error] Failed to update line item '${lineId}'.`);
     });
@@ -254,7 +254,7 @@ export async function deleteLineItem(lineId: string) {
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
     })
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error("[cart][error] Failed to delete line item:", medusaError(err));
       throw new Error(`[cart][error] Failed to delete line item '${lineId}'.`);
     });
@@ -279,7 +279,7 @@ export async function setShippingMethod({
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)
     })
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error("[cart][error] Failed to set shipping method:", medusaError(err));
       throw new Error(`[cart][error] Failed to set shipping method '${shippingMethodId}'.`);
     });
@@ -297,7 +297,7 @@ export async function initiatePaymentSession(
   // Corrected: Pass the cart object as the first argument, and the data as the second
   const res = await sdk.store.payment
     .initiatePaymentSession(cart, data, {}, headers)
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error("[cart][error] Failed to initiate payment session:", medusaError(err));
       // Corrected: Return an object matching the SDK's response structure on error
       return { payment_collection: null };
@@ -336,7 +336,7 @@ export async function applyPromotions(codes: string[]) {
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
     })
-    .catch((err) => {
+    .catch((err: unknown) => {
       console.error("[cart][error] Failed to apply promotions:", medusaError(err));
       throw new Error(`[cart][error] Failed to apply promotions '${codes.join(', ')}'.`);
     });
@@ -445,7 +445,7 @@ export async function placeOrder(cartId?: string): Promise<HttpTypes.StoreOrder 
 
   const cartRes = await sdk.store.cart
     .complete(id, {}, headers)
-    .catch((err) => {
+    .catch((err: unknown) => {
       // medusaError throws, so this catch block will re-throw the error
       medusaError(err);
     });
@@ -498,16 +498,25 @@ export async function updateRegion(countryCode: string, currentPath: string) {
   redirect(`/${countryCode}${currentPath}`)
 }
 
-export async function listCartOptions() {
-  const cartId = await getCartId()
-
-  if (!cartId) {
-    return null
+export async function listShippingOptions(cartId: string) {
+  const cart = await retrieveCart(cartId);
+  if (!cart?.region_id) {
+    return null;
   }
 
-  return await medusaGet<{
-    shipping_options: HttpTypes.StoreCartShippingOption[]
-  }>("/store/shipping-options", {
-    cart_id: cartId,
-  })
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
+
+  const { shipping_options } = await sdk.store.shippingOptions // Changed from sdk.shippingOptions
+    .list({ region_id: cart.region_id }, headers)
+    .catch((err: unknown) => {
+      console.error(
+        "[cart][error] Failed to list shipping options:",
+        medusaError(err)
+      )
+      return { shipping_options: [] }
+    })
+
+  return shipping_options
 }

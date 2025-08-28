@@ -129,18 +129,18 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
 
     // Memoized URL for the product card
     const to = useMemo(() => {
-      let productUrl = getUrl(data)?.to;
+      let productUrl = getUrl(data, countryCode)?.to;
       // Simplified site/bctPath logic for Medusa context
       return productUrl;
-    }, [data]);
+    }, [data, countryCode]);
 
     // Memoized sale URL
     const saleUrl = useMemo(() => {
       if (data?.percentSaleSkus !== 0 && data?.percentSaleSkus !== 100 && !Boolean(isSale || isSaleFilterEnabled)) {
-        return getUrl(data)?.to;
+        return getUrl(data, countryCode)?.to;
       }
       return "";
-    }, [data, isSale, isSaleFilterEnabled]);
+    }, [data, isSale, isSaleFilterEnabled, countryCode]);
 
     // Memoized image array for carousel
     const imagesArr = useMemo(() => {
@@ -256,6 +256,7 @@ export const ProductGridCard: FC<ProductCardProps> = memo(
           isClicked={isClicked}
           setIsClicked={setIsClicked}
           imageStyle={productDetails?.imageStyle || {}}
+          imageContainerStyle={productDetails?.imageContainerStyle || {}}
           productSwatchLoading={productSwatchLoading}
           pageContent={pageContent}
           COLOR_PREVIEW_AVAILABLE_SOON={COLOR_PREVIEW_AVAILABLE_SOON}

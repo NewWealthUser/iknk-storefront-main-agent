@@ -1,15 +1,14 @@
 import { Metadata } from "next"
 
-import { listCartOptions, retrieveCart } from "@lib/data/cart"
+import { listShippingOptions, retrieveCart } from "@lib/data/cart"
 import { retrieveCustomer } from "@lib/data/customer"
 import { getBaseURL } from "@lib/util/env"
-import { StoreCartShippingOption } from "@medusajs/types"
+import { StoreCart, StoreCartShippingOption } from "@medusajs/types"
 import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
 import Footer from "@modules/layout/templates/footer"
 import Header from "@modules/layout/components/header"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
 import { adaptMedusaCartToIknkCart, IknkCart } from "@lib/util/iknk-cart-adapter"
-import { HttpTypes } from "@medusajs/types" // Added missing import
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
@@ -20,7 +19,7 @@ const BYPASS_CART_ON_SSR = process.env.BYPASS_CART_ON_SSR === "true";
 
 export default async function PageLayout(props: { children: React.ReactNode }) {
   let customer = null;
-  let cart: HttpTypes.StoreCart | null = null;
+  let cart: StoreCart | null = null;
   let shippingOptions: StoreCartShippingOption[] = [];
   let iknkCart: IknkCart | null = null;
 
@@ -30,9 +29,9 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
       cart = await retrieveCart();
 
       if (cart) {
-        const res = await listCartOptions(); // Safely get the result
-        if (res && res.ok && res.data) { // Check if res is not null and has data
-          shippingOptions = res.data.shipping_options;
+        const res = await listShippingOptions(cart.id);
+        if (res) {
+          shippingOptions = res.shipping_options;
         }
         iknkCart = adaptMedusaCartToIknkCart(cart);
       }

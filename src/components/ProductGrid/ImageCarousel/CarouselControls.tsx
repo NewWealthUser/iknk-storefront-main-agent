@@ -41,7 +41,7 @@ const CarouselControls: FC<CarouselControlsProps> = ({
             onClick={goToPrevSlide}
             aria-label="previous"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft className="w-4 h-4" />
           </button>
         )}
         <span
@@ -66,7 +66,7 @@ const CarouselControls: FC<CarouselControlsProps> = ({
             onClick={goToNextSlide}
             aria-label="next"
           >
-            <ChevronRight size={16} />
+            <ChevronRight className="w-4 h-4" />
           </button>
         )}
       </div>

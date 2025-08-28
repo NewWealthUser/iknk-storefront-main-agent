@@ -5,7 +5,9 @@ import NativeSelect, {
 } from "@modules/common/components/native-select"
 import { listRegions } from "@lib/data/regions";
 import ReactCountryFlag from "react-country-flag"
-import { HttpTypes } from "@medusajs/types" // Added missing import
+import { StoreRegion, StoreRegionCountry } from "@medusajs/types" // Changed BaseRegionCountry to StoreRegionCountry
+
+type Country = { iso_2: string; display_name: string } // Defined Country type
 
 const CountrySelect = forwardRef<
   HTMLSelectElement,
@@ -24,18 +26,21 @@ const CountrySelect = forwardRef<
       try {
         const regions = await listRegions();
         if (regions) {
-          const allCountries = regions.flatMap((region: HttpTypes.StoreRegion) => region.countries || []);
-          const uniqueCountries = Array.from(new Map(allCountries.map((country: HttpTypes.StoreCountry) => [country.iso_2, country])).values());
+          const countries: [string, StoreRegionCountry][] = regions.flatMap((region: StoreRegion) => region.countries || [])
+            .filter((c): c is Required<StoreRegionCountry> => !!c.iso_2) // Filter out entries without iso_2
+            .map((c) => [c.iso_2!, c]) // Use 'c' directly as it's already StoreRegionCountry
+
+          const uniqueCountries = Array.from(new Map(countries).values());
+
           setCountryOptions(
             uniqueCountries
-              .filter((c: HttpTypes.StoreCountry) => !!c.iso_2 && !!c.display_name)
-              .map((country: HttpTypes.StoreCountry) => ({
+              .map((country) => ({
                 value: country.iso_2 as string,
                 label: country.display_name as string,
               }))
           );
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching countries for CountrySelect:", error);
       }
     };

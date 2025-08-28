@@ -3,11 +3,11 @@
 import React, { FC } from "react";
 import clsx from "clsx";
 
-import { ProductGridCard as PC } from "./ProductGrid/ProductCard"; // Corrected import path
+import { ProductGridCard as PC } from "./ProductCard"; // Corrected import path
 import { RhProduct } from "@lib/util/rh-product-adapter";
 
 // Simplified getUrl function for Medusa storefront
-export const getUrl = (item: RhProduct) => { // Removed countryCode parameter
+export const getUrl = (item: RhProduct, countryCode: string) => { // Removed countryCode parameter
   const urlPath = `/products/${item?.handle}`;
   return { to: urlPath };
 };

@@ -132,7 +132,6 @@ export async function listProducts({
     region_id,
     fields:
       "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags",
-    sales_channel_id: process.env.NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID,
     ...queryParams,
   });
 
