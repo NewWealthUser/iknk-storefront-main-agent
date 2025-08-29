@@ -16,8 +16,8 @@ export default async function ProductActionsWrapper({
     id: id ? [id] as string[] : [],
   })
 
-  const product = data?.products[0];
-
+  const product = data?.[0]; // Fixed: Used data directly
+  
   if (!product) {
     return null
   }

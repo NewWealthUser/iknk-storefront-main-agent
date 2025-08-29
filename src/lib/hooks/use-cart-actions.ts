@@ -10,7 +10,7 @@ export const useCartActions = () => {
     setError(null)
 
     try {
-      const { cart } = await sdk.store.cart.lineItems.create(cartId, {
+      const { cart } = await sdk.store.cart.createLineItem(cartId, { // Fixed: Changed .lineItems.create to .createLineItem
         variant_id: variantId,
         quantity,
       })

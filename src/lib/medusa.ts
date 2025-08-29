@@ -39,6 +39,8 @@ export async function medusaGet<T>(
   const url = `${BASE_MEDUSA_URL}${path.startsWith("/") ? path : `/${path}`}`;
   const method = init?.method || "GET";
 
+  console.log(`[medusaGet] Attempting to fetch from: ${url} with method: ${method}`); // Added this log
+
   try {
     const { headers, ...restInit } = init || {};
 

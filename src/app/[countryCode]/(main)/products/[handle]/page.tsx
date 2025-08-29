@@ -18,16 +18,16 @@ type Props = {
 }
 
 export async function generateStaticParams() {
-  const { products: data } = await sdk.store.product.list({
+  const { products } = await sdk.store.product.list({ // Fixed: Destructured products directly
     limit: 100,
     fields: "handle",
   })
 
-  if (!data?.products) {
+  if (!products) { // Fixed: Checked products directly
     return []
   }
 
-  const staticParams = data.products.map((product: StoreProduct) => ({
+  const staticParams = products.map((product: StoreProduct) => ({ // Fixed: Used products directly
     handle: product.handle,
   }))
 
@@ -71,7 +71,7 @@ export default async function ProductPage({ params }: Props) {
     limit: 4,
   })
 
-  const relatedProducts = relatedProductsData?.products?.filter(
+  const relatedProducts = relatedProductsData?.filter( // Fixed: Used relatedProductsData directly
     (p: StoreProduct) => p.id !== product.id
   ) || []
 

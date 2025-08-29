@@ -82,23 +82,23 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
         </div>
 
         {/* Options (Swatches / Variants) */}
-        {product.options?.map((opt) => (
+        {product.options?.map((opt: HttpTypes.StoreProductOption) => ( {/* Fixed: Explicitly typed opt */}
           <div key={opt.id} className="mt-8">
             <h3 className="uppercase text-sm font-medium mb-2">{opt.title}</h3>
             <div className="grid grid-cols-6 gap-3">
-              {opt.values?.map((val, i) => (
+              {opt.values?.map((val: HttpTypes.StoreProductOptionValue, i) => ( {/* Fixed: Explicitly typed val */}
                 <button
                   key={i}
                   className="flex flex-col items-center border p-2 hover:border-black transition"
                 >
                   {val.metadata?.swatch && (
                     <img
-                      src={String(val.metadata.swatch ?? "")}
-                      alt={String(val.value ?? "")}
+                      src={String(val.metadata.swatch)} // Fixed: Cast to string
+                      alt={String(val.value)} // Fixed: Cast to string
                       className="w-16 h-16 object-contain"
                     />
                   )}
-                  <span className="text-xs mt-1">{String(val.value ?? "")}</span>
+                  <span className="text-xs mt-1">{String(val.value)}</span> {/* Fixed: Cast to string */}
                 </button>
               ))}
             </div>
@@ -109,7 +109,7 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           <div className="mt-8">
             <h3 className="uppercase text-sm font-medium mb-2">Dimensions</h3>
             <ul className="list-disc pl-5 text-sm">
-              {String(product.metadata.dimensions ?? "").split(";").map((d, i) => (
+              {String(product.metadata.dimensions).split(";").map((d, i) => ( {/* Fixed: Cast to string */}
                 <li key={i}>{d}</li>
               ))}
             </ul>
@@ -152,7 +152,7 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           </button>
           {showCare && (
             <div className="mt-2 text-sm text-gray-700">
-              <p>{String(product.metadata?.care ?? "") || "Refer to our Care Guide."}</p>
+              <p>{String(product.metadata?.care) || "Refer to our Care Guide."}</p> {/* Fixed: Cast to string */}
             </div>
           )}
         </div>
