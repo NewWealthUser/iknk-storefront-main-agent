@@ -52,7 +52,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
 
     const original = typeof calculatedPriceSet === 'number'
       ? calculatedPriceSet // If calculated_price is a number, assume original is the same for simplicity
-      : (calculatedPriceSet?.original_amount ?? 0);
+      : (calculatedPriceSet?.original_amount ?? 0); // Corrected: Access original_amount from calculatedPriceSet
 
     const isOnSale = original > 0 && calculated < original
 
