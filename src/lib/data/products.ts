@@ -5,7 +5,6 @@ import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "types/sort-options"
 import { getRegion, retrieveRegion } from "./regions"
-import { adaptMedusaProductToRhProduct, RhProduct } from "@lib/util/rh-product-adapter"
 
 export async function listProducts({
   pageParam = 1,

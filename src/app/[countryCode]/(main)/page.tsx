@@ -1,56 +1,46 @@
 import { Metadata } from "next"
 
-import { listProducts } from "@lib/medusa";
-import { getRegion } from "@lib/data/regions"
-import IknkProductGrid from "../../../components/ProductGrid";
-import { HttpTypes } from "@medusajs/types" // Added missing import
+// import { getCollectionsList, getProductsList } from "@/lib/data"
+// import FeaturedProducts from "@/modules/home/components/featured-products"
+// import Hero from "@/modules/home/components/hero"
+// import { getRegion } from "@/app/actions"
+import { StoreProduct } from "@medusajs/types"
 
 export const metadata: Metadata = {
-  title: "Medusa Next.js Starter Template",
+  title: "Medusa Next.js",
   description:
-    "A performant frontend ecommerce starter template with Next.js 15 and Medusa.",
+    "A performant frontend ecommerce starter template with Next.js 14 and Medusa.",
 }
 
-export default async function Home(props: {
-  params: Promise<{ countryCode: string }>
+export default async function Home({ 
+  params: { countryCode },
+}: {
+  params: { countryCode: string }
 }) {
-  const params = await props.params
+  // const { collections, count } = await getCollectionsList(0, 3)
+  // const region = await getRegion(countryCode)
 
-  const { countryCode } = params
+  // if (!collections || !region) {
+  //   return null
+  // }
 
-  const region = await getRegion(countryCode)
-
-  if (!region) {
-    return null
-  }
-
-  const res = await listProducts({
-    countryCode,
-    regionId: region.id,
-    queryParams: { limit: 12 },
-  });
-
-  if (!res.ok || !res.data?.products) {
-    console.warn(`[home][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
-    return null;
-  }
-
-  const products = res.data.products;
-  const count = res.data.count;
-
-  if (!products) {
-    return null
-  }
+  // const { products } = await getProductsList({
+  //   page: 1,
+  //   limit: 3,
+  //   countryCode,
+  // })
 
   return (
     <>
       {/* <Hero /> */}
       <div className="py-12">
-        <IknkProductGrid
-          productList={products}
-          totalNumRecs={count}
-          countryCode={countryCode} // Pass countryCode here
-        />
+        <ul className="flex flex-col gap-x-6">
+          {/* <FeaturedProducts
+            collections={collections}
+            region={region}
+            products={products}
+          /> */}
+        </ul>
       </div>
     </>
   )

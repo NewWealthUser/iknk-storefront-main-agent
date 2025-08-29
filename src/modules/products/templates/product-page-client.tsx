@@ -2,11 +2,11 @@
 
 import ProductTemplate from "@modules/products/templates"
 import { HttpTypes } from "@medusajs/types"
-import { RhProduct } from "@lib/util/rh-product-adapter"
+import type { StoreProduct } from "@medusajs/types"
 
 type ProductPageClientProps = {
-  product: RhProduct
-  relatedProducts: RhProduct[]
+  product: StoreProduct
+  relatedProducts: StoreProduct[]
   region: HttpTypes.StoreRegion
   countryCode: string
 }

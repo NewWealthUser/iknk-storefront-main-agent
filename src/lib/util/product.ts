@@ -1,5 +1,5 @@
-import { RhProduct } from "@lib/util/rh-product-adapter";
+import { StoreProduct } from "@medusajs/types";
 
-export const isSimpleProduct = (product: RhProduct): boolean => {
+export const isSimpleProduct = (product: StoreProduct): boolean => {
     return (product.variants?.length || 0) <= 1;
 }

@@ -1,9 +1,9 @@
 import { clx } from "@medusajs/ui"
 import React from "react"
-import { RhOption } from "@lib/util/rh-product-adapter"; // Import RhOption
+import { HttpTypes } from "@medusajs/types"
 
 type OptionSelectProps = {
-  option: RhOption
+  option: HttpTypes.StoreProductOption
   current: string | undefined
   updateOption: (title: string, value: string) => void
   title: string
@@ -19,7 +19,7 @@ const OptionSelect: React.FC<OptionSelectProps> = ({
   "data-testid": dataTestId,
   disabled,
 }) => {
-  const filteredOptions = (option.values ?? []).map((v) => v.value)
+  const filteredOptions = (option.values ?? []).map((v: HttpTypes.StoreProductOptionValue) => v.value)
 
   return (
     <div className="flex flex-col gap-y-3">

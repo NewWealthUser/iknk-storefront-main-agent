@@ -1,10 +1,19 @@
 "use client"
 
 import React, { FC } from "react";
-import { RhPersonalizeInfo, RhPersonalizeStyle, RhPersonalizeFont, RhPersonalizeColor } from "@lib/util/rh-product-adapter";
+type PersonalizeInfo = {
+  description?: string;
+  monogrammable?: boolean;
+  personalizable?: boolean;
+  waiveMonogramFee?: boolean;
+  features?: string[];
+  styles?: { image?: string; displayName?: string; id?: string }[];
+  fonts?: { image?: string; displayName?: string; id?: string }[];
+  colors?: { image?: string; displayName?: string; id?: string }[];
+};
 
 type IknkPersonalizationOptionsProps = {
-  personalizeInfo: RhPersonalizeInfo;
+  personalizeInfo: PersonalizeInfo;
 };
 
 const IknkPersonalizationOptions: FC<IknkPersonalizationOptionsProps> = ({
@@ -21,7 +30,7 @@ const IknkPersonalizationOptions: FC<IknkPersonalizationOptionsProps> = ({
     </div>
   );
 
-  const renderColorOption = (item: RhPersonalizeColor) => (
+  const renderColorOption = (item: { image?: string; displayName?: string; id?: string }) => (
     <div key={item.id} className="flex flex-col items-center text-center p-2 border border-gray-200 rounded-md transition-colors duration-200 hover:border-black">
       {item.image && <img src={item.image} alt={item.displayName} className="w-10 h-10 rounded-full object-cover mb-2" />}
       <p className="text-sm font-primary-rhroman">{item.displayName}</p>
@@ -54,7 +63,7 @@ const IknkPersonalizationOptions: FC<IknkPersonalizationOptionsProps> = ({
         <div className="mb-6">
           <h3 className="text-lg font-primary-rhroman mb-3 uppercase tracking-wider">Features:</h3>
           <ul className="list-none space-y-1">
-            {personalizeInfo.features.map((feature, index) => (
+            {personalizeInfo.features.map((feature: string, index: number) => (
               <li key={index} className="text-gray-700"><span className="font-primary-rhroman">•</span> {feature}</li>
             ))}
           </ul>

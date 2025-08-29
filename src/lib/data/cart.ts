@@ -508,8 +508,10 @@ export async function listShippingOptions(cartId: string) {
     ...(await getAuthHeaders()),
   }
 
-  const { shipping_options } = await sdk.store.shippingOptions // Changed from sdk.shippingOptions
-    .list({ region_id: cart.region_id }, headers)
+  const { shipping_options } = await (sdk as any).shippingOptions.list(
+       { region_id: cart.region_id },
+       headers
+     )
     .catch((err: unknown) => {
       console.error(
         "[cart][error] Failed to list shipping options:",

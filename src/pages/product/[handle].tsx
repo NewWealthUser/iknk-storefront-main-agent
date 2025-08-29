@@ -4,7 +4,7 @@ import { dehydrate, QueryClient } from "@tanstack/react-query"
 import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
-import { adaptMedusaProductToRhProduct, RhProduct } from "@lib/util/rh-product-adapter"
+
 import { HttpTypes, StoreRegion } from "@medusajs/types"
 
 interface Params extends ParsedUrlQuery {
@@ -16,7 +16,7 @@ interface Props {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
   countryCode: string
-  relatedProducts: RhProduct[]
+  relatedProducts: HttpTypes.StoreProduct[]
 }
 
 export const getStaticPaths: GetStaticPaths<Params> = async () => {
@@ -117,7 +117,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
 
   const relatedProducts = response?.products?.filter(
     (responseProduct) => responseProduct.id !== product.id
-  ).map(adaptMedusaProductToRhProduct) || []
+  ) || []
 
   return {
     props: {
@@ -133,7 +133,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
 export default function ProductPage({ product, region, countryCode, relatedProducts }: Props) {
   return (
     <ProductTemplate
-      product={adaptMedusaProductToRhProduct(product)}
+      product={product}
       relatedProducts={relatedProducts}
       region={region}
       countryCode={countryCode}

@@ -1,5 +1,4 @@
 import { sdk } from "@lib/config"
-import { adaptMedusaProductToRhProduct, RhProduct } from "./util/rh-product-adapter";
 import { HttpTypes } from "@medusajs/types";
 import { resolveMedusaUrl } from "./util/medusa-url";
 import { fetchWithTimeout } from "./util/fetch-with-timeout";
@@ -119,7 +118,7 @@ export async function listProducts({
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
   countryCode?: string
   regionId?: string
-}): Promise<MedusaGetResult<{ products: RhProduct[]; count: number; limit: number; offset: number }>> {
+}): Promise<MedusaGetResult<{ products: HttpTypes.StoreProduct[]; count: number; limit: number; offset: number }>> {
   const limit = queryParams?.limit || 12
   const _pageParam = Math.max(pageParam, 1)
   const offset = _pageParam === 1 ? 0 : (_pageParam - 1) * limit
@@ -140,12 +139,10 @@ export async function listProducts({
     return { ok: false, error: res.error };
   }
 
-  const adaptedProducts = res.data.products.map(adaptMedusaProductToRhProduct);
-
   return {
     ok: true,
     data: {
-      products: adaptedProducts,
+      products: res.data.products,
       count: res.data.count,
       limit: limit,
       offset: offset,
@@ -153,7 +150,7 @@ export async function listProducts({
   };
 }
 
-export async function getProductByHandle(handle: string, countryCode: string): Promise<RhProduct | null> {
+export async function getProductByHandle(handle: string, countryCode: string): Promise<HttpTypes.StoreProduct | null> {
   const res = await listProducts({ queryParams: { handle, limit: 1 } as any, countryCode });
   if (!res.ok || !res.data?.products || res.data.products.length === 0) {
     console.warn(`[product][fallback] Failed to get product by handle '${handle}': ${res.error?.message || 'Not found or unknown error'}`);

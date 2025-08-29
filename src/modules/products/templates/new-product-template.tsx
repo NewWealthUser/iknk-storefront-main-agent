@@ -3,16 +3,16 @@ import ProductImageCarousel from "@modules/products/components/product-image-car
 import ProductInfo from "@modules/products/templates/product-info"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
 import { notFound } from "next/navigation"
-import { RhProduct, RhVariant } from "@lib/util/rh-product-adapter"
+import type { StoreProduct, StoreProductVariant } from "@medusajs/types"
 import ProductTabs from "@modules/products/components/product-tabs"
-import RelatedProducts from "@modules/products/components/related-products"
-import ProductInteractionClient from "@modules/products/components/product-interaction-client"
+import IknkProductGrid from "@modules/products/components/iknk-product-grid"
+import ProductActions from "@modules/products/components/product-actions"
 import ProductPrice from "@modules/products/components/product-price"
 import { HttpTypes } from "@medusajs/types"
 
 type ProductTemplateProps = {
-  product: RhProduct
-  relatedProducts: RhProduct[]
+  product: StoreProduct
+  relatedProducts: StoreProduct[]
   region: HttpTypes.StoreRegion
   countryCode: string
 }
@@ -23,7 +23,7 @@ const NewProductTemplate: React.FC<ProductTemplateProps> = ({
   region,
   countryCode,
 }) => {
-  const [selectedVariant, setSelectedVariant] = useState<RhVariant | undefined>(
+  const [selectedVariant, setSelectedVariant] = useState<StoreProductVariant | undefined>(
     undefined
   )
 
@@ -32,13 +32,8 @@ const NewProductTemplate: React.FC<ProductTemplateProps> = ({
   }
 
   const images = useMemo(() => {
-    const imgs = selectedVariant && selectedVariant.images?.length
-      ? selectedVariant.images.map((img: { id: string; url: string }) => ({ id: img.id, url: img.url }))
-      : product.alternateImages?.length
-      ? product.alternateImages.map((img: { imageUrl: string }) => ({ id: img.imageUrl, url: img.imageUrl }))
-      : []
-    return imgs
-  }, [product.alternateImages, selectedVariant])
+    return product.images?.map((img) => ({ id: img.id, url: img.url })) || []
+  }, [product.images])
 
   return (
     <main id="main" className="flex-1 relative z-1099 min-h-[80vh]">
@@ -64,42 +59,13 @@ const NewProductTemplate: React.FC<ProductTemplateProps> = ({
               <div className="grid grid-cols-1">
                 <div className="md:mt-0 mt-4">
                   <h1 className="uppercase text-2xl md:text-3xl font-primary-thin tracking-widest">
-                    {product.displayName}
+                    {product.title}
                   </h1>
-                  <h3 className="text-lg font-primary-rhroman">{product.subtitle}</h3>
                 </div>
-                <div className="pt-0.5" data-testid="price-display">
-                  <ProductPrice product={product} variant={selectedVariant} />
-                </div>
-                <div className="my-5">
-                  <p className="normal-case text-base">
-                    {product.productDescription}
-                  </p>
-                  {/* Additional links from HTML */}
-                  {product.metadata?.alsoAvailableInAluminum && (
-                    <div className="sku-info link-wrapper">
-                      <a className="sku-info link text-blue-600 hover:underline" href={product.metadata.alsoAvailableInAluminum}>
-                        ALSO AVAILABLE IN ALUMINUM
-                      </a>
-                    </div>
-                  )}
-                  {product.metadata?.shopEntireCollection && (
-                    <div className="sku-info link-wrapper">
-                      <a className="sku-info link text-blue-600 hover:underline" href={product.metadata.shopEntireCollection}>
-                        SHOP THE ENTIRE COLLECTION
-                      </a>
-                    </div>
-                  )}
-                </div>
+                
 
                 {/* Options (Width, Finish, Fabric, Color) */}
-                <ProductInteractionClient
-                  product={product}
-                  region={region}
-                  countryCode={countryCode}
-                  selectedVariant={selectedVariant}
-                  setSelectedVariant={setSelectedVariant}
-                />
+                {/* <ProductActions product={product} region={region} /> */}
 
                 {/* Additional Details/Tabs */}
                 <div className="mt-16">
@@ -117,7 +83,7 @@ const NewProductTemplate: React.FC<ProductTemplateProps> = ({
               YOU MIGHT ALSO LIKE
             </p>
             <Suspense fallback={<SkeletonRelatedProducts />}>
-              <RelatedProducts products={relatedProducts} />
+              <IknkProductGrid productList={relatedProducts} countryCode={countryCode} />
             </Suspense>
           </div>
         </div>

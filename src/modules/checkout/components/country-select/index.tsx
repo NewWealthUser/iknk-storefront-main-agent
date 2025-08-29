@@ -5,9 +5,9 @@ import NativeSelect, {
 } from "@modules/common/components/native-select"
 import { listRegions } from "@lib/data/regions";
 import ReactCountryFlag from "react-country-flag"
-import { StoreRegion, StoreRegionCountry } from "@medusajs/types" // Changed BaseRegionCountry to StoreRegionCountry
+import { StoreRegion, StoreRegionCountry } from "@medusajs/types"
 
-type Country = { iso_2: string; display_name: string } // Defined Country type
+type Country = { iso_2: string; display_name: string }
 
 const CountrySelect = forwardRef<
   HTMLSelectElement,
@@ -26,9 +26,13 @@ const CountrySelect = forwardRef<
       try {
         const regions = await listRegions();
         if (regions) {
-          const countries: [string, StoreRegionCountry][] = regions.flatMap((region: StoreRegion) => region.countries || [])
-            .filter((c): c is Required<StoreRegionCountry> => !!c.iso_2) // Filter out entries without iso_2
-            .map((c) => [c.iso_2!, c]) // Use 'c' directly as it's already StoreRegionCountry
+          const countries: [string, { iso_2: string; display_name: string }][] =
+            regions.flatMap((region: StoreRegion) => region.countries || [])
+              .filter((c): c is StoreRegionCountry & { iso_2: string } => !!c.iso_2)
+              .map((c) => [
+                c.iso_2!,
+                { iso_2: c.iso_2!, display_name: c.display_name ?? c.iso_2! }
+              ])
 
           const uniqueCountries = Array.from(new Map(countries).values());
 

@@ -1,7 +1,6 @@
-import { listProducts } from "@lib/medusa";
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "types/sort-options"
-import { getRegion } from "@lib/data/regions"
+// import { getRegion } from "@/lib/data/regions"
 import ProductGrid from "../../../components/ProductGrid"
 import { HttpTypes } from "@medusajs/types" // Added missing import
 
@@ -24,11 +23,11 @@ export default async function PaginatedProducts({
   searchParams,
 }: PaginatedProductsProps) {
   const page = parseInt(searchParams.get("page") || "1");
-  const region = await getRegion(countryCode);
+  // const region = await getRegion(countryCode);
 
-  if (!region) {
-    return null;
-  }
+  // if (!region) {
+  //   return null;
+  // }
 
   const queryParams: any = {
     limit: 12,
@@ -58,40 +57,36 @@ export default async function PaginatedProducts({
     }
   }
 
-  const res = await listProducts({
-    countryCode,
-    regionId: region.id,
-    queryParams,
-  });
+  // const res = await listProducts({
+  //   countryCode,
+  //   regionId: region.id,
+  //   queryParams,
+  // });
 
-  if (!res.ok || !res.data?.products) {
-    console.warn(`[paginated-products][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
-    return null;
-  }
+  // if (!res.ok || !res.data?.products) {
+  //   console.warn(`[paginated-products][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
+  //   return null;
+  // }
 
-  const products = res.data.products;
-  const count = res.data.count;
-  const totalPages = Math.ceil(count / queryParams.limit);
+  // const products = res.data.products;
+  // const count = res.data.count;
+  // const totalPages = Math.ceil(count / queryParams.limit);
 
 
-  if (!products) {
-    return null
-  }
+  // if (!products) {
+  //   return null
+  // }
 
   return (
     <>
-      <ProductGrid
-        productList={products}
-        totalNumRecs={count}
-        countryCode={countryCode} // Pass countryCode here
-      />
-      {totalPages > 1 && (
+      {/* <ProductGrid productList={products} /> */}
+      {/* {totalPages > 1 && (
         <Pagination
           data-testid="product-pagination"
           page={page}
           totalPages={totalPages}
         />
-      )}
+      )} */}
     </>
   )
 }

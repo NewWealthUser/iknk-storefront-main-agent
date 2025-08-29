@@ -1,10 +1,21 @@
 "use client"
 
 import React, { FC } from "react";
-import { RhCustomProductOptions } from "@lib/util/rh-product-adapter";
+type CustomProductInformation = {
+  customProductType?: string;
+  shape?: string;
+  minWidth?: number;
+  maxWidth?: number;
+  minLength?: number;
+  maxLength?: number;
+  minDiameter?: number;
+  maxDiameter?: number;
+  mountTypes?: { value?: string }[];
+  controlTypes?: { value?: string }[];
+};
 
 type IknkCustomProductConfiguratorProps = {
-  customProductOptions: RhCustomProductOptions;
+  customProductOptions: { customProductInformation?: CustomProductInformation };
 };
 
 const IknkCustomProductConfigurator: FC<IknkCustomProductConfiguratorProps> = ({
@@ -45,7 +56,7 @@ const IknkCustomProductConfigurator: FC<IknkCustomProductConfiguratorProps> = ({
           <div>
             <p className="font-primary-rhroman">Mount Types:</p>
             <ul className="list-disc list-inside ml-4">
-              {info.mountTypes.map((type, index) => type.value && <li key={index}>{type.value}</li>)}
+              {info.mountTypes.map((type: { value?: string }, index: number) => type.value && <li key={index}>{type.value}</li>)}
             </ul>
           </div>
         )}
@@ -53,7 +64,7 @@ const IknkCustomProductConfigurator: FC<IknkCustomProductConfiguratorProps> = ({
           <div>
             <p className="font-primary-rhroman">Control Types:</p>
             <ul className="list-disc list-inside ml-4">
-              {info.controlTypes.map((type, index) => type.value && <li key={index}>{type.value}</li>)}
+              {info.controlTypes.map((type: { value?: string }, index: number) => type.value && <li key={index}>{type.value}</li>)}
             </ul>
           </div>
         )}

@@ -1,21 +1,21 @@
 "use client"
 
-import { HttpTypes } from "@medusajs/types"
+import { HttpTypes, StoreProduct, StoreProductOptionValue } from "@medusajs/types"
 import { useEffect, useMemo, useState } from "react"
 import ProductActions from "./product-actions"
-import { RhProduct, RhVariant } from "@lib/util/rh-product-adapter";
 import { isEqual } from "lodash";
 
 type ProductActionsClientProps = {
-  product: RhProduct
+  product: StoreProduct
   region: HttpTypes.StoreRegion
   disabled?: boolean
 }
 
+// Updated optionsAsKeymap to expect option_id
 const optionsAsKeymap = (
   variantOptions: { option_id: string; value: string }[] | undefined
 ) => {
-  return variantOptions?.reduce((acc: Record<string, string>, varopt: any) => {
+  return variantOptions?.reduce((acc: Record<string, string>, varopt) => {
     acc[varopt.option_id] = varopt.value
     return acc
   }, {})
@@ -31,7 +31,11 @@ export default function ProductActionsClient({
   // If there is only 1 variant, preselect the options
   useEffect(() => {
     if (product.variants?.length === 1) {
-      const variantOptions = product.variants[0].options?.map((opt: { id?: string; value?: string }) => ({ option_id: opt.id || '', value: opt.value })) || [];
+      // Corrected: map StoreProductOptionValue to { option_id, value }
+      const variantOptions = product.variants[0].options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
+        option_id: optValue.option_id || '',
+        value: optValue.value ?? ""
+      })) || [];
       const mappedOptions = optionsAsKeymap(variantOptions) ?? {};
       setSelectedOptions(mappedOptions);
     }

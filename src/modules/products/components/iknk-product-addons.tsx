@@ -1,10 +1,20 @@
 "use client"
 
 import React, { FC } from "react";
-import { RhProductAddons } from "@lib/util/rh-product-adapter";
+type ProductAddonsInfo = {
+  productAddonTitle?: string;
+  productAddonMessage?: string;
+  productAddonDescription?: string;
+  displayName?: string;
+  imageUrl?: string;
+  priceRangeDisplay?: {
+    listPrices?: number[];
+    currencySymbol?: string;
+  };
+};
 
 type IknkProductAddonsProps = {
-  productAddons: RhProductAddons;
+  productAddons: { productAddonsInfo?: ProductAddonsInfo };
 };
 
 const IknkProductAddons: FC<IknkProductAddonsProps> = ({

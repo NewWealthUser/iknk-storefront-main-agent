@@ -1,431 +1,245 @@
-import React, {
-  CSSProperties,
-  Dispatch,
-  FC,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useState
-} from "react";
-import { useInView } from "react-intersection-observer";
-// import analyticsLoader from "analytics/loader"; // RH.COM specific
-// import RHImageV2 from "@RHCommerceDev/rh-image-component"; // RH.COM specific
-// import RHLink from "component-rh-link"; // RH.COM specific
-// import RHRPriceDisplay from "@RHCommerceDev/component-rh-price-range-display/RHRPriceDisplay"; // RH.COM specific
-// import { usePageContent } from "customProviders/LocationProvider"; // RH.COM specific
-// import { SaleContextFilter } from "graphql-client/queries/app"; // RH.COM specific
-import he from "he";
-// import { useRhUserAtomValue } from "hooks/atoms"; // RH.COM specific
-// import useAppData from "hooks/useAppData"; // RH.COM specific
-// import { useParams2 } from "hooks/useParams"; // RH.COM specific
-// import { processEnvServer } from "hooks/useSsrHooks"; // RH.COM specific
-// import useTypographyStyles from "hooks/useTypographyStyles"; // RH.COM specific
-// import { memoryStorage } from "utils/analytics/storage"; // RH.COM specific
-// import {
-//   BREAKPOINT_MD,
-//   IMAGE_ASPECT_RATIO,
-//   PAGE_BG_GREY
-// } from "utils/constants"; // RH.COM specific
-// import { createStyles, makeStyles } from "@mui/styles"; // MUI styling, might need refactoring
-// import {
-//   Card,
-//   CardContent,
-//   CardMedia,
-//   Theme,
-//   useMediaQuery
-// } from "@mui/material"; // MUI components, might need replacement
-// import memoize from "utils/memoize"; // RH.COM specific
-// import useGetPDPRedirectPath from "hooks/useGetPDPRedirectPath"; // RH.COM specific
-// import { getMemberSavingsText } from "utils/memberSavingsTextUtils"; // RH.COM specific
-// import { TailwindTypography as Typography } from "@RHCommerceDev/component-tailwind-typography"; // RH.COM specific
-// import { cn } from "@RHCommerceDev/utils/cn"; // RH.COM specific
+"use client"
 
-// Medusa storefront imports (placeholders for now)
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import useEmblaCarousel from "embla-carousel-react"
+import type { EmblaCarouselType } from "embla-carousel"
+import type { StoreProduct } from "@medusajs/types"
 
-import Link from "next/link"; // Next.js Link
-import { RhProduct, RhImage, RhPriceRangeDisplay } from "@lib/util/rh-product-adapter"; // Our adapter types
-
-// Placeholder for RH.COM specific utilities/components
-const RHImageV2 = ({ src, alt, className, style, containerProps, onLoad, onError, skeletonComponent, ...props }: any) => <img src={src} alt={alt} className={className} style={style} {...props} />;
-const RHLink = ({ to, children, ...props }: any) => <Link href={to} {...props}>{children}</Link>;
-const RHRPriceDisplay = (props: any) => <div>Price Display Placeholder</div>; // Simplified
-const Typography = (props: any) => <p {...props}>{props.children}</p>; // Simplified
-const cn = (...args: any[]) => args.filter(Boolean).join(' '); // Simplified cn utility
-
-// Placeholder for MUI components and styles
-const Card = (props: any) => <div {...props}>{props.children}</div>;
-const CardContent = (props: any) => <div {...props}>{props.children}</div>;
-const CardMedia = (props: any) => <div {...props}>{props.children}</div>;
-const useStyles = () => ({ productNamePrice: {} }); // Simplified
-const useMediaQuery = (query: any) => true; // Simplified
+import { convertToLocale } from "@lib/util/money"
 
 export interface IknkProductCardProps {
-  data: RhProduct;
-  showPriceRange?: boolean;
-  // saleContextFilter?: SaleContextFilter; // RH.COM specific
-  upsell?: string;
-  objectFit?: string;
-  cardContentRef?: (ref: HTMLDivElement) => void;
-  color?: string;
-  colorBg?: string;
-  isImageEager?: boolean;
-  onViewSelectItemsOnSaleClick?: () => void;
-  drivedStyles?: CSSProperties;
-  cardIndex?: number;
-  isObserver?: boolean;
-  setActiveDot?: Dispatch<SetStateAction<number>>;
-  maxContainerHeight?: number;
-  maxUpsellHeight?: number[];
-  setMaxUpSetHeight?: Dispatch<SetStateAction<number[]>>;
-  totalUpSell?: number;
-  RHImageStyles?: any;
-  cardMediaStyles?: any;
-  RHImageContainerProps?: any;
-  isUpsellProduct?: boolean;
-  imageSkeletonProps?: {
-    className?: string;
-  };
-  RHImageProps?: any;
-  cardStyles?: any;
-  // Added missing props
-  isSale?: boolean;
-  isSaleFilterEnabled?: boolean;
-  totalNumRecs?: number;
-  isStockedFilterActive?: boolean;
-  isRefinementFilterActive?: boolean;
-  gridColumns?: any;
-  filterQueries?: string[];
-  pageContent?: any;
-  productTitle?: string;
-  onProductClick?: (index: number) => void;
-  inStockFlow?: boolean;
-  isSelectedItem?: boolean;
+  data: StoreProduct
+  className?: string
 }
 
-export const IknkProductCard: FC<IknkProductCardProps> = React.memo(
-  // TODO: analytics remove "upsell" param here
-  ({
-    data,
-    showPriceRange = true,
-    cardContentRef,
-    color,
-    objectFit,
-    colorBg = "#f5f5f5", // PAGE_BG_GREY placeholder
-    cardIndex = 0,
-    isObserver = false,
-    setActiveDot = () => {},
-    maxContainerHeight = 0,
-    maxUpsellHeight = [],
-    setMaxUpSetHeight = () => {},
-    totalUpSell = 0,
-    RHImageStyles = {},
-    cardMediaStyles = {},
-    RHImageContainerProps = {},
-    isUpsellProduct = false,
-    imageSkeletonProps = {},
-    RHImageProps = {},
-    cardStyles = {}
-  }) => {
-    const classes = useStyles();
-    // const typographyClasses = useTypographyStyles({
-    //   keys: ["rhBaseH7", "rhBaseCaption", "rhBaseBody1"]
-    // });
-    const mdUp = useMediaQuery(true); // Simplified
-    const [isLoading, setIsLoading] = useState("success");
+export const IknkProductCard: FC<IknkProductCardProps> = React.memo(({ data, className }) => {
+  if (!data) return null
 
-    // const { params } = useParams2<{ [key: string]: string }>(
-    //   { version: "" },
-    //   { toLowerCase: true }
-    // );
-    // const { userType } = useRhUserAtomValue();
+  const { handle, metadata } = data
 
-    const { ref: observerRef, inView } = useInView();
+  const title = typeof data.title === "string" ? data.title.trim() : "Untitled Product";
+  const imageUrl = data.thumbnail ?? "/placeholder.png"
+  const imageUrls = data.images?.map(img => img.url) ?? []
 
-    // const isLatestPDPLayout =
-    //   memoryStorage.getItem("newPdpLayout") || params.version === "v2";
-    const isLatestPDPLayout = false; // Placeholder
+  const prices = data.variants?.map(v => typeof v.calculated_price === 'number' ? v.calculated_price : 0) ?? []
+  const priceRangeDisplay = prices.length
+    ? `${Math.min(...prices)} - ${Math.max(...prices)}`
+    : "Price unavailable"
 
-    useEffect(() => {
-      if (isObserver) {
-        if (inView) {
-          setActiveDot(cardIndex);
-        }
-      }
-    }, [inView]);
+  const redirectPath = `/products/${handle}`
 
-    // const { pageContent } = usePageContent();
-    const pageContent = { NEW: "New", STARTING_AT: "Starting At" }; // Placeholder
+  const subtitleText =
+    data.subtitle && data.subtitle.trim().length > 0
+      ? data.subtitle
+      : "Available in multiple sizes & finishes"
 
-    const priceRangeDisplay: RhPriceRangeDisplay | undefined = useMemo(() => {
-      // Simplified logic for priceRangeDisplay
-      return data.priceRangeDisplay;
-    }, [data.priceRangeDisplay]);
+  const images: string[] = (() => {
+    const list: string[] = []
+    if (Array.isArray(imageUrls) && imageUrls.length) list.push(...imageUrls)
+    else if (imageUrl) list.push(imageUrl)
+    return Array.from(new Set(list)) // dedupe
+  })()
 
-    // const dynamicMemberSavingsText = getMemberSavingsText(
-    //   pageContent,
-    //   Number(data?.saleInfo?.percentSaleSkus),
-    //   Number(data?.saleInfo?.memberSavings?.memberSavingsMin),
-    //   Number(data?.saleInfo?.memberSavings?.memberSavingsMax)
-    // );
-    const dynamicMemberSavingsText = ""; // Placeholder
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, dragFree: false, duration: 16 })
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [canScrollNext, setCanScrollNext] = useState(false)
+  const [canScrollPrev, setCanScrollPrev] = useState(false)
 
-    if (data.id === "BLANK") {
-      return null;
-    }
+  const onSelect = useCallback((api: EmblaCarouselType) => {
+    setSelectedIndex(api.selectedScrollSnap())
+    setCanScrollPrev(api.canScrollPrev())
+    setCanScrollNext(api.canScrollNext())
+  }, [])
 
-    const imageStyle = useMemo(() => {
-      let style;
-      try {
-        style = data?.metadata?.rhr ? JSON.parse(data?.metadata?.pgCropRules as string || '{}') : {};
-      } catch (error) {
-        style = {};
-      }
-      if (isLatestPDPLayout) {
-        return { ...style, maxHeight: "100%" } as CSSProperties;
-      }
-      return style as CSSProperties;
-    }, [data?.metadata?.pgCropRules, data?.metadata?.rhr]);
+  useEffect(() => {
+    if (!emblaApi) return
+    onSelect(emblaApi)
+    emblaApi.on("select", () => onSelect(emblaApi))
+    emblaApi.on("reInit", () => onSelect(emblaApi))
+  }, [emblaApi, onSelect])
 
-    // const triggerAnalyticsEvent = () => {
-    //   if (!processEnvServer) {
-    //     const itemList = [
-    //       {
-    //         item_name: data?.displayName,
-    //         item_id: data?.id,
-    //         item_category: null,
-    //         item_variant: null,
-    //         quantity: null,
-    //         price: data?.priceRangeDisplay,
-    //         item_list_name: window?.location?.href?.includes("/search/")
-    //           ? "search"
-    //           : window?.location?.href?.includes("products.jsp")
-    //           ? "pg"
-    //           : null
-    //       }
-    //     ];
+  const scrollTo = useCallback((index: number) => {
+    emblaApi?.scrollTo(index)
+  }, [emblaApi])
 
-    //     analyticsLoader(a =>
-    //       a.emitAnalyticsEvent(
-    //         document.querySelector("#spa-root > *")! as HTMLElement,
-    //         a.EVENTS.SELECT_ITEM.INT_TYPE,
-    //         {
-    //           itemList,
-    //           item_list_name: "PG",
-    //           id: data?.id,
-    //           displayName: data?.displayName
-    //         }
-    //       )
-    //     );
-    //   }
-    // };
-    const triggerAnalyticsEvent = () => console.log("Analytics event triggered for", data.displayName); // Placeholder
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
 
-    // const redirectPath = useGetPDPRedirectPath(data);
-    // const redirectPathSale = useGetPDPRedirectPath(data, true);
-    const redirectPath = `/products/${data.handle}`; // Simplified redirect path
-    const redirectPathSale = `/products/${data.handle}?sale=true`; // Simplified redirect path
+  const currencyCode = data.variants?.[0]?.calculated_price?.currency_code ?? "ZAR"
 
-    return (
-      <div
-        data-testid={`iknk-test-container`}
-        key={`reveal-${data.id}`}
-        className={cn([
-          "opacity-0",
-          "animate-fadeInUp",
-          isLatestPDPLayout
-            ? `w-full sm:w-[296px] md:w-[253px] lg:w-[323px] xl:w-[429px]`
-            : "",
-          "!animate-custom-animation !opacity-100",
-          // can be removed below code once the feature flag Embla carousel is removed new upSell code has its own product details code
-          isUpsellProduct ? "pl-5" : ""
-        ])}
-      >
-        <Card
-          elevation={0}
-          square
-          style={{
-            backgroundColor: colorBg,
-            ...(maxContainerHeight ? { height: maxContainerHeight } : {}),
-            position: "relative"
-          }}
+  const format = (amt?: number) =>
+    typeof amt === "number" ? convertToLocale({ amount: amt, currency_code: currencyCode }) : ""
+
+  return (
+    <div
+      id={`RH__null__0`}
+      className={`productVisible mb-3 flex w-full justify-center visibleViewItem ${className ?? ""}`}
+      style={{ width: "30.3%" }}
+    >
+      <div className="relative flex h-full w-full flex-col unset">
+        <div
+          className="group/item group relative flex flex-col items-end justify-center"
+          style={{ touchAction: "pan-y", height: "auto" }}
         >
-          <RHLink
-            data-testid={`productCardLink-${data.id}`}
-            to={redirectPath}
-            tabIndex={-1}
-            underline="none"
-            onClick={triggerAnalyticsEvent}
+          <div
+            className={`embla group/item group relative z-10 block w-full overflow-hidden`}
+            style={{ height: images.length ? 96.95 : "auto", maxHeight: "350px" }}
+            ref={emblaRef}
           >
-            {data?.metadata?.isShopByRoom ? (
-              <CardMedia
-                className={`[&.MuiGrid-root.MuiGrid-container]:justify-center `}
-                style={{
-                  ...data?.metadata?.imageContainerStyle,
-                  ...cardMediaStyles,
-                  display: "flex",
-                  alignItems: "center",
-                  alignContent: "center",
-                  // can be removed below code once the feature flag Embla carousel is removed
-                  ...(isUpsellProduct && {
-                    height: data?.metadata?.imageContainerStyle?.height ?? 400
-                  }),
-                  ...cardStyles
-                }}
-              >
-                <RHImageV2
-                  src={data?.imageUrl}
-                  alt={data.displayName}
-                  className="mx-auto object-contain"
-                  // preset={mdUp ? "pg-card-md" : "pg-card-xs"} // RH.COM specific
-                  style={{
-                    ...(data?.metadata?.imageStyle || {}),
-                    maxWidth: "100%",
-                    ...RHImageStyles
-                  }}
-                  containerProps={RHImageContainerProps}
-                  onLoad={() => setIsLoading("success")}
-                  onError={() => setIsLoading("error")}
-                  skeletonComponent={() => null}
-                  {...RHImageProps}
-                />
-              </CardMedia>
-            ) : (
-              <CardMedia className="flex flex-col justify-end [&.MuiGrid-root.MuiGrid-container]:justify-center">
-                <RHImageV2
-                  src={data?.imageUrl}
-                  alt={data.displayName}
-                  className={cn("h-auto w-auto max-w-full", {
-                    "w-full sm:w-[296px] md:w-[253px] lg:w-[323px] xl:w-[429px]":
-                      isLatestPDPLayout
-                  })}
-                  // preset={mdUp ? "pg-card-md" : "pg-card-xs"} // RH.COM specific
-                  style={{
-                    ...imageStyle,
-                    // aspectRatio: IMAGE_ASPECT_RATIO["productCard"], // RH.COM specific
-                    objectFit: objectFit
-                  }}
-                  containerProps={{
-                    style:
-                      maxUpsellHeight.length >= totalUpSell && isLatestPDPLayout
-                        ? { height: `${Math.max(...maxUpsellHeight)}px` }
-                        : {}
-                  }}
-                />
-              </CardMedia>
-            )}
-          </RHLink>
-          <div className="flex justify-center">
-            <span ref={observerRef}></span>
+            <div className="embla__container flex h-full items-center transition-transform">
+              {images.length ? (
+                images.map((src, idx) => (
+                  <div
+                    key={src + idx}
+                    className="embla__slide relative z-20 min-w-0 flex-[0_0_100%] justify-around"
+                    style={{ height: 96.95, cursor: "default" }}
+                  >
+                    <Link
+                      className="cursor-pointer"
+                      href={redirectPath}
+                      aria-label={title || ""}
+                      tabIndex={0}
+                    >
+                      <div className="relative h-full w-full grid content-end" style={{ height: 96.95 }}>
+                        <Image
+                          src={src.startsWith("//") ? `https:${src}` : src}
+                          alt={title || ""}
+                          loading="lazy"
+                          fill
+                          sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 100vw"
+                          className="h-full w-full mx-auto grid content-end"
+                          style={{
+                            objectFit: "contain",
+                            alignSelf: "flex-end",
+                          }}
+                        />
+                      </div>
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <div className="relative h-full w-full grid content-end" style={{ height: 96.95 }}>
+                  <Link href={redirectPath}>
+                    <img
+                      src={imageUrl || ""}
+                      loading="lazy"
+                      alt={title || ""}
+                      className="h-full w-full opacity-1 mx-auto grid content-end"
+                      style={{
+                        objectFit: "contain",
+                        alignSelf: "flex-end",
+                        maxWidth: "100%",
+                        maxHeight: "96.95px",
+                        width: "auto",
+                        height: "auto",
+                        transitionProperty: "opacity",
+                      }}
+                    />
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-          <RHLink
-            data-testid={`productCardLink-${data.id}`}
-            to={redirectPath}
-            tabIndex={-1}
-            underline="none"
-            // bypassForceReload={
-            //   data?.priceRangeDisplay?.priceMessage &&
-            //   (data?.priceRangeDisplay?.salePrices?.[0] ||
-            //     data?.priceRangeDisplay?.priceMessagePrice)
-            //     ? true
-            //     : false
-            // } // RH.COM specific
-            onClick={triggerAnalyticsEvent}
-          >
-            <CardContent className="!p-0" ref={cardContentRef}>
-              <div
-                className={cn(
-                  isLatestPDPLayout ? "mt-8" : "mt-5",
-                  data?.metadata?.rhr ? "text-center" : "text-left"
-                )}
+
+          {images.length > 1 && (
+            <div className="embla__controls align-center flex w-full items-center justify-center my-1.5 sm:my-2 md:my-2.5">
+              <button
+                className={`embla__prev relative m-0 inline-flex p-0 pr-2.5 transition-opacity duration-300
+                  ${canScrollPrev ? "opacity-100" : "opacity-0"}
+                  group-hover:opacity-100 group-hover:cursor-pointer`}
+                aria-label="previous"
+                onClick={scrollPrev}
+                disabled={!canScrollPrev}
               >
-                <Typography
-                  data-testid={`display-test-id`}
-                  className={cn(
-                    isLatestPDPLayout
-                      ? "flex-grow-0 self-stretch text-center font-primary-light text-[13px] font-extralight !leading-none tracking-[0.26px] text-black"
-                      : "font-thin !leading-[15.6px] tracking-normal text-black",
-                    `mb-1 !uppercase`,
-                    isLatestPDPLayout || data?.metadata?.rhr
-                      ? "text-center"
-                      : "text-left",
-                    classes.productNamePrice,
-                    // typographyClasses.rhBaseBody1 // RH.COM specific
-                  )}
-                >
-                  <span
-                    style={{
-                      color: color,
-                      background: colorBg
-                    }}
-                    className="font-primary-rhroman text-[13px]"
-                    dangerouslySetInnerHTML={{
-                      __html: `${data.newProduct ? `${pageContent.NEW} ` : ""}`
-                    }}
-                  ></span>
-                  <span
-                    style={{
-                      color: color,
-                      background: colorBg
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: `${he.decode(data.displayName)}`
-                    }}
-                  ></span>
-                </Typography>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" className="rotate-180" viewBox="0 0 16 16">
+                  <path d="M6 4L10 8L6 12" stroke="black" />
+                </svg>
+              </button>
 
-                {showPriceRange && !!data?.priceRangeDisplay && (
-                  <RHRPriceDisplay
-                    listPrice={priceRangeDisplay?.listPrices?.[0]!}
-                    memberPrice={priceRangeDisplay?.memberPrices?.[0]!}
-                    topLabel={
-                      data.priceRangeDisplay?.overridePriceLabel ||
-                      pageContent?.["STARTING_AT"]
-                    }
-                    onSale={priceRangeDisplay?.nextGenDrivenOnSale!}
-                    skulowestMemberPrice={
-                      priceRangeDisplay?.skulowestMemberPrice!
-                    }
-                    showSaleMessage={
-                      Number(data?.saleInfo?.percentSaleSkus) === 0 ||
-                      Number(data?.saleInfo?.percentSaleSkus) === 100
-                        ? false
-                        : true
-                    }
-                    // userType={userType!} // RH.COM specific
-                    pageContent={pageContent}
-                    computedSalePageContent={dynamicMemberSavingsText}
-                    variant={"small"}
-                    centerAlignFlag={Boolean(data?.metadata?.rhr)}
-                    // showMembershipProductPrice={
-                    //   data?.uxAttributes?.membershipProduct?.toLowerCase() ===
-                    //   "true"
-                    // } // RH.COM specific
-                    // showGiftCardPrice={
-                    //   data?.uxAttributes?.giftCert?.toLowerCase() === "true"
-                    // } // RH.COM specific
-                    isCustomProduct={data?.customProduct!}
-                    isSaleFilterEnabled={false}
-                    saleUrl={redirectPathSale}
-                    classes={{
-                      container: "pr-0"
-                    }}
-                  />
-                )}
+              <span id={`dots-image-carousel-${handle}`} className="flex h-[8px]">
+                <div className="flex items-center justify-center overflow-hidden" data-testid="dots-container" style={{ maxWidth: 45 }}>
+                  <div className="flex transition-transform duration-300" data-testid="dots-wrapper" style={{ gap: 4 }}>
+                    {images.map((_, idx) => {
+                      const active = idx === selectedIndex
+                      return (
+                        <div
+                          key={idx}
+                          role="button"
+                          aria-label={`Dot ${idx + 1}`}
+                          aria-current={active}
+                          data-testid={`dot-${idx + 1}`}
+                          className="rounded-full transition-all duration-300"
+                          style={{
+                            width: 5,
+                            height: 5,
+                            backgroundColor: active ? "black" : "rgb(137,136,134)",
+                          }}
+                          onClick={() => scrollTo(idx)}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              </span>
+
+              <button
+                className={`embla__next relative m-0 inline-flex p-0 pl-2.5 transition-opacity duration-300
+                  ${canScrollNext ? "opacity-100" : "opacity-0"}
+                  group-hover:opacity-100 group-hover:cursor-pointer`}
+                aria-label="next"
+                onClick={scrollNext}
+                disabled={!canScrollNext}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
+                  <path d="M6 4L10 8L6 12" stroke="black" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex h-full w-full flex-col flex-wrap content-around">
+          <div className="flex h-full flex-col" style={{ width: "284.523px" }}>
+            <Link
+              id="component-rh-link"
+              href={redirectPath}
+              aria-label="Link"
+              className="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineHover"
+            >
+              <p
+                className="tailwind-typography-root my-0 pt-1.5 font-primary-thin text-[10px] leading-[13.2px] text-black sm:pt-2.5 sm:text-[13px] sm:leading-5 lg:pt-1.5 text-center tailwind-typography-body1"
+                style={{ minHeight: "30px", width: "284.523px" }}
+              >
+                {subtitleText}
+              </p>
+
+              <div className="flex flex-col">
+                <div className="mt-1.5 sm:mt-2 md:mt-2.5">
+                  <div className="uppercase text-center">
+                    <span className="font-primary-thin text-[13px] uppercase leading-[13.2px] text-gray-1 sm:leading-5">
+                      {title}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="box-border flex w-full flex-col justify-center pr-2.5 xs:justify-start items-center">
+                  <div className="flex flex-row flex-wrap items-baseline tracking-[0.165px] text-rhBlack justify-center xs:items-center whitespace-nowrap text-[11px]">
+                    {format(Math.min(...prices))} - {format(Math.max(...prices))}
+                  </div>
+                </div>
+
+                <div />
               </div>
-              {/* size and fabrics cta here */}
-            </CardContent>
-          </RHLink>
-        </Card>
+            </Link>
+
+            
+          </div>
+        </div>
       </div>
-    );
-  }
-);
+    </div>
+  )
+})
 
-
-
-// export default memoize((props: Omit<ProductCardProps, "saleContextFilter">) => {
-//   const { app } = useAppData();
-
-//   return <ProductCard {...props} saleContextFilter={app.saleContextFilter} />;
-// });
-export default IknkProductCard; // Simplified export
+export default IknkProductCard

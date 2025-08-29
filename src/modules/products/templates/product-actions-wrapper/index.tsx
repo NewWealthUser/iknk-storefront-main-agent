@@ -1,7 +1,6 @@
-import { listProducts } from "@lib/data/products"
 import { HttpTypes } from "@medusajs/types"
-import ProductActionsClient from "@modules/products/components/product-actions-client"
-import { adaptMedusaProductToRhProduct } from "@lib/util/rh-product-adapter"
+import ProductActions from "@modules/products/components/product-actions"
+
 
 /**
  * Fetches real time pricing for a product and renders the product actions component.
@@ -13,17 +12,17 @@ export default async function ProductActionsWrapper({
   id: string
   region: HttpTypes.StoreRegion
 }) {
-  const res = await listProducts({
-    queryParams: { id: [id] } as any,
-    regionId: region.id,
-  })
+  // const { response } = await listProducts({
+  //   queryParams: { id: [id] },
+  //   regionId: region.id,
+  // })
 
-  if (!res.response.products || res.response.products.length === 0) {
-    console.warn(`[product-actions-wrapper][fallback] Failed to fetch product '${id}'.`);
-    return null;
-  }
+  // const product = response.products[0];
 
-  const product = res.response.products[0];
+  // if (!product) {
+  //   return null
+  // }
 
-  return <ProductActionsClient product={adaptMedusaProductToRhProduct(product)} region={region} />
+  return <></>
+  // return <ProductActions product={product} region={region} />
 }

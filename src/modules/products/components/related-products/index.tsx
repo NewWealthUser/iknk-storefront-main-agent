@@ -1,8 +1,8 @@
 import ProductCard from "../../../../components/ProductCard"
-import { RhProduct } from "@lib/util/rh-product-adapter";
+import type { StoreProduct } from "@medusajs/types"
 
 type RelatedProductsProps = {
-  products: RhProduct[]
+  products: StoreProduct[]
 }
 
 export default function RelatedProducts({ products }: RelatedProductsProps) {

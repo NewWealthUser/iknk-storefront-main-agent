@@ -8,16 +8,15 @@ import IknkCustomProductConfigurator from "@modules/products/components/iknk-cus
 import IknkProductAddons from "@modules/products/components/iknk-product-addons"
 import ProductPrice from "@modules/products/components/product-price"
 
-import { RhProduct, RhVariant } from "@lib/util/rh-product-adapter"
-import { HttpTypes } from "@medusajs/types"
+import { HttpTypes, StoreProduct, StoreProductVariant, StoreProductOptionValue } from "@medusajs/types"
 import { isEqual, debounce } from "lodash"
 
 type ProductInteractionClientProps = {
-  product: RhProduct
+  product: StoreProduct
   region: HttpTypes.StoreRegion
   countryCode: string
-  selectedVariant: RhVariant | undefined
-  setSelectedVariant: (variant: RhVariant) => void
+  selectedVariant: StoreProductVariant | undefined
+  setSelectedVariant: (variant: StoreProductVariant) => void
 }
 
 const ProductInteractionClient: React.FC<ProductInteractionClientProps> = ({
@@ -38,10 +37,24 @@ const ProductInteractionClient: React.FC<ProductInteractionClientProps> = ({
     [setSelectedOptions]
   )
 
+  // Updated optionsAsKeymap to expect option_id
+  const optionsAsKeymap = (
+    variantOptions: { option_id: string; value: string }[] | undefined
+  ) => {
+    return variantOptions?.reduce((acc: Record<string, string>, varopt) => {
+      acc[varopt.option_id] = varopt.value
+      return acc
+    }, {})
+  }
+
   useEffect(() => {
-    const newVariant = product.variants?.find((v: RhVariant) => {
+    const newVariant = product.variants?.find((v: StoreProductVariant) => {
+      // Corrected: map StoreProductOptionValue to { option_id, value }
       const variantOptions =
-        v.options?.map((opt: { id?: string; value?: string; option_id?: string }) => ({ option_id: opt.option_id || opt.id, value: opt.value })) ||
+        v.options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
+          option_id: optValue.option_id || '',
+          value: optValue.value ?? ""
+        })) ||
         []
       const selected = { ...selectedOptions }
       // delete selected.undefined
@@ -65,7 +78,7 @@ const ProductInteractionClient: React.FC<ProductInteractionClientProps> = ({
       {/* ProductOnboardingCta removed from here */}
       <div className="flex flex-col gap-y-2">
         <h1 className="text-2xl md:text-3xl font-primary-thin uppercase tracking-widest">
-          {product.displayName}
+          {product.title}
         </h1>
         <div className="mt-2">
           <ProductPrice product={product} variant={selectedVariant} />
@@ -79,7 +92,7 @@ const ProductInteractionClient: React.FC<ProductInteractionClientProps> = ({
         onOptionChange={handleOptionChange}
       />
 
-      {product.swatchData && (
+      {(product.metadata?.swatchData && (
         <div className="mt-16 p-6 border border-gray-200 rounded-md">
           <h2 className="text-xl font-primary-thin uppercase tracking-widest mb-6">
             Product Swatches
@@ -90,38 +103,38 @@ const ProductInteractionClient: React.FC<ProductInteractionClientProps> = ({
             selectedOptions={selectedOptions}
           />
         </div>
-      )}
+      )) as React.ReactNode}
 
-      {product.personalizeInfo && (
+      {(product.metadata?.personalizeInfo && (
         <div className="mt-16 p-6 border border-gray-200 rounded-md">
           <h2 className="text-xl font-primary-thin uppercase tracking-widest mb-6">
             Personalization Options
           </h2>
           <IknkPersonalizationOptions
-            personalizeInfo={product.personalizeInfo}
+            personalizeInfo={product.metadata.personalizeInfo}
           />
         </div>
-      )}
+      )) as React.ReactNode}
 
-      {product.customProductOptions && (
+      {(product.metadata?.customProductOptions && (
         <div className="mt-16 p-6 border border-gray-200 rounded-md">
           <h2 className="text-xl font-primary-thin uppercase tracking-widest mb-6">
             Custom Product Options
           </h2>
           <IknkCustomProductConfigurator
-            customProductOptions={product.customProductOptions}
+            customProductOptions={product.metadata.customProductOptions}
           />
         </div>
-      )}
+      )) as React.ReactNode}
 
-      {product.productAddons && (
+      {(product.metadata?.productAddons && (
         <div className="mt-16 p-6 border border-gray-200 rounded-md">
           <h2 className="text-xl font-primary-thin uppercase tracking-widest mb-6">
             Product Add-ons
           </h2>
-          <IknkProductAddons productAddons={product.productAddons} />
+          <IknkProductAddons productAddons={product.metadata.productAddons} />
         </div>
-      )}
+      )) as React.ReactNode}
     </div>
   )
 }

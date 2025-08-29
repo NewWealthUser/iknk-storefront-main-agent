@@ -5,10 +5,10 @@ import FastDelivery from "@modules/common/icons/fast-delivery"
 import Refresh from "@modules/common/icons/refresh"
 
 import Accordion from "./accordion"
-import { RhProduct } from "@lib/util/rh-product-adapter"
+import { StoreProduct } from "@medusajs/types"
 
 type ProductTabsProps = {
-  product: RhProduct
+  product: StoreProduct
 }
 
 const ProductTabs = ({ product }: ProductTabsProps) => {
@@ -41,7 +41,7 @@ const ProductTabs = ({ product }: ProductTabsProps) => {
   )
 }
 
-const ProductInfoTab = ({ product }: ProductTabsProps) => {
+const ProductInfoTab = ({ product }: { product: StoreProduct }) => {
   return (
     <div className="text-small-regular py-8">
       <div className="grid grid-cols-2 gap-x-8">
@@ -56,19 +56,19 @@ const ProductInfoTab = ({ product }: ProductTabsProps) => {
           </div>
           <div>
             <span className="font-semibold">Type</span>
-            <p>{product.type ? product.type : "-"}</p>
+            <p>{String(product.type) ? String(product.type) : "-"}</p>
           </div>
         </div>
         <div className="flex flex-col gap-y-4">
           <div>
             <span className="font-semibold">Weight</span>
-            <p>{product.dimensions?.weight ? `${product.dimensions.weight} g` : "-"}</p>
+            <p>{product.weight ? `${product.weight} g` : "-"}</p>
           </div>
           <div>
             <span className="font-semibold">Dimensions</span>
             <p>
-              {product.dimensions?.length && product.dimensions?.width && product.dimensions?.height
-                ? `${product.dimensions.length}L x ${product.dimensions.width}W x ${product.dimensions.height}H`
+              {product.length && product.width && product.height
+                ? `${product.length}L x ${product.width}W x ${product.height}H`
                 : "-"}
             </p>
           </div>

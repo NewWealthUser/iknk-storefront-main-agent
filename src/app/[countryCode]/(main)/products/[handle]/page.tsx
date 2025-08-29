@@ -1,102 +1,83 @@
-import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { listProducts } from "@lib/data/products"
-import { getRegion, listRegions } from "@lib/data/regions"
-import ProductPageClient from "@modules/products/templates/product-page-client"
-import { HttpTypes } from "@medusajs/types"
-import { adaptMedusaProductToRhProduct } from "@lib/util/rh-product-adapter"
+import { Suspense } from "react"
+
+// import { getProductsByHandle, getProductsList } from "@/lib/data"
+// import ProductTemplate from "@/modules/products/templates"
+// import SkeletonProductPage from "@/modules/skeletons/templates/skeleton-product-page"
+import { HttpTypes, StoreProduct } from "@medusajs/types"
+import { Metadata } from "next"
+// import { getRegion } from "@/app/actions"
 
 type Props = {
-  params: Promise<{ countryCode: string; handle: string }>
+  params: { handle: string; countryCode: string }
 }
 
-export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params
-  const { handle } = params
-  const region = await getRegion(params.countryCode)
+// export async function generateStaticParams() {
+//   const { products } = await getProductsList({
+//     page: 1,
+//     limit: 100,
+//   })
 
-  if (!region) {
-    notFound()
-  }
+//   if (!products) {
+//     return []
+//   }
 
-  const { response: { products: responseProducts } } = await listProducts({
-    countryCode: params.countryCode,
-    regionId: region.id,
-    queryParams: { handle } as HttpTypes.StoreProductParams,
-  })
+//   const staticParams = products.map((product: StoreProduct) => ({
+//     handle: product.handle,
+//   }))
 
-  const product = responseProducts?.[0]
+//   return staticParams
+// }
 
-  if (!product) {
-    notFound()
-  }
+// export async function generateMetadata({ params }: Props): Promise<Metadata> {
+//   const { products } = await getProductsByHandle(params.handle)
 
-  return {
-    title: `${product.title} | Medusa Store`,
-    description: `${product.title}`,
-    openGraph: {
-      title: `${product.title} | Medusa Store`,
-      description: `${product.title}`,
-      images: product.thumbnail ? [product.thumbnail] : [],
-    },
-  }
-}
+//   const product = products[0]
 
-export default async function ProductPage(props: Props) {
-  const params = await props.params
-  const region = await getRegion(params.countryCode)
+//   if (!product) {
+//     notFound()
+//   }
 
-  if (!region) {
-    notFound()
-  }
+//   const safeTitle = typeof product.title === "string" ? product.title.trim() : ""
 
-  const { response: { products: responseProducts } } = await listProducts({
-    countryCode: params.countryCode,
-    regionId: region.id,
-    queryParams: { handle: params.handle } as HttpTypes.StoreProductParams,
-  })
+//   return {
+//     title: `${safeTitle} | Medusa Next.js`,
+//     description: `${safeTitle}`,
+//     openGraph: {
+//       title: `${safeTitle} | Medusa Next.js`,
+//       description: `${safeTitle}`,
+//       images: product.thumbnail ? [product.thumbnail] : [],
+//     },
+//   }
+// }
 
-  const pricedProduct = responseProducts?.[0]
+export default async function ProductPage({ params }: Props) {
+  // const { products } = await getProductsByHandle(params.handle).catch((err: any) => {
+  //   notFound()
+  // })
+  // const region = (await getRegion(params.countryCode)) as HttpTypes.StoreRegion
 
-  if (!pricedProduct) {
-    notFound()
-  }
+  // if (!products || !products[0] || !region) {
+  //   notFound()
+  // }
 
-  const adaptedPricedProduct = adaptMedusaProductToRhProduct(pricedProduct);
-
-  const queryParams: any = {}
-  if (region?.id) {
-    queryParams.region_id = region.id
-  }
-  // Use pricedProduct (original Medusa product) for collection_id and tags
-  if (pricedProduct.collection) {
-    queryParams.collection_id = [pricedProduct.collection.id]
-  }
-  if (pricedProduct.tags && pricedProduct.tags.length > 0) {
-    queryParams.tags = {
-      value: pricedProduct.tags
-        .map((t: HttpTypes.StoreProductTag) => t.id)
-        .filter(Boolean) as string[],
-    }
-  }
-  queryParams.is_giftcard = false
-
-  const { response } = await listProducts({
-    queryParams,
-    countryCode: params.countryCode,
-    regionId: region.id,
-  })
-
-  const relatedProducts = response?.products?.filter(
-    (responseProduct) => responseProduct.id !== pricedProduct.id
-  ).map(adaptMedusaProductToRhProduct) || []
+  // const { products: relatedProducts } = await getProductsList({
+  //   page: 1,
+  //   limit: 4,
+  //   queryParams: {
+  //     collection_id: [products[0].collection_id],
+  //   },
+  // })
 
   return (
-    <ProductPageClient
-      product={adaptedPricedProduct}
-      relatedProducts={relatedProducts}
-      region={region}
-      countryCode={params.countryCode}
-    />
+    // <Suspense fallback={<SkeletonProductPage />}>
+    //   <ProductTemplate
+    //     product={products[0]}
+    //     relatedProducts={relatedProducts}
+    //     region={region}
+    //     countryCode={params.countryCode}
+    //   />
+    // </Suspense>
+    <></>
   )
 }

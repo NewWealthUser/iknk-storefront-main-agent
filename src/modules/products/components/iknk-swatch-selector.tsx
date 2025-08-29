@@ -1,12 +1,30 @@
 "use client"
 
 import React, { FC } from "react";
-import { RhProduct, RhSwatch, RhSwatchGroup } from "@lib/util/rh-product-adapter";
+import { StoreProduct } from "@medusajs/types";
+
+type Swatch = {
+  swatchId?: string;
+  title?: string;
+  swatchHexCode?: string;
+  imageUrl?: string;
+};
+
+type SwatchGroup = {
+  swatchGroupName: string;
+  stockedSwatches?: Swatch[];
+  customSwatches?: Swatch[];
+};
 
 type IknkSwatchSelectorProps = {
-  product: RhProduct;
+  product: StoreProduct;
   onOptionChange: (optionId: string, value: string) => void;
   selectedOptions: Record<string, string | undefined>;
+};
+
+type SwatchData = {
+  swatchGroups?: SwatchGroup[];
+  finishSwatchGroups?: SwatchGroup[];
 };
 
 const IknkSwatchSelector: FC<IknkSwatchSelectorProps> = ({
@@ -14,11 +32,13 @@ const IknkSwatchSelector: FC<IknkSwatchSelectorProps> = ({
   onOptionChange,
   selectedOptions,
 }) => {
-  if (!product.swatchData) {
+  const swatchData = product.metadata?.swatchData as SwatchData | undefined;
+
+  if (!swatchData) {
     return null;
   }
 
-  const renderSwatch = (swatch: RhSwatch) => {
+  const renderSwatch = (swatch: Swatch) => {
     // Use swatchId as the optionId and swatch.title as the value
     const optionId = swatch.swatchId || swatch.title || '';
     const value = swatch.title || swatch.swatchId || '';
@@ -56,7 +76,7 @@ const IknkSwatchSelector: FC<IknkSwatchSelectorProps> = ({
     );
   };
 
-  const renderSwatchGroup = (group: RhSwatchGroup) => (
+  const renderSwatchGroup = (group: SwatchGroup) => (
     <div key={group.swatchGroupName} className="mb-6">
       <h3 className="text-lg font-primary-rhroman mb-3 uppercase tracking-wider">{group.swatchGroupName}</h3>
       <div className="flex flex-wrap gap-3">
@@ -69,8 +89,8 @@ const IknkSwatchSelector: FC<IknkSwatchSelectorProps> = ({
   return (
     <div className="mt-8 p-4 border border-gray-200 rounded-md">
       <h2 className="text-xl font-primary-thin uppercase tracking-widest mb-6">Available Options</h2>
-      {product.swatchData.swatchGroups?.map(renderSwatchGroup)}
-      {product.swatchData.finishSwatchGroups?.map(renderSwatchGroup)}
+      {swatchData.swatchGroups?.map(renderSwatchGroup)}
+      {swatchData.finishSwatchGroups?.map(renderSwatchGroup)}
     </div>
   );
 };

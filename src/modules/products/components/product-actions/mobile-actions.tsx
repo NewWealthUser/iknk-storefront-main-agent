@@ -1,3 +1,5 @@
+"use client"
+
 import { Dialog, Transition } from "@headlessui/react"
 import { Button, clx } from "@medusajs/ui"
 import React, { Fragment, useMemo } from "react"
@@ -6,17 +8,14 @@ import useToggleState from "@lib/hooks/use-toggle-state"
 import ChevronDown from "@modules/common/icons/chevron-down"
 import X from "@modules/common/icons/x"
 
-// import { getProductPrice } from "@lib/util/get-product-price" // Removed
 import OptionSelect from "./option-select"
-// import { HttpTypes } from "@medusajs/types" // Removed
 import { isSimpleProduct } from "@lib/util/product"
-import { RhProduct, RhVariant, RhOption } from "@lib/util/rh-product-adapter"; // Import RhProduct and RhVariant
+import { StoreProduct, HttpTypes } from "@medusajs/types";
 
 type MobileActionsProps = {
-  product: RhProduct
-  // variant?: HttpTypes.StoreProductVariant // Removed
+  product: StoreProduct
   options: Record<string, string | undefined>
-  updateOptions: (optionId: string, value: string) => void // Changed type of updateOptions
+  updateOptions: (optionId: string, value: string) => void
   inStock?: boolean
   handleAddToCart: () => void
   isAdding?: boolean
@@ -39,23 +38,30 @@ const MobileActions: React.FC<MobileActionsProps> = ({
 
   // Adapt pricing logic to use RhProduct
   const selectedPrice = useMemo(() => {
-    const priceInfo = product.skuPriceInfo;
-    const priceRangeDisplay = product.priceRangeDisplay;
+    const priceInfo = product.variants?.[0];
 
-    if (!priceInfo && !priceRangeDisplay) {
+    if (!priceInfo) {
       return null;
     }
 
-    const displayPrice = priceInfo?.salePrice || priceInfo?.listPrice || priceRangeDisplay?.listPrices?.[0];
-    const originalPrice = priceInfo?.listPrice || priceRangeDisplay?.listPrices?.[0];
-    const isOnSale = priceInfo?.onSale || priceRangeDisplay?.nextGenDrivenOnSale;
+    const calculatedPriceSet = priceInfo.calculated_price;
+
+    const calculated = typeof calculatedPriceSet === 'number'
+      ? calculatedPriceSet
+      : (calculatedPriceSet?.calculated_amount ?? 0);
+
+    const original = typeof calculatedPriceSet === 'number'
+      ? calculatedPriceSet // If calculated_price is a number, assume original is the same for simplicity
+      : (calculatedPriceSet?.original_amount ?? 0);
+
+    const isOnSale = original > 0 && calculated < original
 
     return {
-      calculated_price: displayPrice,
-      original_price: originalPrice,
+      calculated_price: calculated,
+      original_price: original,
       price_type: isOnSale ? "sale" : "default",
     };
-  }, [product.skuPriceInfo, product.priceRangeDisplay]);
+  }, [product.variants]);
 
   const isSimple = isSimpleProduct(product)
 
@@ -81,14 +87,14 @@ const MobileActions: React.FC<MobileActionsProps> = ({
             data-testid="mobile-actions"
           >
             <div className="flex items-center gap-x-2">
-              <span data-testid="mobile-title">{product.displayName}</span>
+              <span data-testid="mobile-title">{product.title}</span>
               <span>—</span>
               {selectedPrice ? (
                 <div className="flex items-end gap-x-2 text-ui-fg-base">
                   {selectedPrice.price_type === "sale" && (
                     <p>
                       <span className="line-through text-small-regular">
-                        {selectedPrice.original_price}
+                        {String(selectedPrice.original_price)}
                       </span>
                     </p>
                   )}
@@ -98,7 +104,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                         selectedPrice.price_type === "sale",
                     })}
                   >
-                    {selectedPrice.calculated_price}
+                    {String(selectedPrice.calculated_price)}
                   </span>
                 </div>
               ) : (
@@ -116,9 +122,8 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               >
                 <div className="flex items-center justify-between w-full">
                   <span>
-                    {/* Use product.variants[0].options for display if needed */}
-                    {product.variants?.[0]?.options?.[0]?.value
-                      ? product.variants[0].options.map((opt: { id?: string; value?: string }) => opt.value).join(" / ")
+                    {product.options?.[0]?.values
+                      ? product.options.map((opt: HttpTypes.StoreProductOption) => opt.values).join(" / ")
                       : "Select Options"}
                   </span>
                   <ChevronDown />
@@ -182,7 +187,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   <div className="bg-white px-6 py-12">
                     {(product.variants?.length ?? 0) > 1 && (
                       <div className="flex flex-col gap-y-6">
-                        {(product.options || []).map((option: RhOption) => {
+                        {(product.options || []).map((option: HttpTypes.StoreProductOption) => {
                           return (
                             <div key={option.id}>
                               <OptionSelect

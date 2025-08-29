@@ -2,7 +2,7 @@
 
 import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
-import { HttpTypes } from "@medusajs/types"
+import { HttpTypes, StoreProduct, StoreProductVariant, StoreProductOptionValue } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
 import Divider from "@modules/common/components/divider"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
@@ -11,23 +11,23 @@ import { useParams } from "next/navigation"
 import { useContext, useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
-import { RhProduct, RhVariant, RhOption } from "@lib/util/rh-product-adapter"
 import { toast } from "react-hot-toast"
 import { IknkShoppingCartContext } from "@lib/context/iknk-cart-context" // Import cart context
 
 type ProductActionsProps = {
-  product: RhProduct
+  product: StoreProduct
   region: HttpTypes.StoreRegion
   disabled?: boolean
   selectedOptions: Record<string, string | undefined>
   onOptionChange: (optionId: string, value: string) => void
 }
 
+// Updated optionsAsKeymap to expect option_id
 const optionsAsKeymap = (
-  variantOptions: { id: string; value: string }[] | undefined
+  variantOptions: { option_id: string; value: string }[] | undefined
 ) => {
-  return variantOptions?.reduce((acc: Record<string, string>, varopt: any) => {
-    acc[varopt.id] = varopt.value
+  return variantOptions?.reduce((acc: Record<string, string>, varopt) => {
+    acc[varopt.option_id] = varopt.value
     return acc
   }, {})
 }
@@ -45,7 +45,11 @@ export default function ProductActions({
 
   useEffect(() => {
     if (product.variants?.length === 1) {
-      const variantOptions = product.variants[0].options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
+      // Corrected: map StoreProductOptionValue to { option_id, value }
+      const variantOptions = product.variants[0].options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
+        option_id: optValue.option_id || '',
+        value: optValue.value ?? ""
+      })) || [];
       const mappedOptions = optionsAsKeymap(variantOptions) ?? {};
       for (const key in mappedOptions) {
         if (mappedOptions.hasOwnProperty(key)) {
@@ -60,15 +64,23 @@ export default function ProductActions({
       return
     }
 
-    return product.variants.find((v: RhVariant) => {
-      const variantOptions = v.options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
+    return product.variants.find((v: StoreProductVariant) => {
+      // Corrected: map StoreProductOptionValue to { option_id, value }
+      const variantOptions = v.options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
+        option_id: optValue.option_id || '',
+        value: optValue.value ?? ""
+      })) || [];
       return isEqual(optionsAsKeymap(variantOptions), selectedOptions)
     })
   }, [product.variants, selectedOptions])
 
   const isValidVariant = useMemo(() => {
-    return product.variants?.some((v: RhVariant) => {
-      const variantOptions = v.options?.map((opt: { id?: string; value?: string }) => ({ id: opt.id as string, value: opt.value as string })) || [];
+    return product.variants?.some((v: StoreProductVariant) => {
+      // Corrected: map StoreProductOptionValue to { option_id, value }
+      const variantOptions = v.options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
+        option_id: optValue.option_id || '',
+        value: optValue.value ?? ""
+      })) || [];
       return isEqual(optionsAsKeymap(variantOptions), selectedOptions)
     })
   }, [product.variants, selectedOptions])
@@ -123,7 +135,7 @@ export default function ProductActions({
         <div>
           {(product.variants?.length ?? 0) > 1 && (
             <div className="flex flex-col gap-y-4">
-              {(product.options || []).map((option: RhOption) => {
+              {(product.options || []).map((option: HttpTypes.StoreProductOption) => {
                 return (
                   <div key={option.id}>
                     <OptionSelect
