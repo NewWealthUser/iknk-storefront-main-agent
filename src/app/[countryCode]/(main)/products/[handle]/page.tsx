@@ -1,22 +1,26 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
-import { getProductByHandle, listProducts } from "@lib/medusa" // Corrected imports
+import { getProductByHandle } from "@lib/medusa" // Corrected imports
+import sdk from "@lib/config/sdk"
 import NewProductTemplate from "@modules/products/templates/new-product-template" // Updated import
-import SkeletonProductPage from "@modules/skeletons/templates/skeleton-product-page" // Re-added import
+
 import { HttpTypes, StoreProduct } from "@medusajs/types"
 import { Metadata } from "next"
 import { getRegion } from "@lib/data/regions" // Corrected import
+
+function SkeletonProductPage() {
+  return <div className="animate-pulse w-full h-96 bg-gray-100" />
+}
 
 type Props = {
   params: { handle: string; countryCode: string }
 }
 
 export async function generateStaticParams() {
-  const { data } = await listProducts({
-    pageParam: 1,
-    queryParams: { limit: 100, fields: "handle" },
-    countryCode: "us", // Default country code for static params generation
+  const { products: data } = await sdk.store.product.list({
+    limit: 100,
+    fields: "handle",
   })
 
   if (!data?.products) {
@@ -52,25 +56,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const product = await getProductByHandle(params.handle, params.countryCode).catch((err: any) => {
+    console.error(`[ProductPage] Error fetching product by handle '${params.handle}':`, err); // Added logging
     notFound()
   })
   const region = (await getRegion(params.countryCode)) as HttpTypes.StoreRegion
 
   if (!product || !region) {
+    console.error(`[ProductPage] Product or region not found for handle '${params.handle}' and countryCode '${params.countryCode}'.`); // Added logging
     notFound()
   }
 
-  const { data: relatedProductsData } = await listProducts({
-    pageParam: 1,
-    queryParams: {
-      collection_id: product.collection_id ? [product.collection_id] : undefined,
-      limit: 4,
-    },
-    countryCode: params.countryCode,
+  const { products: relatedProductsData } = await sdk.store.product.list({
+    collection_id: product.collection_id ? [product.collection_id] as string[] : [],
+    limit: 4,
   })
 
   const relatedProducts = relatedProductsData?.products?.filter(
-    (p) => p.id !== product.id
+    (p: StoreProduct) => p.id !== product.id
   ) || []
 
   return (

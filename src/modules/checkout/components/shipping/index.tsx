@@ -153,20 +153,20 @@ const Shipping: React.FC<ShippingProps> = ({
             >
               <RadioGroup.Label className="text-lg font-primary-rhroman">Delivery Method</RadioGroup.Label>
               <div className="flex gap-4">
-                <Radio value={PICKUP_OPTION_OFF} as="div"> {/* Changed to "div" */}
+                <RadioGroup.Option value={PICKUP_OPTION_OFF}>
                   {({ checked }) => (
                     <button className={clx("flex-1 text-left p-4 border transition-colors duration-200", { "border-black bg-gray-50": !checked, "border-gray-300": checked })}>
                       Ship
                     </button>
                   )}
-                </Radio>
-                <Radio value={PICKUP_OPTION_ON} as="div"> {/* Changed to "div" */}
+                </RadioGroup.Option>
+                <RadioGroup.Option value={PICKUP_OPTION_ON}>
                   {({ checked }) => (
                     <button className={clx("flex-1 text-left p-4 border transition-colors duration-200", { "border-black bg-gray-50": checked, "border-gray-300": !checked })}>
                       Pick Up
                     </button>
                   )}
-                </Radio>
+                </RadioGroup.Option>
               </div>
             </RadioGroup>
           )}
@@ -182,11 +182,10 @@ const Shipping: React.FC<ShippingProps> = ({
             {(showPickupOptions === PICKUP_OPTION_ON ? _pickupMethods : _shippingMethods)?.map((option) => {
               const isDisabled = (showPickupOptions === PICKUP_OPTION_OFF && option.price_type === "calculated" && typeof calculatedPricesMap[option.id] !== "number") || option.insufficient_inventory;
               return (
-                <Radio
+                <RadioGroup.Option
                   key={option.id}
                   value={option.id}
                   disabled={isDisabled}
-                  as="div" // Changed to "div"
                 >
                   {({ checked }) => (
                     <div className={clx("p-4 border flex justify-between items-center transition-colors duration-200 cursor-pointer", { "border-black bg-gray-50": checked, "border-gray-300": !checked, "opacity-50 cursor-not-allowed": isDisabled })}>
@@ -206,7 +205,7 @@ const Shipping: React.FC<ShippingProps> = ({
                       </span>
                     </div>
                   )}
-                </Radio>
+                </RadioGroup.Option>
               )
             })}
           </RadioGroup>

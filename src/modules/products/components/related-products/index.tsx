@@ -1,9 +1,9 @@
 import ProductGrid from "../../../../components/ProductGrid" // Updated import path
-import type { HttpTypes } from "@medusajs/types" // Changed from StoreProduct
+import type { StoreProduct } from "@medusajs/types"
 import { getRegion } from "@lib/data/regions" // Added import for getRegion
 
 type RelatedProductsProps = {
-  products: HttpTypes.StoreProduct[]
+  products: StoreProduct[]
   countryCode: string // Added countryCode prop
 }
 

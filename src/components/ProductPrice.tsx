@@ -1,31 +1,32 @@
-import type { StoreProduct, StoreProductVariant } from "@medusajs/types"
-import { clx } from "@medusajs/ui"
+"use client"
 import React from "react"
+import { HttpTypes } from "@medusajs/types"
 
-export default function ProductPrice({
-  product,
-  variant,
-}: {
-  product: StoreProduct
-  variant?: StoreProductVariant
-}) {
-  const price = variant?.calculated_price ?? product.variants?.[0]?.calculated_price
-  const currencyCode = variant?.calculated_price?.currency_code ?? product.variants?.[0]?.calculated_price?.currency_code ?? "ZAR"
+type Props = {
+  variant?: HttpTypes.StoreProductVariant
+  className?: string
+}
 
-  if (typeof price === "undefined" || price === null) {
-    return <div className="block w-32 h-9 bg-gray-100 animate-pulse mx-auto" />
-  }
+const ProductPrice: React.FC<Props> = ({ variant, className }) => {
+  if (!variant?.calculated_price) return null
 
-  const formattedPrice = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-  }).format(typeof price === "number" ? price / 100 : 0)
+  const { calculated_price } = variant
+  const original_price = calculated_price?.original_amount
 
   return (
-    <div className="flex flex-col text-gray-700 text-center">
-      <span className="text-sm">
-        {formattedPrice}
-      </span>
+    <div className={`flex flex-col ${className || ""}`}>
+      {calculated_price?.calculated_amount != null
+        ? <span className="text-base font-semibold text-black">
+            {(calculated_price.calculated_amount / 100).toFixed(2)} {calculated_price?.currency_code?.toUpperCase()}
+          </span>
+        : "Price unavailable"}
+      {original_price && (
+        <span className="line-through text-gray-500 text-sm">
+          {original_price / 100} {calculated_price?.currency_code?.toUpperCase()}
+        </span>
+      )}
     </div>
   )
 }
+
+export default ProductPrice

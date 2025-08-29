@@ -1,1 +1,1 @@
-export { ProductGridCard } from "./ProductGridCard";
+export { default } from "./ProductGridCard";

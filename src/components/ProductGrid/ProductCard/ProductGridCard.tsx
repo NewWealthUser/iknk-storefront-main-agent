@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import useEmblaCarousel, { EmblaCarouselType } from "embla-carousel-react"
+import useEmblaCarousel, { UseEmblaCarouselType } from "embla-carousel-react"
 import { HttpTypes } from "@medusajs/types"
 import { clx } from "@medusajs/ui"
 import { convertToLocale } from "@lib/util/money"
@@ -45,8 +45,8 @@ export default function ProductGridCard({ product, region }: Props) {
 
   const { minCalculatedPrice, maxCalculatedPrice, minOriginalPrice, maxOriginalPrice, currencyCode } = useMemo(() => {
     const prices = product.variants?.map(v => ({
-      calculated: typeof v.calculated_price === 'number' ? v.calculated_price : (v.calculated_price?.calculated_amount ?? 0),
-      original: typeof v.original_price === 'number' ? v.original_price : (v.calculated_price?.original_amount ?? 0),
+      calculated: typeof v.calculated_price === "number" ? v.calculated_price : 0,
+      original: typeof v.calculated_price === "number" ? v.calculated_price : 0,
     })) || []
 
     const calculatedPrices = prices.map(p => p.calculated)
@@ -141,7 +141,7 @@ export default function ProductGridCard({ product, region }: Props) {
       {colorOptions && (
         <div className="mt-4 flex justify-center space-x-1">
           {product.variants?.slice(0, 5).map((variant) => { // Limit to 5 swatches for display
-            const swatchImg = variant.images?.[0]?.url ?? product.thumbnail ?? "/placeholder.png"
+            const swatchImg = (variant?.metadata?.images as HttpTypes.StoreProductImage[])?.[0]?.url ?? product.thumbnail ?? "/placeholder.png"
             const isSelected = false; // Implement logic to highlight selected swatch if needed
 
             return (

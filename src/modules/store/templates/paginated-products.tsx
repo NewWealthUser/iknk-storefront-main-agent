@@ -70,7 +70,7 @@ export default async function PaginatedProducts({
 
   return (
     <>
-      <ProductGrid productList={products} region={region} /> {/* Updated to use new ProductGrid */}
+      <ProductGrid products={products} region={region} /> {/* Updated to use new ProductGrid */}
       {totalPages > 1 && (
         <Pagination
           data-testid="product-pagination"

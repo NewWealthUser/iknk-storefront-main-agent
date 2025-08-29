@@ -1,6 +1,6 @@
 import React, { FC } from "react";
 import clsx from "clsx";
-import ProductGridCard from "@/components/ProductGrid/ProductCard/ProductGridCard"; // Corrected import path
+import ProductGridCard from "../../../components/ProductGrid/ProductCard/ProductGridCard";
 import type { HttpTypes } from "@medusajs/types"; // Changed from StoreProduct
 import { getRegion } from "@lib/data/regions"; // Added import for getRegion
 

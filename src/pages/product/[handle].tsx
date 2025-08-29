@@ -76,14 +76,19 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
   const region = await getRegion(countryCode)
 
   if (!region) {
+    console.error(`[getStaticProps] Region not found for countryCode '${countryCode}'.`); // Added logging
     return {
       notFound: true,
     }
   }
 
-  const product = await getProductByHandle(handle, countryCode) // Using getProductByHandle from lib/medusa
+  const product = await getProductByHandle(handle, countryCode).catch((err: any) => {
+    console.error(`[getStaticProps] Error fetching product by handle '${handle}':`, err); // Added logging
+    return null; // Return null so the if (!product) check handles it
+  });
 
   if (!product) {
+    console.error(`[getStaticProps] Product not found for handle '${handle}'.`); // Added logging
     return {
       notFound: true,
     }
