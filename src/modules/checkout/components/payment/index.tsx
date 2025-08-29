@@ -101,7 +101,7 @@ const Payment = ({
                 <RadioGroup.Option
                   key={paymentMethod.id}
                   value={paymentMethod.id}
-                  as={React.Fragment}
+                  as="div" // Changed to "div"
                 >
                   {({ checked }: { checked: boolean }) => (
                     <div className={clx("p-4 border rounded-md transition-colors duration-200 cursor-pointer", { "border-black bg-gray-50": checked, "border-gray-300": !checked })}>

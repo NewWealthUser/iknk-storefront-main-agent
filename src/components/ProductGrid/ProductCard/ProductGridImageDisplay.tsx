@@ -22,7 +22,7 @@ const ProductGridImageDisplay: FC<ProductGridImageDisplayProps> = ({
   return (
     <div className="w-full">
       <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-gray-50 relative">
-        <Image src={imageUrl} alt={imageAlternativeName} fill className="object-cover" />
+        <Image src={imageUrl || "/placeholder.png"} alt={imageAlternativeName} fill className="object-cover" /> {/* Added fallback */}
       </div>
     </div>
   );

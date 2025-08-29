@@ -5,10 +5,11 @@ import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-relat
 import { notFound } from "next/navigation"
 import type { StoreProduct, StoreProductVariant } from "@medusajs/types"
 import ProductTabs from "@modules/products/components/product-tabs"
-import IknkProductGrid from "@modules/products/components/iknk-product-grid"
+import RelatedProducts from "@modules/products/components/related-products" // Updated import
 import ProductActions from "@modules/products/components/product-actions"
 import ProductPrice from "@modules/products/components/product-price"
 import { HttpTypes } from "@medusajs/types"
+import ProductInteractionClient from "../components/product-interaction-client" // Import the new client component
 
 type ProductTemplateProps = {
   product: StoreProduct
@@ -65,7 +66,13 @@ const NewProductTemplate: React.FC<ProductTemplateProps> = ({
                 
 
                 {/* Options (Width, Finish, Fabric, Color) */}
-                {/* <ProductActions product={product} region={region} /> */}
+                <ProductInteractionClient
+                  product={product}
+                  region={region}
+                  countryCode={countryCode}
+                  selectedVariant={selectedVariant}
+                  setSelectedVariant={setSelectedVariant}
+                />
 
                 {/* Additional Details/Tabs */}
                 <div className="mt-16">
@@ -83,7 +90,7 @@ const NewProductTemplate: React.FC<ProductTemplateProps> = ({
               YOU MIGHT ALSO LIKE
             </p>
             <Suspense fallback={<SkeletonRelatedProducts />}>
-              <IknkProductGrid productList={relatedProducts} countryCode={countryCode} />
+              <RelatedProducts products={relatedProducts} countryCode={countryCode} /> {/* Updated to use new RelatedProducts */}
             </Suspense>
           </div>
         </div>

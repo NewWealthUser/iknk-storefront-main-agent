@@ -1,7 +1,7 @@
 import { Button, Container, Text } from "@medusajs/ui"
 
 function ProductOnboardingCta() {
-  const isOnboarding = false;
+  const isOnboarding = false; // This should be dynamically determined, e.g., from a cookie or env var
 
   if (!isOnboarding) {
     return null

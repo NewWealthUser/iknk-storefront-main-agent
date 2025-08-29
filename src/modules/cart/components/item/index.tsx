@@ -72,7 +72,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
           className="txt-medium-plus text-ui-fg-base"
           data-testid="product-title"
         >
-          {item.title}
+          {item.displayName} {/* Changed from item.title to item.displayName */}
         </Text>
         <LineItemOptions item={item} data-testid="product-variant" />
       </Table.Cell>

@@ -115,8 +115,8 @@ const CarouselSlides: FC<CarouselSlidesProps> = ({
                   }}
                   src={
                     pdpImageProps?.isHeroImageUrlFailed
-                      ? slides[0]?.imageUrl
-                      : presetImage(item?.imageUrl)
+                      ? slides[0]?.imageUrl || "/placeholder.png" // Added fallback
+                      : presetImage(item?.imageUrl) || "/placeholder.png" // Added fallback
                   }
                   alt={item?.caption || item?.imageUrl || "Product image"}
                   fill
@@ -148,7 +148,7 @@ const CarouselSlides: FC<CarouselSlidesProps> = ({
               >
                 <RHImageV2
                   className="mx-auto grid content-end"
-                  src={presetImage(item?.imageUrl)}
+                  src={presetImage(item?.imageUrl) || "/placeholder.png"} // Added fallback
                   style={imageStyle}
                   alt={imageAlternativeName}
                   fill

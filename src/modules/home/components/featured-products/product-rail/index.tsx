@@ -3,7 +3,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Text } from "@medusajs/ui"
 
 import InteractiveLink from "@modules/common/components/interactive-link"
-import ProductCard from "../../../../../components/ProductCard"
+import ProductGrid from "../../../../../components/ProductGrid" // Updated import path
 
 
 export default async function ProductRail({
@@ -32,18 +32,11 @@ export default async function ProductRail({
     <div className="content-container py-12 small:py-24">
       <div className="flex justify-between mb-8">
         <Text className="txt-xlarge">{collection.title}</Text>
-        <InteractiveLink href={`/collections/${collection.handle}`}>
+        <InteractiveLink href={`/${region.countries?.[0]?.iso_2}/collections/${collection.handle}`}>
           View all
         </InteractiveLink>
       </div>
-      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 lg:gap-x-7 lg:gap-y-12">
-        {pricedProducts &&
-          pricedProducts.map((product) => (
-            <li key={product.id}>
-              <ProductCard data={product} />
-            </li>
-          ))}
-      </ul>
+      <ProductGrid products={pricedProducts} region={region} /> {/* Updated to use new ProductGrid */}
     </div>
   )
 }

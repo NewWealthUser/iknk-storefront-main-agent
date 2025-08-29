@@ -22,8 +22,10 @@ type ShippingProps = {
   availableShippingMethods: HttpTypes.StoreCartShippingOption[] | null
 }
 
-function formatAddress(address: HttpTypes.AdminStockLocationAddress | undefined) {
+function formatAddress(address: HttpTypes.AdminStockLocationAddress | string | undefined) { // Updated type
   if (!address) return ""
+  if (typeof address === 'string') return address; // If it's already a string, return it
+
   let ret = ""
   if (address.address_1) ret += ` ${address.address_1}`
   if (address.address_2) ret += `, ${address.address_2}`
@@ -151,14 +153,14 @@ const Shipping: React.FC<ShippingProps> = ({
             >
               <RadioGroup.Label className="text-lg font-primary-rhroman">Delivery Method</RadioGroup.Label>
               <div className="flex gap-4">
-                <Radio value={PICKUP_OPTION_OFF} as={React.Fragment}>
+                <Radio value={PICKUP_OPTION_OFF} as="div"> {/* Changed to "div" */}
                   {({ checked }) => (
                     <button className={clx("flex-1 text-left p-4 border transition-colors duration-200", { "border-black bg-gray-50": !checked, "border-gray-300": checked })}>
                       Ship
                     </button>
                   )}
                 </Radio>
-                <Radio value={PICKUP_OPTION_ON} as={React.Fragment}>
+                <Radio value={PICKUP_OPTION_ON} as="div"> {/* Changed to "div" */}
                   {({ checked }) => (
                     <button className={clx("flex-1 text-left p-4 border transition-colors duration-200", { "border-black bg-gray-50": checked, "border-gray-300": !checked })}>
                       Pick Up
@@ -184,7 +186,7 @@ const Shipping: React.FC<ShippingProps> = ({
                   key={option.id}
                   value={option.id}
                   disabled={isDisabled}
-                  as={React.Fragment}
+                  as="div" // Changed to "div"
                 >
                   {({ checked }) => (
                     <div className={clx("p-4 border flex justify-between items-center transition-colors duration-200 cursor-pointer", { "border-black bg-gray-50": checked, "border-gray-300": !checked, "opacity-50 cursor-not-allowed": isDisabled })}>

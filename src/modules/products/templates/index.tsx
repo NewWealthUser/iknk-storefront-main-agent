@@ -6,10 +6,11 @@ import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-relat
 import { notFound } from "next/navigation"
 import type { StoreProduct, StoreProductVariant } from "@medusajs/types"
 import ProductTabs from "@modules/products/components/product-tabs"
-import IknkProductGrid from "@modules/products/components/iknk-product-grid"
+import RelatedProducts from "@modules/products/components/related-products" // Updated import
 import ProductActions from "@modules/products/components/product-actions"
 
 import { HttpTypes } from "@medusajs/types"
+import ProductInteractionClient from "../components/product-interaction-client" // Import the new client component
 
 type ProductTemplateProps = {
   product: StoreProduct
@@ -45,10 +46,13 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
         <div className="block w-full relative">
           <ProductImageCarousel images={images} />
         </div>
-        <div className="flex flex-col small:sticky small:top-48 small:py-0 small:max-w-[300px] w-full py-8 gap-y-12">
-          
-          {/* <ProductActions product={product} region={region} /> */}
-        </div>
+        <ProductInteractionClient
+          product={product}
+          region={region}
+          countryCode={countryCode}
+          selectedVariant={selectedVariant}
+          setSelectedVariant={setSelectedVariant}
+        />
       </div>
       <div className="content-container my-16 small:my-32 font-primary-thin">
         <ProductInfo product={product} />
@@ -61,7 +65,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
         data-testid="related-products-container"
       >
         <Suspense fallback={<SkeletonRelatedProducts />}>
-          <IknkProductGrid productList={relatedProducts} countryCode={countryCode} />
+          <RelatedProducts productList={relatedProducts} countryCode={countryCode} /> {/* Updated to use new RelatedProducts */}
         </Suspense>
       </div>
     </>

@@ -32,7 +32,7 @@ export default function ProductImageCarousel({ images, initialImageIndex = 0 }: 
       <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-gray-50 relative">
         {activeImage.url && (
           <Image
-            src={activeImage.url}
+            src={activeImage.url || "/placeholder.png"} // Added fallback
             alt="Product image"
             fill
             className="object-cover transition-transform duration-300 group-hover/carousel:scale-105"

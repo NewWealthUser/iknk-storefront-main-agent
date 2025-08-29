@@ -1,8 +1,9 @@
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "types/sort-options"
-// import { getRegion } from "@/lib/data/regions"
-import ProductGrid from "../../../components/ProductGrid"
+import { getRegion } from "@lib/data/regions" // Re-added import for getRegion
+import ProductGrid from "../../../components/ProductGrid" // Updated import path
 import { HttpTypes } from "@medusajs/types" // Added missing import
+import { listProductsWithSort } from "@lib/data/products" // Re-added import for listProductsWithSort
 
 type PaginatedProductsProps = {
   sortBy?: SortOptions
@@ -23,11 +24,11 @@ export default async function PaginatedProducts({
   searchParams,
 }: PaginatedProductsProps) {
   const page = parseInt(searchParams.get("page") || "1");
-  // const region = await getRegion(countryCode);
+  const region = await getRegion(countryCode); // Re-enabled getRegion
 
-  // if (!region) {
-  //   return null;
-  // }
+  if (!region) {
+    return null;
+  }
 
   const queryParams: any = {
     limit: 12,
@@ -35,21 +36,15 @@ export default async function PaginatedProducts({
   };
 
   if (collectionId) {
-    queryParams.collection_id = collectionId;
+    queryParams.collection_id = [collectionId]; // Changed to array for collection_id
   }
   if (categoryId) {
-    queryParams.category_id = categoryId;
+    queryParams.category_id = [categoryId]; // Changed to array for category_id
   }
   if (productsIds) {
     queryParams.id = productsIds;
   }
-  if (sortBy) {
-    if (sortBy === "featured") {
-      // Do not add 'order' parameter for 'featured' as it's not a standard Medusa sort option
-    } else {
-      queryParams.order = sortBy;
-    }
-  }
+  // Sort is handled by listProductsWithSort, no need to add 'order' here directly
 
   for (const [key, value] of searchParams.entries()) {
     if (!["page", "sort", "collectionId", "categoryId", "productsIds"].includes(key)) {
@@ -57,36 +52,32 @@ export default async function PaginatedProducts({
     }
   }
 
-  // const res = await listProducts({
-  //   countryCode,
-  //   regionId: region.id,
-  //   queryParams,
-  // });
+  const { response, nextPage } = await listProductsWithSort({ // Re-enabled product fetching
+    page,
+    queryParams,
+    sortBy: sortBy || "created_at", // Ensure sortBy is always provided
+    countryCode,
+  });
 
-  // if (!res.ok || !res.data?.products) {
-  //   console.warn(`[paginated-products][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
-  //   return null;
-  // }
-
-  // const products = res.data.products;
-  // const count = res.data.count;
-  // const totalPages = Math.ceil(count / queryParams.limit);
+  const products = response.products;
+  const count = response.count;
+  const totalPages = Math.ceil(count / queryParams.limit);
 
 
-  // if (!products) {
-  //   return null
-  // }
+  if (!products) {
+    return null
+  }
 
   return (
     <>
-      {/* <ProductGrid productList={products} /> */}
-      {/* {totalPages > 1 && (
+      <ProductGrid productList={products} region={region} /> {/* Updated to use new ProductGrid */}
+      {totalPages > 1 && (
         <Pagination
           data-testid="product-pagination"
           page={page}
           totalPages={totalPages}
         />
-      )} */}
+      )}
     </>
   )
 }

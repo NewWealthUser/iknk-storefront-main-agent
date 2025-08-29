@@ -13,7 +13,7 @@ const ProductInfo = ({ product }: { product: StoreProduct }) => {
           <li key={v.id}>
             Price: {String(v.calculated_price ?? "N/A")}
             <br />
-            Dimensions: {v.metadata?.width as string ?? "-"} x {v.metadata?.height as string ?? "-"}
+            Dimensions: {(v.metadata?.width as string) ?? "-"} x {(v.metadata?.height as string) ?? "-"}
           </li>
         ))}
       </ul>

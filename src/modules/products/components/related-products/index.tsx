@@ -1,13 +1,21 @@
-import ProductCard from "../../../../components/ProductCard"
-import type { StoreProduct } from "@medusajs/types"
+import ProductGrid from "../../../../components/ProductGrid" // Updated import path
+import type { HttpTypes } from "@medusajs/types" // Changed from StoreProduct
+import { getRegion } from "@lib/data/regions" // Added import for getRegion
 
 type RelatedProductsProps = {
-  products: StoreProduct[]
+  products: HttpTypes.StoreProduct[]
+  countryCode: string // Added countryCode prop
 }
 
-export default function RelatedProducts({ products }: RelatedProductsProps) {
+export default async function RelatedProducts({ products, countryCode }: RelatedProductsProps) {
   if (!products.length) {
     return null
+  }
+
+  const region = await getRegion(countryCode); // Fetch region
+
+  if (!region) {
+    return null; // Handle case where region is not found
   }
 
   return (
@@ -21,13 +29,7 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
         </p>
       </div>
 
-      <ul className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8">
-        {products.map((p) => (
-          <li key={p.id}>
-            <ProductCard data={p} />
-          </li>
-        ))}
-      </ul>
+      <ProductGrid products={products} region={region} /> {/* Updated to use new ProductGrid */}
     </div>
   )
 }

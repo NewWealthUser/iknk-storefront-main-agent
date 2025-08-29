@@ -16,7 +16,7 @@ type ProductInteractionClientProps = {
   region: HttpTypes.StoreRegion
   countryCode: string
   selectedVariant: StoreProductVariant | undefined
-  setSelectedVariant: (variant: StoreProductVariant) => void
+  setSelectedVariant: (variant: StoreProductVariant | undefined) => void // Updated type
 }
 
 const ProductInteractionClient: React.FC<ProductInteractionClientProps> = ({
@@ -70,6 +70,8 @@ const ProductInteractionClient: React.FC<ProductInteractionClientProps> = ({
     })
     if (newVariant && newVariant.id !== selectedVariant?.id) {
       setSelectedVariant(newVariant)
+    } else if (!newVariant && selectedVariant) { // If no variant matches, clear selectedVariant
+      setSelectedVariant(undefined);
     }
   }, [product.variants, selectedOptions, selectedVariant, setSelectedVariant])
 

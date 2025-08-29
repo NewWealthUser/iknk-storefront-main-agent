@@ -61,9 +61,9 @@ const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
           {cart.lineItems.map((item: IknkLineItem) => (
             <div key={item.sku} className="grid grid-cols-6 gap-4 items-center border-b border-gray-200 py-4">
               <div className="col-span-3 flex items-center">
-                <img src={item.thumbnail} alt={item.title} className="w-24 h-24 object-contain mr-6" />
+                <img src={item.imageUrl} alt={item.displayName} className="w-24 h-24 object-contain mr-6" /> {/* Changed from item.thumbnail to item.imageUrl and item.title to item.displayName */}
                 <div>
-                  <h2 className="text-lg font-primary-rhroman">{item.title}</h2>
+                  <h2 className="text-lg font-primary-rhroman">{item.displayName}</h2> {/* Changed from item.title to item.displayName */}
                   <p className="text-sm text-gray-600">SKU: {item.sku}</p>
                   <button
                     className="mt-2 text-red-600 hover:text-red-800 transition-colors duration-200 flex items-center text-sm"

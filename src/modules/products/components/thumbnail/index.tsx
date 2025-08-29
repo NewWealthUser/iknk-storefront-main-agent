@@ -52,7 +52,7 @@ const ImageOrPlaceholder = ({
 }: Pick<ThumbnailProps, "size"> & { image?: string }) => {
   return image ? (
     <Image
-      src={image}
+      src={image || "/placeholder.png"} // Added fallback
       alt="Thumbnail"
       className="absolute inset-0 object-cover object-center"
       draggable={false}

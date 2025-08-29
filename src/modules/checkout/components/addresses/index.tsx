@@ -97,7 +97,7 @@ const Addresses = ({
                 <div className="md:col-span-1">
                   <h3 className="text-lg font-primary-rhroman mb-2">Contact</h3>
                   <p>{cart.shipAddress.phone}</p>
-                  <p>{customer?.email}</p>
+                  <p>{customer?.email || "N/A"}</p> {/* Added fallback */}
                 </div>
 
                 <div className="md:col-span-1">

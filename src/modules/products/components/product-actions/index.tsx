@@ -75,15 +75,30 @@ export default function ProductActions({
   }, [product.variants, selectedOptions])
 
   const isValidVariant = useMemo(() => {
-    return product.variants?.some((v: StoreProductVariant) => {
-      // Corrected: map StoreProductOptionValue to { option_id, value }
-      const variantOptions = v.options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
-        option_id: optValue.option_id || '',
-        value: optValue.value ?? ""
-      })) || [];
-      return isEqual(optionsAsKeymap(variantOptions), selectedOptions)
-    })
-  }, [product.variants, selectedOptions])
+    // A variant is valid if all selected options match an existing variant's options
+    if (!product.variants || product.variants.length === 0) {
+      return false;
+    }
+
+    // Check if all selected options have a value
+    const allOptionsSelected = product.options?.every(
+      (option) => selectedOptions[option.id] !== undefined
+    );
+
+    if (!allOptionsSelected) {
+      return false;
+    }
+
+    return product.variants.some((v: StoreProductVariant) => {
+      const variantOptionsMap = optionsAsKeymap(
+        v.options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
+          option_id: optValue.option_id || '',
+          value: optValue.value ?? ""
+        }))
+      );
+      return isEqual(variantOptionsMap, selectedOptions);
+    });
+  }, [product.variants, product.options, selectedOptions])
 
   const inStock = useMemo(() => {
     if (selectedVariant && !selectedVariant.manage_inventory) {

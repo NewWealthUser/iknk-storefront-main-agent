@@ -1,11 +1,12 @@
 import { GetStaticPaths, GetStaticProps, GetStaticPropsContext, PreviewData } from "next"
 import { ParsedUrlQuery } from "querystring"
 import { dehydrate, QueryClient } from "@tanstack/react-query"
-import { listProducts } from "@lib/data/products"
+import { listProducts } from "@lib/data/products" // Using listProducts from data/products
 import { getRegion, listRegions } from "@lib/data/regions"
-import ProductTemplate from "@modules/products/templates"
+import NewProductTemplate from "@modules/products/templates/new-product-template" // Updated import
 
 import { HttpTypes, StoreRegion } from "@medusajs/types"
+import { getProductByHandle } from "@lib/medusa" // Import getProductByHandle from lib/medusa
 
 interface Params extends ParsedUrlQuery {
   handle: string
@@ -80,12 +81,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
     }
   }
 
-  const { response: { products: responseProducts } } = await listProducts({
-    countryCode: countryCode,
-    queryParams: { handle } as any,
-  })
-
-  const product = responseProducts?.[0]
+  const product = await getProductByHandle(handle, countryCode) // Using getProductByHandle from lib/medusa
 
   if (!product) {
     return {
@@ -109,7 +105,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
   }
   queryParams.is_giftcard = false
 
-  const { response } = await listProducts({
+  const { response } = await listProducts({ // Using listProducts from data/products
     queryParams,
     countryCode: countryCode,
     regionId: region.id,
@@ -132,7 +128,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
 
 export default function ProductPage({ product, region, countryCode, relatedProducts }: Props) {
   return (
-    <ProductTemplate
+    <NewProductTemplate // Updated to use NewProductTemplate
       product={product}
       relatedProducts={relatedProducts}
       region={region}

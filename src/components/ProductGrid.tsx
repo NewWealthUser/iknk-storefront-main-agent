@@ -1,36 +1,18 @@
+"use client"
+
 import React, { FC } from "react";
-import { ProductGridCard as PC } from "./ProductGrid/ProductCard";
-
-import type { StoreProduct } from "@medusajs/types";
-
-export const getUrl = (
-  item: StoreProduct,
-  category: string = ""
-) => {
-  const formattedTitle = item?.title
-    ?.toLowerCase()
-    .replace(/\s+/g, "-");
-
-  const urlPath =
-    category
-      ? `/${category}/pdp/${formattedTitle}`
-      : `/products/${item?.handle}`;
-
-  return {
-    to: urlPath
-  };
-};
-
-interface ProductGridItem extends StoreProduct {
-  loader?: boolean;
-}
+import ProductGridCard from "./ProductGrid/ProductCard/ProductGridCard"; // Corrected import path
+import type { HttpTypes } from "@medusajs/types"; // Changed from StoreProduct
+import { getRegion } from "@lib/data/regions"; // Added import for getRegion
 
 interface ProductGridProps {
-  productList: StoreProduct[];
+  productList: HttpTypes.StoreProduct[];
+  region: HttpTypes.StoreRegion; // Added region prop
 }
 
 const ProductGrid: FC<ProductGridProps> = ({
   productList = [],
+  region, // Destructure region
 }) => {
   return (
     <div
@@ -39,7 +21,7 @@ const ProductGrid: FC<ProductGridProps> = ({
     >
       <div>
         <div className="inline-flex mb-8 md:mb-9 lg:mb-[60px] flex-wrap gap-x-4 sm:gap-x-8 md:gap-x-10 gap-y-7 sm:gap-y-12 md:gap-y-[60px] lg:gap-y-20 xl:gap-y-24 w-full">
-          {productList?.map((item: StoreProduct, index: number) => {
+          {productList?.map((item: HttpTypes.StoreProduct, index: number) => {
             return (
               <React.Fragment key={item.id}>
                 <div
@@ -50,9 +32,7 @@ const ProductGrid: FC<ProductGridProps> = ({
                     width: "30.3%"
                   }}
                 >
-                  <PC
-                    data={item}
-                  />
+                  <ProductGridCard product={item} region={region} /> {/* Updated to use new ProductGridCard */}
                 </div>
               </React.Fragment>
             );

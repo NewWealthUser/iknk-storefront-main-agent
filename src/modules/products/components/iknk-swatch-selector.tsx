@@ -18,7 +18,7 @@ type SwatchGroup = {
 
 type IknkSwatchSelectorProps = {
   product: StoreProduct;
-  onOptionChange: (optionId: string, value: string) => void;
+  onOptionChange: (optionId: string, value: string) => void; // Changed optionId to optionId
   selectedOptions: Record<string, string | undefined>;
 };
 
@@ -67,7 +67,7 @@ const IknkSwatchSelector: FC<IknkSwatchSelectorProps> = ({
           ${isSelected ? 'border-black ring-2 ring-black' : 'border-gray-300 hover:border-gray-500'}
           transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black`}
         style={style}
-        onClick={() => onOptionChange(optionId, value)}
+        onClick={() => onOptionChange(optionId, value)} // Changed optionId to optionId
         title={swatch.title}
         aria-pressed={isSelected}
       >

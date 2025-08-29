@@ -5,7 +5,7 @@ import { HttpTypes } from "@medusajs/types"
 type OptionSelectProps = {
   option: HttpTypes.StoreProductOption
   current: string | undefined
-  updateOption: (title: string, value: string) => void
+  updateOption: (optionId: string, value: string) => void // Changed title to optionId
   title: string
   disabled: boolean
   "data-testid"?: string
@@ -31,7 +31,7 @@ const OptionSelect: React.FC<OptionSelectProps> = ({
         {filteredOptions.map((v: string) => {
           return (
             <button
-              onClick={() => updateOption(option.id, v)}
+              onClick={() => updateOption(option.id, v)} // Changed option.title to option.id
               key={v}
               className={clx(
                 "border-ui-border-base bg-ui-bg-subtle border text-small-regular h-10 rounded-rounded p-2 flex-1 ",

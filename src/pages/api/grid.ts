@@ -26,11 +26,11 @@ export default async function handler(
   }
 
   if (collection_id) {
-    queryParams.collection_id = [collection_id as string]
+    queryParams.collection_id = Array.isArray(collection_id) ? collection_id : [collection_id as string] // Ensure it's an array
   }
 
   if (category_id) {
-    queryParams.category_id = [category_id as string]
+    queryParams.category_id = Array.isArray(category_id) ? category_id : [category_id as string] // Ensure it's an array
   }
 
   // Handle sorting

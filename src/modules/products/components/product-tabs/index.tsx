@@ -48,7 +48,7 @@ const ProductInfoTab = ({ product }: { product: StoreProduct }) => {
         <div className="flex flex-col gap-y-4">
           <div>
             <span className="font-semibold">Material</span>
-            <p>{product.material ? product.material : "-"}</p>
+            <p>{(product.metadata?.material as string) || "-"}</p> {/* Corrected access */}
           </div>
           <div>
             <span className="font-semibold">Country of origin</span>
@@ -56,7 +56,7 @@ const ProductInfoTab = ({ product }: { product: StoreProduct }) => {
           </div>
           <div>
             <span className="font-semibold">Type</span>
-            <p>{String(product.type) ? String(product.type) : "-"}</p>
+            <p>{(product.type?.value as string) || "-"}</p> {/* Corrected access */}
           </div>
         </div>
         <div className="flex flex-col gap-y-4">

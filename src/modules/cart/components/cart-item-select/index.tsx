@@ -54,7 +54,7 @@ const CartItemSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
             {...props}
             className="appearance-none bg-transparent border-none px-4 transition-colors duration-150 focus:border-gray-700 outline-none w-16 h-16 items-center justify-center"
           >
-            <option disabled value="">
+            <option disabled={true} value=""> {/* Added disabled={true} */}
               {placeholder}
             </option>
             {children}

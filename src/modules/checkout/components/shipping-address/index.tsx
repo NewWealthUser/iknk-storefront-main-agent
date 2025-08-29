@@ -74,7 +74,7 @@ const ShippingAddress = ({
   useEffect(() => {
     // Ensure cart is not null and has a shipping_address before setting form data
     if (cart && cart.shipAddress) {
-      setFormAddress(cart?.shipAddress, customer?.email) // Use shipAddress and customer.email
+      setFormAddress(cart?.shipAddress, customer?.email || "") // Use shipAddress and customer.email
     }
 
     if (cart && !customer?.email && customer?.email) { // Simplified condition

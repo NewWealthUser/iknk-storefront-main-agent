@@ -38,9 +38,9 @@ const computeTarget = (
     return {
       current_amount: currentAmount,
       target_amount: targetAmount,
-      target_reached: currentAmount > targetAmount,
+      target_reached: currentAmount >= targetAmount, // Corrected operator
       target_remaining:
-        currentAmount > targetAmount ? 0 : targetAmount - currentAmount,
+        currentAmount >= targetAmount ? 0 : targetAmount - currentAmount, // Corrected logic
       remaining_percentage: (currentAmount / targetAmount) * 100,
     }
   } else if (priceRule.operator === "lt") {
@@ -56,9 +56,9 @@ const computeTarget = (
     return {
       current_amount: currentAmount,
       target_amount: targetAmount,
-      target_reached: targetAmount > currentAmount,
+      target_reached: targetAmount >= currentAmount, // Corrected operator
       target_remaining:
-        targetAmount > currentAmount ? 0 : currentAmount - targetAmount,
+        targetAmount >= currentAmount ? 0 : currentAmount - targetAmount, // Corrected logic
       remaining_percentage: (currentAmount / targetAmount) * 100,
     }
   } else {
@@ -250,35 +250,33 @@ function FreeShippingPopup({
             </div>
             <div className="flex justify-between gap-1">
               <div
-                className={clx(
-                  "bg-gradient-to-r from-zinc-400 to-zinc-500 h-1.5 rounded-full max-w-full duration-500 ease-in-out",
-                  {
+                className="bg-gradient-to-r from-zinc-400 to-zinc-500 h-1.5 rounded-full max-w-full duration-500 ease-in-out",
+                {
                     "from-green-400 to-green-500": price.target_reached,
                   }
-                )}
-                style={{ width: `${price.remaining_percentage}%` }}
-              ></div>
-              <div className="bg-zinc-600 h-1.5 rounded-full w-fit flex-grow"></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <LocalizedClientLink
-            className="rounded-2xl bg-transparent shadow-none outline-none border-[1px] border-white text-[15px] py-2.5 px-4"
-            href="/cart"
-          >
-            View cart
-          </LocalizedClientLink>
-
-          <LocalizedClientLink
-            className="flex-grow rounded-2xl bg-white text-neutral-950 shadow-none outline-none border-[1px] border-white text-[15px] py-2.5 px-4 text-center"
-            href="/store"
-          >
-            View products
-          </LocalizedClientLink>
+            )}
+            style={{ width: `${price.remaining_percentage}%` }}
+          ></div>
+          <div className="bg-zinc-600 h-1.5 rounded-full w-fit flex-grow"></div>
         </div>
       </div>
+
+      <div className="flex gap-3">
+        <LocalizedClientLink
+          className="rounded-2xl bg-transparent shadow-none outline-none border-[1px] border-white text-[15px] py-2.5 px-4"
+          href="/cart"
+        >
+          View cart
+        </LocalizedClientLink>
+
+        <LocalizedClientLink
+          className="flex-grow rounded-2xl bg-white text-neutral-950 shadow-none outline-none border-[1px] border-white text-[15px] py-2.5 px-4 text-center"
+          href="/store"
+        >
+          View products
+        </LocalizedClientLink>
+      </div>
+    </div>
     </div>
   )
 }

@@ -92,7 +92,7 @@ export const ImageThumbnailWrapper: FC<ImageThumbnailListProps> = ({
                 id="thumbnail-wrapper"
               >
                 <RHImageV2
-                  src={subItem.imageUrl || ""}
+                  src={subItem.imageUrl || "/placeholder.png"} // Added fallback
                   alt={subItem.name || ""}
                   className={`h-full !object-contain cursor-pointer bg-transparent`}
                   style={{

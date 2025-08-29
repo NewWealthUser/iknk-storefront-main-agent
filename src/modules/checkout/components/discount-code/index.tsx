@@ -41,8 +41,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     }
     const input = document.getElementById("promotion-input") as HTMLInputElement
     const codes = promotions
-      .filter((p: any) => p.code === undefined)
-      .map((p: any) => p.code!)
+      .filter((p: any) => p.code === undefined).map((p: any) => p.code!) // Filter out promotions that already have a code
     codes.push(code.toString())
 
     try {

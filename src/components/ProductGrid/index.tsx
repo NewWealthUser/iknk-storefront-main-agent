@@ -1,45 +1,24 @@
 "use client"
 
-import React, { FC } from "react";
-import { ProductGridCard as PC } from "./ProductCard/ProductGridCard";
-import type { StoreProduct } from "@medusajs/types";
+import React from "react"
+import { HttpTypes } from "@medusajs/types"
+import ProductGridCard from "./ProductCard/ProductGridCard"
 
-interface ProductGridProps {
-  productList: StoreProduct[];
+type Props = {
+  products: HttpTypes.StoreProduct[]
+  region: HttpTypes.StoreRegion
 }
 
-const ProductGrid: FC<ProductGridProps> = ({
-  productList = [],
-}) => {
-  return (
-    <div
-      id="component-product-grid"
-      className="relative"
-    >
-      <div>
-        <div className="inline-flex mb-8 md:mb-9 lg:mb-[60px] flex-wrap gap-x-4 sm:gap-x-8 md:gap-x-10 gap-y-7 sm:gap-y-12 md:gap-y-[60px] lg:gap-y-20 xl:gap-y-24 w-full">
-          {productList?.map((item: StoreProduct, index: number) => {
-            return (
-              <React.Fragment key={item.id}>
-                <div
-                  key={`innerGrid_item_${index}`}
-                  id={`${item?.id}__${index}`}
-                  className="productVisible mb-3 flex justify-center"
-                  style={{
-                    width: "30.3%"
-                  }}
-                >
-                  <PC
-                    data={item}
-                  />
-                </div>
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-};
+export default function ProductGrid({ products, region }: Props) {
+  if (!products || products.length === 0) {
+    return <p className="text-center text-gray-500 py-10">No products available.</p>
+  }
 
-export default ProductGrid;
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
+      {products.map((product) => (
+        <ProductGridCard key={product.id} product={product} region={region} />
+      ))}
+    </div>
+  )
+}
