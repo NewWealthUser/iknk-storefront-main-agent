@@ -26,11 +26,11 @@ export default async function handler(
   }
 
   if (collection_id) {
-    queryParams.collection_id = Array.isArray(collection_id) ? collection_id : [collection_id as string] // Ensure it's an array
+    queryParams.collection_id_in = Array.isArray(collection_id) ? collection_id : [collection_id as string] // Ensure it's an array, v2 param
   }
 
   if (category_id) {
-    queryParams.category_id = Array.isArray(category_id) ? category_id : [category_id as string] // Ensure it's an array
+    queryParams.category_id_in = Array.isArray(category_id) ? category_id : [category_id as string] // Ensure it's an array, v2 param
   }
 
   // Handle sorting
@@ -46,12 +46,16 @@ export default async function handler(
     }
   }
 
-  // Handle option filters
+  // Handle option filters (assuming these map to tags_in or metadata filters in v2)
+  const tags_in: string[] = [];
   for (const key in options) {
     if (key.startsWith('options[')) {
       const optionName = key.substring(8, key.length - 1);
-      queryParams[optionName] = options[key];
+      tags_in.push(`${optionName}:${options[key]}`); // Assuming options map to tags
     }
+  }
+  if (tags_in.length > 0) {
+    queryParams.tags_in = tags_in; // v2 param
   }
 
   try {

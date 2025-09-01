@@ -1,13 +1,13 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet, MedusaGetResult } from "@lib/medusa"
+import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
 import { HttpTypes } from "@medusajs/types"
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 
 export const listCartShippingMethods = async (cartId: string): Promise<HttpTypes.StoreCartShippingOption[] | null> => {
-  const res = await medusaGet<HttpTypes.StoreShippingOptionListResponse>(
-      `/store/shipping-options`,
+  try {
+    const { shipping_options } = await sdk.store.shippingOption.list(
       {
         cart_id: cartId,
         fields:
@@ -15,12 +15,12 @@ export const listCartShippingMethods = async (cartId: string): Promise<HttpTypes
       }
     );
 
-  if (!res.ok || !res.data?.shipping_options) {
-    console.warn(`[fulfillment][fallback] Failed to list cart shipping methods: ${res.error?.message || 'Unknown error'}`);
+    // Cast to StoreCartShippingOption[] as the API returns this type when cart_id is provided
+    return shipping_options as HttpTypes.StoreCartShippingOption[];
+  } catch (error: any) {
+    console.warn(`[fulfillment][fallback] Failed to list cart shipping methods: ${error.message || 'Unknown error'}`);
     return null;
   }
-  // Cast to StoreCartShippingOption[] as the API returns this type when cart_id is provided
-  return res.data.shipping_options as HttpTypes.StoreCartShippingOption[];
 }
 
 export const calculatePriceForShippingOption = async (
@@ -33,7 +33,7 @@ export const calculatePriceForShippingOption = async (
   }
 
   const next = {
-    ...(await getCacheOptions("fulfillment")), // Corrected: closing parenthesis moved
+    ...(await getCacheOptions("fulfillment")),
   }
 
   const body = { cart_id: cartId, data }
@@ -42,19 +42,16 @@ export const calculatePriceForShippingOption = async (
     body.data = data
   }
 
-  return sdk.client
-    .fetch<{ shipping_option: HttpTypes.StoreCartShippingOption }>(
-      `/store/shipping-options/${optionId}/calculate`,
-      {
-        method: "POST",
-        body,
-        headers,
-        next,
-      }
-    )
-    .then(({ shipping_option }) => shipping_option)
-    .catch((e) => {
-      console.error(`[fulfillment][error] Failed to calculate price for shipping option '${optionId}': ${e.message}`);
-      return null
-    })
+  try {
+    const { shipping_option } = await sdk.store.shippingOption.calculate(
+      optionId,
+      body,
+      {},
+      headers
+    );
+    return shipping_option;
+  } catch (e: any) {
+    console.error(`[fulfillment][error] Failed to calculate price for shipping option '${optionId}': ${e.message}`);
+    return null
+  }
 }

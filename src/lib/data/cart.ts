@@ -1,7 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet, MedusaGetResult } from "@lib/medusa"
+import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
 import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
@@ -28,23 +28,17 @@ export async function retrieveCart(cartId?: string): Promise<HttpTypes.StoreCart
     return null
   }
 
-  const res = await medusaGet<{ cart: HttpTypes.StoreCart | null }>(
-    `/store/carts/${id}`,
-    {
+  try {
+    const { cart } = await sdk.store.cart.retrieve(id, {
       fields:
         "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name",
-    },
-    {
-      cache: "no-store",
-    }
-  );
+    });
 
-  if (!res.ok || !res.data?.cart) {
-    console.warn(`[cart][fallback] Failed to retrieve cart '${id}': ${res.error?.message || 'Unknown error'}`);
+    return cart;
+  } catch (error: any) {
+    console.warn(`[cart][fallback] Failed to retrieve cart '${id}': ${error.message || 'Unknown error'}`);
     return null;
   }
-
-  return res.data.cart;
 }
 
 export async function getOrSetCart(countryCode: string): Promise<HttpTypes.StoreCart | null> {
@@ -81,8 +75,8 @@ export async function getOrSetCart(countryCode: string): Promise<HttpTypes.Store
     }
     cart = cartResp.cart;
 
-    await setCartId(cart.id)
-    console.log("[cart] getOrSetCart: New cart created and ID set:", cart.id);
+    await setCartId(cart!.id) // Fixed: Added non-null assertion
+    console.log("[cart] getOrSetCart: New cart created and ID set:", cart!.id); // Fixed: Added non-null assertion
 
     const cartCacheTag = await getCacheTag("carts")
     revalidateTag(cartCacheTag)
@@ -99,7 +93,7 @@ export async function getOrSetCart(countryCode: string): Promise<HttpTypes.Store
     revalidateTag(cartCacheTag)
   }
 
-  console.log("[cart] getOrSetCart: Final cart returned:", cart?.id);
+  console.log("[cart] getOrOrSetCart: Final cart returned:", cart?.id);
   return cart
 }
 
@@ -294,16 +288,13 @@ export async function initiatePaymentSession(
     ...(await getAuthHeaders()),
   }
 
-  // Corrected: Pass the cart object as the first argument, and the data as the second
   const res = await sdk.store.payment
     .initiatePaymentSession(cart, data, {}, headers)
     .catch((err: unknown) => {
-      console.error("[cart][error] Failed to initiate payment session:", medusaError(err));
-      // Corrected: Return an object matching the SDK's response structure on error
+      medusaError(err);
       return { payment_collection: null };
     });
 
-  // Corrected: Check for payment_collection and its payment_sessions
   if (!res?.payment_collection?.payment_sessions?.[0]) {
     throw new Error("[cart][error] Failed to initiate payment session.");
   }
@@ -446,11 +437,9 @@ export async function placeOrder(cartId?: string): Promise<HttpTypes.StoreOrder 
   const cartRes = await sdk.store.cart
     .complete(id, {}, headers)
     .catch((err: unknown) => {
-      // medusaError throws, so this catch block will re-throw the error
       medusaError(err);
     });
 
-  // cartRes can be { type: "order", order: StoreOrder } or { type: "cart", cart: StoreCart }
   if (cartRes?.type === "order") {
     const countryCode =
       cartRes.order.shipping_address?.country_code?.toLowerCase()
@@ -461,12 +450,10 @@ export async function placeOrder(cartId?: string): Promise<HttpTypes.StoreOrder 
     removeCartId()
     redirect(`/${countryCode}/order/${cartRes.order.id}/confirmed`)
   } else if (cartRes?.type === "cart") {
-    // If it's a cart, it means the order was not completed (e.g., payment failed)
-    // We should not redirect to order confirmed page, but perhaps to checkout with an error
     throw new Error("[cart][error] Order could not be completed. Cart returned instead of order.");
   }
 
-  return null; // Should ideally not be reached if redirects or throws
+  return null;
 }
 
 /**
@@ -508,7 +495,7 @@ export async function listShippingOptions(cartId: string) {
     ...(await getAuthHeaders()),
   }
 
-  const { shipping_options } = await (sdk as any).shippingOptions.list(
+  const { shipping_options } = await sdk.store.shippingOption.list(
        { region_id: cart.region_id },
        headers
      )
@@ -520,5 +507,5 @@ export async function listShippingOptions(cartId: string) {
       return { shipping_options: [] }
     })
 
-  return shipping_options
+  return { shipping_options }
 }

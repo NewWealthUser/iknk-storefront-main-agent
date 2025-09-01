@@ -1,6 +1,6 @@
 import { HttpTypes } from "@medusajs/types"
 import ProductActionsClient from "@modules/products/components/product-actions-client" // Updated import
-import sdk from "@lib/config/sdk"
+import { sdk } from "@lib/config" // Fixed: Changed to named import
 
 /**
  * Fetches real time pricing for a product and renders the product actions component.
@@ -13,14 +13,14 @@ export default async function ProductActionsWrapper({
   region: HttpTypes.StoreRegion
 }) {
   const { products: data } = await sdk.store.product.list({
-    id: id ? [id] as string[] : [],
+    id_in: id ? [id] as string[] : [], // v2 param
   })
 
-  const product = data?.[0]; // Fixed: Used data directly
+  const product = data?.[0];
   
   if (!product) {
     return null
   }
 
-  return <ProductActionsClient product={product} region={region} /> // Updated to use ProductActionsClient
+  return <ProductActionsClient product={product} region={region} />
 }

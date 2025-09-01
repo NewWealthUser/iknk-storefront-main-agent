@@ -1,7 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet, MedusaGetResult } from "@lib/medusa"
+import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
 import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
@@ -23,18 +23,19 @@ export const retrieveCustomer =
       return null
     }
 
-    const res = await medusaGet<{ customer: HttpTypes.StoreCustomer }>(
-      `/store/customers/me`,
-      {
-        fields: "*orders",
-      }
-    );
+    try {
+      const { customer } = await sdk.store.customer.retrieve(
+        {
+          fields: "*orders",
+        },
+        authHeaders
+      );
 
-    if (!res.ok || !res.data?.customer) {
-      console.warn(`[customer][fallback] Failed to retrieve customer: ${res.error?.message || 'Not found or unknown error'}`);
+      return customer;
+    } catch (error: any) {
+      console.warn(`[customer][fallback] Failed to retrieve customer: ${error.message || 'Not found or unknown error'}`);
       return null;
     }
-    return res.data.customer;
   }
 
 export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
@@ -44,7 +45,7 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
 
   const updateRes = await sdk.store.customer
     .update(body, {}, headers)
-    .then(({ customer }) => customer)
+    .then(({ customer }: { customer: HttpTypes.StoreCustomer }) => customer) // Fixed: Explicitly typed customer
     .catch(medusaError)
 
   const cacheTag = await getCacheTag("customers")
@@ -105,7 +106,7 @@ export async function login(_currentState: unknown, formData: FormData) {
   try {
     await sdk.auth
       .login("customer", "emailpass", { email, password })
-      .then(async (token) => {
+      .then(async (token: string) => { // Fixed: Explicitly typed token as string
         await setAuthToken(token as string)
         const customerCacheTag = await getCacheTag("customers")
         revalidateTag(customerCacheTag)
@@ -144,7 +145,9 @@ export async function transferCart() {
     return
   }
 
-  const headers = await getAuthHeaders()
+  const headers = {
+    ...(await getAuthHeaders()),
+  }
 
   await sdk.store.cart.transferCart(cartId, {}, headers)
 
@@ -180,12 +183,12 @@ export const addCustomerAddress = async (
 
   return sdk.store.customer
     .createAddress(address, {}, headers)
-    .then(async ({ customer }) => {
+    .then(async ({ customer }: { customer: HttpTypes.StoreCustomer }) => { // Fixed: Explicitly typed customer
       const customerCacheTag = await getCacheTag("customers")
       revalidateTag(customerCacheTag)
       return { success: true, error: null }
     })
-    .catch((err) => {
+    .catch((err: any) => { // Fixed: Explicitly typed err as any
       return { success: false, error: err.toString() }
     })
 }
@@ -204,7 +207,7 @@ export const deleteCustomerAddress = async (
       revalidateTag(customerCacheTag)
       return { success: true, error: null }
     })
-    .catch((err) => {
+    .catch((err: any) => { // Fixed: Explicitly typed err as any
       return { success: false, error: err.toString() }
     })
 }
@@ -249,7 +252,7 @@ export const updateCustomerAddress = async (
       revalidateTag(customerCacheTag)
       return { success: true, error: null }
     })
-    .catch((err) => {
+    .catch((err: any) => { // Fixed: Explicitly typed err as any
       return { success: false, error: err.toString() }
     })
 }

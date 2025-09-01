@@ -1,20 +1,20 @@
 "use server"
 
-import { medusaGet, MedusaGetResult } from "@lib/medusa"
+import { sdk } from "@lib/config"
+import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
 import { HttpTypes } from "@medusajs/types"
 
 export const listCartPaymentMethods = async (regionId: string): Promise<HttpTypes.StorePaymentProvider[] | null> => {
-  const res = await medusaGet<HttpTypes.StorePaymentProviderListResponse>(
-      `/store/payment-providers`,
+  try {
+    const { payment_providers } = await sdk.store.paymentProvider.list(
       { region_id: regionId }
     );
 
-  if (!res.ok || !res.data?.payment_providers) {
-    console.warn(`[payment][fallback] Failed to list cart payment methods: ${res.error?.message || 'Unknown error'}`);
+    return payment_providers?.sort((a: HttpTypes.StorePaymentProvider, b: HttpTypes.StorePaymentProvider) => {
+      return a.id > b.id ? 1 : -1
+    });
+  } catch (error: any) {
+    console.warn(`[payment][fallback] Failed to list cart payment methods: ${error.message || 'Unknown error'}`);
     return null;
   }
-
-  return res.data.payment_providers?.sort((a: HttpTypes.StorePaymentProvider, b: HttpTypes.StorePaymentProvider) => {
-    return a.id > b.id ? 1 : -1
-  });
 }

@@ -1,21 +1,6 @@
-import Medusa from "@medusajs/js-sdk"
-import { resolveMedusaUrl } from "./util/medusa-url"; // Import the new utility
+import { sdk } from "./medusa"; // Import sdk from the new medusa.ts file
 
-const MEDUSA_URL_ENV = process.env.NEXT_PUBLIC_MEDUSA_URL;
-const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+// The SDK is now configured and exported from src/lib/medusa.ts
+// This file can remain for other configurations if needed, but the SDK definition is moved.
 
-const resolvedMedusaUrl = resolveMedusaUrl(MEDUSA_URL_ENV);
-
-if (!resolvedMedusaUrl) {
-  throw new Error("[medusa][config] Invalid or missing NEXT_PUBLIC_MEDUSA_URL. Please configure it in your .env.local file.");
-}
-
-if (!PUBLISHABLE_API_KEY) {
-  throw new Error("[medusa][config] NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is not set. Please configure it in your .env.local file.");
-}
-
-export const sdk = new Medusa({
-  baseUrl: resolvedMedusaUrl,
-  debug: process.env.NODE_ENV === "development",
-  publishableKey: PUBLISHABLE_API_KEY,
-})
+export { sdk }; // Re-export the sdk for other modules that import from here

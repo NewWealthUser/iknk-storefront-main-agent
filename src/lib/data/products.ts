@@ -1,6 +1,7 @@
 "use server"
 
-import { medusaGet, MedusaGetResult } from "@lib/medusa"
+import { sdk } from "@lib/config"
+import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
 import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "types/sort-options"
@@ -44,34 +45,48 @@ export async function listProducts({
     }
   }
 
-  const res = await medusaGet<{
-    products: HttpTypes.StoreProduct[]
-    count: number
-  }>(`/store/products`, {
+  // Map queryParams to v2 conventions
+  const v2QueryParams: HttpTypes.StoreProductParams | any = { // Fixed: Cast to any
     limit,
     offset,
     region_id: region?.id,
     fields:
       "*variants.calculated_price,+variants.inventory_quantity,+metadata,+tags",
     ...queryParams,
-  });
+  };
 
-  if (!res.ok || !res.data) {
-    console.warn(`[products][fallback] Failed to list products: ${res.error?.message || 'Unknown error'}`);
-    return { response: { products: [], count: 0 }, nextPage: null };
+  if ((queryParams as any).collection_id) {
+    v2QueryParams.collection_id_in = (queryParams as any).collection_id; // Fixed: Access as any
+    delete (v2QueryParams as any).collection_id;
+  }
+  if ((queryParams as any).category_id) {
+    v2QueryParams.category_id_in = (queryParams as any).category_id; // Fixed: Access as any
+    delete (v2QueryParams as any).category_id;
+  }
+  if ((queryParams as any).tags) {
+    v2QueryParams.tags_in = (queryParams as any).tags.value; // Fixed: Access as any
+    delete (v2QueryParams as any).tags;
+  }
+  if ((queryParams as any).inventory_quantity) {
+    v2QueryParams.inventory_quantity = (queryParams as any).inventory_quantity; // Fixed: Access as any
   }
 
-  const { products, count } = res.data;
+  try {
+    const { products, count } = await sdk.store.product.list(v2QueryParams);
 
-  const nextPage = count > offset + limit ? pageParam + 1 : null
+    const nextPage = count > offset + limit ? pageParam + 1 : null
 
-  return {
-    response: {
-      products,
-      count,
-    },
-    nextPage: nextPage,
-    queryParams,
+    return {
+      response: {
+        products,
+        count,
+      },
+      nextPage: nextPage,
+      queryParams,
+    }
+  } catch (error: any) {
+    console.warn(`[products][fallback] Failed to list products: ${error.message || 'Unknown error'}`);
+    return { response: { products: [], count: 0 }, nextPage: null };
   }
 }
 
@@ -102,7 +117,7 @@ export const listProductsWithSort = async ({
     pageParam: 0,
     queryParams: {
       ...queryParams,
-      limit: 100,
+      limit: 100, // Fetch more to sort locally if needed
     },
     countryCode,
   })

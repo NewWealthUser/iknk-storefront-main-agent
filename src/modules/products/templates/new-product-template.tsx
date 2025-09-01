@@ -24,11 +24,12 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
       console.error("No variant selected or variant ID missing.")
       return
     }
-    // TODO: Get actual cartId
-    const cartId = "some_cart_id"; // Placeholder
+    // TODO: Get actual cartId - This needs to be handled by the useCartActions hook or passed from a higher component
+    const cartId = "some_cart_id"; // Placeholder for now
     await addItem(cartId, product.variants[0].id, 1)
   }
 
+  // Product check as per user's previous instruction
   if (!product || !product.variants?.length) {
     return <p>Product details unavailable</p>
   }
@@ -39,7 +40,7 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
       <div>
         <Image
           src={selectedImage || "/placeholder.png"}
-          alt={product.title}
+          alt={product.title || "Product image"} // Added fallback for alt
           width={800}
           height={800}
           className="object-contain w-full h-auto"
@@ -48,8 +49,8 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           {product.images?.map((img, i) => (
             <button key={i} onClick={() => setSelectedImage(img.url)}>
               <Image
-                src={img.url}
-                alt={product.title}
+                src={img.url || "/placeholder.png"} // Added fallback for src
+                alt={product.title || "Product thumbnail"} // Added fallback for alt
                 width={100}
                 height={100}
                 className="object-contain border border-gray-300"
@@ -62,14 +63,22 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
       {/* RIGHT COLUMN - PRODUCT INFO */}
       <div>
         <h1 className="text-3xl font-light uppercase">{product.title}</h1>
+        {/* Description - using typeof check and map for paragraphs */}
         {typeof product.description === "string" &&
-  product.description.split("\n").map((d, i) => <p key={i} className="text-gray-600 mt-2">{d}</p>)}
+          product.description.split("\n").map((d, i) => (
+            <p key={i} className="text-gray-600 mt-2">
+              {d}
+            </p>
+          ))}
 
+        {/* Price Block */}
         <div className="mt-6">
           <span className="text-sm text-black mr-2">Starting at</span>
           <div className="flex gap-2 items-baseline">
             <span className="font-serif text-lg">
-              {product.variants?.[0]?.calculated_price?.calculated_amount != null ? product.variants?.[0]?.calculated_price?.calculated_amount / 100 : ""}{" "}
+              {product.variants?.[0]?.calculated_price?.calculated_amount != null
+                ? product.variants?.[0]?.calculated_price?.calculated_amount / 100
+                : ""}{" "}
               {product.variants?.[0]?.calculated_price?.currency_code?.toUpperCase()}
             </span>
             {product.variants?.[0]?.calculated_price?.original_amount && (
@@ -82,40 +91,43 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
         </div>
 
         {/* Options (Swatches / Variants) */}
-        {product.options?.map((opt: HttpTypes.StoreProductOption) => ( {/* Fixed: Explicitly typed opt */}
+        {product.options?.map((opt) => (
           <div key={opt.id} className="mt-8">
             <h3 className="uppercase text-sm font-medium mb-2">{opt.title}</h3>
             <div className="grid grid-cols-6 gap-3">
-              {opt.values?.map((val: HttpTypes.StoreProductOptionValue, i) => ( {/* Fixed: Explicitly typed val */}
+              {opt.values?.map((val, i) => (
                 <button
                   key={i}
                   className="flex flex-col items-center border p-2 hover:border-black transition"
                 >
-                  {val.metadata?.swatch && (
+                  {/* Ensure val.metadata.swatch is a string before using */}
+                  {typeof val.metadata?.swatch === "string" && (
                     <img
-                      src={String(val.metadata.swatch)} // Fixed: Cast to string
-                      alt={String(val.value)} // Fixed: Cast to string
+                      src={val.metadata.swatch}
+                      alt={val.value || "Swatch image"} // Added fallback for alt
                       className="w-16 h-16 object-contain"
                     />
                   )}
-                  <span className="text-xs mt-1">{String(val.value)}</span> {/* Fixed: Cast to string */}
+                  <span className="text-xs mt-1">{val.value}</span>
                 </button>
               ))}
             </div>
           </div>
         ))}
 
-        {product.metadata?.dimensions && (
+        {/* Dimensions Section */}
+        {typeof product.metadata?.dimensions === "string" && product.metadata.dimensions && (
           <div className="mt-8">
             <h3 className="uppercase text-sm font-medium mb-2">Dimensions</h3>
             <ul className="list-disc pl-5 text-sm">
-              {String(product.metadata.dimensions).split(";").map((d, i) => ( {/* Fixed: Cast to string */}
+              {product.metadata.dimensions.split(";").map((d, i) => (
                 <li key={i}>{d}</li>
               ))}
             </ul>
           </div>
         )}
 
+        {/* Add to Cart Button */}
         <div className="mt-8">
           <button
             onClick={handleAddToCart}
@@ -127,6 +139,7 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
 
+        {/* Details Accordion */}
         <div className="mt-8 border-t border-gray-300 pt-4">
           <button
             className="flex justify-between w-full text-left font-medium"
@@ -142,6 +155,7 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           )}
         </div>
 
+        {/* Care Accordion */}
         <div className="mt-4 border-t border-gray-300 pt-4">
           <button
             className="flex justify-between w-full text-left font-medium"
@@ -152,7 +166,7 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           </button>
           {showCare && (
             <div className="mt-2 text-sm text-gray-700">
-              <p>{String(product.metadata?.care) || "Refer to our Care Guide."}</p> {/* Fixed: Cast to string */}
+              <p>{String(product.metadata?.care || "Refer to our Care Guide.")}</p>
             </div>
           )}
         </div>

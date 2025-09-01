@@ -1,8 +1,7 @@
 import { HttpTypes } from "@medusajs/types"
 import { NextRequest, NextResponse } from "next/server"
+import { sdk } from "@lib/config" // Import sdk
 
-const BACKEND_URL = process.env.MEDUSA_BACKEND_URL
-const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "us"
 
 const regionMapCache = {
@@ -13,36 +12,21 @@ const regionMapCache = {
 async function getRegionMap(cacheId: string) {
   const { regionMap, regionMapUpdated } = regionMapCache
 
-  if (!BACKEND_URL) {
-    throw new Error(
-      "Middleware.ts: Error fetching regions. Did you set up regions in your Medusa Admin and define a MEDUSA_BACKEND_URL environment variable? Note that the variable is no longer named NEXT_PUBLIC_MEDUSA_BACKEND_URL."
-    )
-  }
-
   if (
     !regionMap.keys().next().value ||
     regionMapUpdated < Date.now() - 3600 * 1000
   ) {
-    // Fetch regions from Medusa. We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
-    const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
-      headers: {
-        "x-publishable-api-key": PUBLISHABLE_API_KEY!,
-      },
+    // Fetch regions from Medusa using the SDK
+    const { regions } = await sdk.store.region.list({
       next: {
         revalidate: 3600,
         tags: [`regions-${cacheId}`],
       },
       cache: "force-cache",
-    }).then(async (response) => {
-      const json = await response.json()
-
-      if (!response.ok) {
-        console.error("Error fetching regions from Medusa backend:", json.message);
-        throw new Error(json.message)
-      }
-
-      return json
-    })
+    }).catch((error: any) => { // Fixed: Explicitly typed error as any
+      console.error("Error fetching regions from Medusa backend:", error.message);
+      throw new Error(error.message);
+    });
 
     console.log("Fetched regions:", regions);
 

@@ -1,29 +1,27 @@
 "use server"
 
-import { medusaGet, MedusaGetResult } from "@lib/medusa"
-import medusaError from "@lib/util/medusa-error"
+import { sdk } from "@lib/config" // Corrected import
+import medusaError from "@lib/util/medusa-error" // Keep if still used, otherwise remove
 import { HttpTypes } from "@medusajs/types"
 
 export const listRegions = async (): Promise<HttpTypes.StoreRegion[]> => {
-  const res = await medusaGet<{ regions: HttpTypes.StoreRegion[] }>(
-    `/store/regions`
-  );
-  if (!res.ok || !res.data?.regions) {
-    console.warn(`[regions][fallback] Failed to list regions: ${res.error?.message || 'Unknown error'}`);
+  try {
+    const { regions } = await sdk.store.region.list();
+    return regions;
+  } catch (error: any) {
+    console.warn(`[regions][fallback] Failed to list regions: ${error.message || 'Unknown error'}`);
     return [];
   }
-  return res.data.regions;
 }
 
 export const retrieveRegion = async (id: string): Promise<HttpTypes.StoreRegion | null> => {
-  const res = await medusaGet<{ region: HttpTypes.StoreRegion }>(
-    `/store/regions/${id}`
-  );
-  if (!res.ok || !res.data?.region) {
-    console.warn(`[regions][fallback] Failed to retrieve region '${id}': ${res.error?.message || 'Not found or unknown error'}`);
+  try {
+    const { region } = await sdk.store.region.retrieve(id);
+    return region;
+  } catch (error: any) {
+    console.warn(`[regions][fallback] Failed to retrieve region '${id}': ${error.message || 'Unknown error'}`);
     return null;
   }
-  return res.data.region;
 }
 
 const regionMap = new Map<string, HttpTypes.StoreRegion>()

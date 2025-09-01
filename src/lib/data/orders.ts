@@ -1,24 +1,25 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet, MedusaGetResult } from "@lib/medusa"
+import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
 import medusaError from "@lib/util/medusa-error"
 import { getAuthHeaders } from "./cookies"
 import { HttpTypes } from "@medusajs/types"
 
 export const retrieveOrder = async (id: string): Promise<HttpTypes.StoreOrder | null> => {
-  const res = await medusaGet<HttpTypes.StoreOrderResponse>(
-    `/store/orders/${id}`,
-    {
-      fields:
-        "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
-    }
-  );
-  if (!res.ok || !res.data?.order) {
-    console.warn(`[orders][fallback] Failed to retrieve order '${id}': ${res.error?.message || 'Not found or unknown error'}`);
+  try {
+    const { order } = await sdk.store.order.retrieve(
+      id,
+      {
+        fields:
+          "*payment_collections.payments,*items,*items.metadata,*items.variant,*items.product",
+      }
+    );
+    return order;
+  } catch (error: any) {
+    console.warn(`[orders][fallback] Failed to retrieve order '${id}': ${error.message || 'Not found or unknown error'}`);
     return null;
   }
-  return res.data.order;
 }
 
 export const listOrders = async (
@@ -26,21 +27,21 @@ export const listOrders = async (
   offset: number = 0,
   filters?: Record<string, any>
 ): Promise<HttpTypes.StoreOrder[] | null> => {
-  const res = await medusaGet<HttpTypes.StoreOrderListResponse>(
-    `/store/orders`,
-    {
-      limit,
-      offset,
-      order: "-created_at",
-      fields: "*items,+items.metadata,*items.variant,*items.product",
-      ...filters,
-    }
-  );
-  if (!res.ok || !res.data?.orders) {
-    console.warn(`[orders][fallback] Failed to list orders: ${res.error?.message || 'Unknown error'}`);
+  try {
+    const { orders } = await sdk.store.order.list(
+      {
+        limit,
+        offset,
+        order: "-created_at",
+        fields: "*items,+items.metadata,*items.variant,*items.product",
+        ...filters,
+      }
+    );
+    return orders;
+  } catch (error: any) {
+    console.warn(`[orders][fallback] Failed to list orders: ${error.message || 'Unknown error'}`);
     return null;
   }
-  return res.data.orders;
 }
 
 export const createTransferRequest = async (
@@ -72,8 +73,8 @@ export const createTransferRequest = async (
       },
       headers
     )
-    .then(({ order }) => ({ success: true, error: null, order }))
-    .catch((err) => ({ success: false, error: err.message, order: null }))
+    .then(({ order }: { order: HttpTypes.StoreOrder }) => ({ success: true, error: null, order })) // Fixed: Explicitly typed order
+    .catch((err: any) => ({ success: false, error: err.message, order: null })) // Fixed: Explicitly typed err as any
 }
 
 export const acceptTransferRequest = async (id: string, token: string) => {
@@ -81,8 +82,8 @@ export const acceptTransferRequest = async (id: string, token: string) => {
 
   return await sdk.store.order
     .acceptTransfer(id, { token }, {}, headers)
-    .then(({ order }) => ({ success: true, error: null, order }))
-    .catch((err) => ({ success: false, error: err.message, order: null }))
+    .then(({ order }: { order: HttpTypes.StoreOrder }) => ({ success: true, error: null, order })) // Fixed: Explicitly typed order
+    .catch((err: any) => ({ success: false, error: err.message, order: null })) // Fixed: Explicitly typed err as any
 }
 
 export const declineTransferRequest = async (id: string, token: string) => {
@@ -90,6 +91,6 @@ export const declineTransferRequest = async (id: string, token: string) => {
 
   return await sdk.store.order
     .declineTransfer(id, { token }, {}, headers)
-    .then(({ order }) => ({ success: true, error: null, order }))
-    .catch((err) => ({ success: false, error: err.message, order: null }))
+    .then(({ order }: { order: HttpTypes.StoreOrder }) => ({ success: true, error: null, order })) // Fixed: Explicitly typed order
+    .catch((err: any) => ({ success: false, error: err.message, order: null })) // Fixed: Explicitly typed err as any
 }

@@ -6,7 +6,7 @@ import { getRegion, listRegions } from "@lib/data/regions"
 import NewProductTemplate from "@modules/products/templates/new-product-template" // Updated import
 
 import { HttpTypes, StoreRegion } from "@medusajs/types"
-import { getProductByHandle } from "@lib/medusa" // Import getProductByHandle from lib/medusa
+import { sdk } from "@lib/config" // Import sdk
 
 interface Params extends ParsedUrlQuery {
   handle: string
@@ -76,19 +76,22 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
   const region = await getRegion(countryCode)
 
   if (!region) {
-    console.error(`[getStaticProps] Region not found for countryCode '${countryCode}'.`); // Added logging
+    console.error(`[getStaticProps] Region not found for countryCode '${countryCode}'.`);
     return {
       notFound: true,
     }
   }
 
-  const product = await getProductByHandle(handle, countryCode).catch((err: any) => {
-    console.error(`[getStaticProps] Error fetching product by handle '${handle}':`, err); // Added logging
-    return null; // Return null so the if (!product) check handles it
-  });
+  // Fetch product directly using SDK
+  const product = await sdk.store.product.list({ handle, limit: 1 })
+    .then(({ products }: { products: HttpTypes.StoreProduct[] }) => products[0] || null) // Fixed: Explicitly typed products
+    .catch((err: any) => {
+      console.error(`[getStaticProps] Error fetching product by handle '${handle}':`, err);
+      return null;
+    });
 
   if (!product) {
-    console.error(`[getStaticProps] Product not found for handle '${handle}'.`); // Added logging
+    console.error(`[getStaticProps] Product not found for handle '${handle}'.`);
     return {
       notFound: true,
     }
@@ -99,18 +102,16 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
     queryParams.region_id = region.id
   }
   if (product.collection) {
-    queryParams.collection_id = [product.collection.id]
+    queryParams.collection_id_in = [product.collection.id] // v2 param
   }
   if (product.tags) {
-    queryParams.tags = {
-      value: product.tags
+    queryParams.tags_in = product.tags // v2 param
         .map((t: HttpTypes.StoreProductTag) => t.id)
-        .filter(Boolean) as string[],
-    }
+        .filter(Boolean) as string[]
   }
   queryParams.is_giftcard = false
 
-  const { response } = await listProducts({ // Using listProducts from data/products
+  const { response } = await listProducts({
     queryParams,
     countryCode: countryCode,
     regionId: region.id,
@@ -133,7 +134,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
 
 export default function ProductPage({ product, region, countryCode, relatedProducts }: Props) {
   return (
-    <NewProductTemplate // Updated to use NewProductTemplate
+    <NewProductTemplate
       product={product}
       relatedProducts={relatedProducts}
       region={region}

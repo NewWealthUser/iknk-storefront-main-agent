@@ -1,23 +1,24 @@
-import { medusaGet } from "./medusa";
-import { HttpTypes } from "@medusajs/types";
-import { SortOptions } from "types/sort-options";
-import { MedusaGetResult } from "./medusa"; // Import MedusaGetResult
+import { sdk } from "@lib/config" // Corrected import
+import { HttpTypes, StoreProduct, StoreCollection } from "@medusajs/types" // Import necessary types
+import { SortOptions } from "types/sort-options"
 
 /**
  * Fetches a collection by its handle.
  * @param handle - The handle of the collection.
  * @returns The collection object or null if not found.
  */
-export async function fetchCollectionByHandle(handle: string) {
-  const res = await medusaGet<HttpTypes.StoreCollectionListResponse>(
-    `/store/collections`,
-    { handle }
-  );
-  if (!res.ok || !res.data?.collections) {
-    console.warn(`[catalog][fallback] Failed to fetch collection by handle '${handle}': ${res.error?.message || 'Not found or unknown error'}`);
+export async function fetchCollectionByHandle(handle: string): Promise<StoreCollection | null> {
+  try {
+    const { collections } = await sdk.store.collection.list({ handle, limit: 1 });
+    if (collections.length === 0) {
+      console.warn(`[catalog][fallback] Collection with handle '${handle}' not found.`);
+      return null;
+    }
+    return collections[0];
+  } catch (error: any) {
+    console.error(`[catalog][fallback] Failed to fetch collection by handle '${handle}':`, error);
     return null;
   }
-  return res.data.collections[0] || null;
 }
 
 interface FetchProductsForListingOptions {
@@ -36,7 +37,7 @@ interface FetchProductsForListingOptions {
 export async function fetchProductsForListing({
   handle,
   collectionId,
-  categoryId, // Destructure categoryId
+  categoryId,
   searchParams,
   pageSizeDefault = 24,
 }: FetchProductsForListingOptions) {
@@ -46,7 +47,7 @@ export async function fetchProductsForListing({
   const inStock = searchParams.get("in_stock") === "true";
 
   let resolvedCollectionId: string | undefined;
-  let resolvedCategoryId: string | undefined; // New variable for category ID
+  let resolvedCategoryId: string | undefined;
 
   if (handle) {
     const collection = await fetchCollectionByHandle(handle);
@@ -56,22 +57,22 @@ export async function fetchProductsForListing({
     resolvedCollectionId = collection.id;
   } else if (collectionId) {
     resolvedCollectionId = collectionId;
-  } else if (categoryId) { // Handle categoryId
+  } else if (categoryId) {
     resolvedCategoryId = categoryId;
   }
 
-  const queryParams: any = {
+  const queryParams: HttpTypes.StoreProductParams | any = { // Fixed: Cast to any
     fields: "id,title,handle,thumbnail,*images,*variants,*variants.prices,*variants.options,metadata,*tags",
   };
 
   if (resolvedCollectionId) {
-    queryParams.collection_id = [resolvedCollectionId];
-  } else if (resolvedCategoryId) { // Use category_id if resolved
-    queryParams.category_id = [resolvedCategoryId];
+    queryParams.collection_id_in = [resolvedCollectionId]; // Fixed: Access as any
+  } else if (resolvedCategoryId) {
+    queryParams.category_id_in = [resolvedCategoryId]; // Fixed: Access as any
   }
 
   if (inStock) {
-    queryParams.inventory_quantity = { gt: 0 };
+    queryParams.inventory_quantity = { gt: 0 }; // Fixed: Access as any
   }
 
   // Apply filters via tags convention
@@ -84,63 +85,45 @@ export async function fetchProductsForListing({
     }
   });
   if (tags.length > 0) {
-    queryParams.tags = { value: tags };
+    queryParams.tags_in = tags; // Fixed: Access as any
   }
 
   let products: HttpTypes.StoreProduct[] = [];
   let count: number = 0;
 
-  if (sortOption === "featured") {
-    const res = await medusaGet<{
-      products: HttpTypes.StoreProduct[];
-      count: number;
-    }>(`/store/products`, {
-      ...queryParams,
-      limit: 100,
-      offset: 0,
-    });
+  try {
+    if (sortOption === "featured") {
+      const res = await sdk.store.product.list({
+        ...queryParams,
+        limit: 100, // Fetch all to sort by featured_rank
+        offset: 0,
+      });
 
-    if (!res.ok || !res.data) {
-      console.warn(`[catalog][fallback] Failed to fetch featured products: ${res.error?.message || 'Unknown error'}`);
-      return { items: [], pagination: { page, pageSize, total: 0, totalPages: 0 }, sort: sortOption };
+      products = res.products;
+      count = res.count;
+
+      products.sort((a, b) => {
+        const rankA = (a.metadata as any)?.featured_rank ?? Infinity;
+        const rankB = (b.metadata as any)?.featured_rank ?? Infinity;
+        return rankA - rankB;
+      });
+
+      products = products.slice((page - 1) * pageSize, page * pageSize);
+
+    } else {
+      const res = await sdk.store.product.list({
+        ...queryParams,
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+        order: sortOption === "price_asc" ? "calculated_price" : sortOption === "price_desc" ? "-calculated_price" : sortOption === "newest" ? "-created_at" : undefined,
+      });
+
+      products = res.products;
+      count = res.count;
     }
-    products = res.data.products;
-    count = res.data.count;
-
-    products.sort((a, b) => {
-      const rankA = (a.metadata as any)?.featured_rank ?? Infinity;
-      const rankB = (b.metadata as any)?.featured_rank ?? Infinity;
-      return rankA - rankB;
-    });
-
-    products = products.slice((page - 1) * pageSize, page * pageSize);
-
-  } else {
-    queryParams.limit = pageSize;
-    queryParams.offset = (page - 1) * pageSize;
-
-    if (sortOption === "price_asc") {
-      queryParams.order_by = "calculated_price";
-      queryParams.order = "asc";
-    } else if (sortOption === "price_desc") {
-      queryParams.order_by = "calculated_price";
-      queryParams.order = "desc";
-    } else if (sortOption === "newest") {
-      queryParams.order_by = "created_at";
-      queryParams.order = "desc";
-    }
-
-    const res = await medusaGet<{
-      products: HttpTypes.StoreProduct[];
-      count: number;
-    }>(`/store/products`, queryParams);
-
-    if (!res.ok || !res.data) {
-      console.warn(`[catalog][fallback] Failed to fetch products for listing: ${res.error?.message || 'Unknown error'}`);
-      return { items: [], pagination: { page, pageSize, total: 0, totalPages: 0 }, sort: sortOption };
-    }
-    products = res.data.products;
-    count = res.data.count;
+  } catch (error: any) {
+    console.error("[catalog][fallback] Failed to fetch products for listing:", error);
+    // Return empty data in case of error
   }
 
   const totalPages = Math.ceil(count / pageSize);
@@ -155,7 +138,7 @@ export async function fetchProductsForListing({
 interface FetchFacetsForListingOptions {
   handle?: string; // Collection handle
   collectionId?: string;
-  categoryId?: string; // Added categoryId
+  categoryId?: string;
 }
 
 /**
@@ -166,10 +149,10 @@ interface FetchFacetsForListingOptions {
 export async function fetchFacetsForListing({
   handle,
   collectionId,
-  categoryId, // Destructure categoryId
+  categoryId,
 }: FetchFacetsForListingOptions) {
   let resolvedCollectionId: string | undefined;
-  let resolvedCategoryId: string | undefined; // New variable for category ID
+  let resolvedCategoryId: string | undefined;
 
   if (handle) {
     const collection = await fetchCollectionByHandle(handle);
@@ -179,31 +162,29 @@ export async function fetchFacetsForListing({
     resolvedCollectionId = collection.id;
   } else if (collectionId) {
     resolvedCollectionId = collectionId;
-  } else if (categoryId) { // Handle categoryId
+  } else if (categoryId) {
     resolvedCategoryId = categoryId;
   }
 
-  const queryParams: any = {
+  const queryParams: HttpTypes.StoreProductParams | any = { // Fixed: Cast to any
     limit: 200,
     fields: "id,tags,metadata",
   };
 
   if (resolvedCollectionId) {
-    queryParams.collection_id = [resolvedCollectionId];
+    queryParams.collection_id_in = [resolvedCollectionId]; // Fixed: Access as any
   } else if (resolvedCategoryId) {
-    queryParams.category_id = [resolvedCategoryId];
+    queryParams.category_id_in = [resolvedCategoryId]; // Fixed: Access as any
   }
 
-  const res = await medusaGet<{
-    products: HttpTypes.StoreProduct[];
-    count: number;
-  }>(`/store/products`, queryParams);
-
-  if (!res.ok || !res.data) {
-    console.warn(`[catalog][fallback] Failed to fetch facets: ${res.error?.message || 'Unknown error'}`);
-    return { material: [], seating: [], shape: [], size: [] };
+  let products: HttpTypes.StoreProduct[] = [];
+  try {
+    const res = await sdk.store.product.list(queryParams);
+    products = res.products;
+  } catch (error: any) {
+    console.error("[catalog][fallback] Failed to fetch facets:", error);
+    // Continue with empty products array
   }
-  const products = res.data.products;
 
   const materials = new Set<string>();
   const seatingCapacities = new Set<number>();
