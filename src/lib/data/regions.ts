@@ -6,7 +6,7 @@ import { HttpTypes } from "@medusajs/types"
 
 export const listRegions = async (): Promise<HttpTypes.StoreRegion[]> => {
   try {
-    const { regions } = await sdk.store.region.list();
+    const { regions } = await sdk.client.fetch<{ regions: HttpTypes.StoreRegion[] }>("/store/regions");
     return regions;
   } catch (error: any) {
     console.warn(`[regions][fallback] Failed to list regions: ${error.message || 'Unknown error'}`);
@@ -16,7 +16,7 @@ export const listRegions = async (): Promise<HttpTypes.StoreRegion[]> => {
 
 export const retrieveRegion = async (id: string): Promise<HttpTypes.StoreRegion | null> => {
   try {
-    const { region } = await sdk.store.region.retrieve(id);
+    const { region } = await sdk.client.fetch<{ region: HttpTypes.StoreRegion }>(`/store/regions/${id}`);
     return region;
   } catch (error: any) {
     console.warn(`[regions][fallback] Failed to retrieve region '${id}': ${error.message || 'Unknown error'}`);

@@ -1,14 +1,14 @@
 "use client"
 
-import { addToCart } from "@lib/data/cart"
 import { useIntersection } from "@lib/hooks/use-in-view"
+import { addToCartAction } from "../../../../app/actions"
 import { HttpTypes, StoreProduct, StoreProductVariant, StoreProductOptionValue } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
 import Divider from "@modules/common/components/divider"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
 import { isEqual } from "lodash"
 import { useParams } from "next/navigation"
-import { useContext, useEffect, useMemo, useRef, useState } from "react"
+import { useContext, useEffect, useMemo, useRef, useState } from "react" // Added useContext
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
 import { toast } from "react-hot-toast"
@@ -22,14 +22,15 @@ type ProductActionsProps = {
   onOptionChange: (optionId: string, value: string) => void
 }
 
-// Updated optionsAsKeymap to expect option_id
 const optionsAsKeymap = (
-  variantOptions: { option_id: string; value: string }[] | undefined
+  variantOptions: HttpTypes.StoreProductOptionValue[] | undefined | null // Allow null
 ) => {
   return variantOptions?.reduce((acc: Record<string, string>, varopt) => {
-    acc[varopt.option_id] = varopt.value
+    if (varopt.option_id && varopt.value !== null && varopt.value !== undefined) { // Check for null/undefined
+      acc[varopt.option_id] = varopt.value;
+    }
     return acc
-  }, {})
+  }, {}) || {}; // Ensure it returns an empty object if variantOptions is null/undefined
 }
 
 export default function ProductActions({
@@ -41,15 +42,11 @@ export default function ProductActions({
   const [isAdding, setIsAdding] = useState(false)
   const params = useParams()
   const countryCode = typeof params?.countryCode === 'string' ? params.countryCode : '';
-  const { refetch } = useContext(IknkShoppingCartContext); // Get refetch from context
+  const { refetch, cartId } = useContext(IknkShoppingCartContext); // Get refetch and cartId from context
 
   useEffect(() => {
     if (product.variants?.length === 1) {
-      // Corrected: map StoreProductOptionValue to { option_id, value }
-      const variantOptions = product.variants[0].options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
-        option_id: optValue.option_id || '',
-        value: optValue.value ?? ""
-      })) || [];
+      const variantOptions = product.variants[0].options; // Directly use options
       const mappedOptions = optionsAsKeymap(variantOptions) ?? {};
       for (const key in mappedOptions) {
         if (mappedOptions.hasOwnProperty(key)) {
@@ -65,22 +62,16 @@ export default function ProductActions({
     }
 
     return product.variants.find((v: StoreProductVariant) => {
-      // Corrected: map StoreProductOptionValue to { option_id, value }
-      const variantOptions = v.options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
-        option_id: optValue.option_id || '',
-        value: optValue.value ?? ""
-      })) || [];
+      const variantOptions = v.options; // Directly use options
       return isEqual(optionsAsKeymap(variantOptions), selectedOptions)
     })
   }, [product.variants, selectedOptions])
 
   const isValidVariant = useMemo(() => {
-    // A variant is valid if all selected options match an existing variant's options
     if (!product.variants || product.variants.length === 0) {
       return false;
     }
 
-    // Check if all selected options have a value
     const allOptionsSelected = product.options?.every(
       (option) => selectedOptions[option.id] !== undefined
     );
@@ -90,12 +81,7 @@ export default function ProductActions({
     }
 
     return product.variants.some((v: StoreProductVariant) => {
-      const variantOptionsMap = optionsAsKeymap(
-        v.options?.map((optValue: HttpTypes.StoreProductOptionValue) => ({
-          option_id: optValue.option_id || '',
-          value: optValue.value ?? ""
-        }))
-      );
+      const variantOptionsMap = optionsAsKeymap(v.options); // Directly use options
       return isEqual(variantOptionsMap, selectedOptions);
     });
   }, [product.variants, product.options, selectedOptions])
@@ -119,7 +105,6 @@ export default function ProductActions({
   const actionsRef = useRef<HTMLDivElement>(null)
   const inView = useIntersection(actionsRef, "0px")
 
-  // add the selected variant to the cart
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) {
       toast.error("Please select a valid variant.", { position: "top-center" });
@@ -129,11 +114,11 @@ export default function ProductActions({
     setIsAdding(true)
 
     try {
-      await addToCart({
-        variantId: selectedVariant.id,
-        quantity: 1,
+      await addToCartAction(
+        selectedVariant.id,
+        1,
         countryCode,
-      })
+      )
       toast.success("Successfully added to cart!", { position: "top-center" })
       refetch(); // Refetch cart data after successful addition
     } catch (e: any) {

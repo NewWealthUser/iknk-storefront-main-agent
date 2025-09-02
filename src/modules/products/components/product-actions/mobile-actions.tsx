@@ -21,24 +21,25 @@ type MobileActionsProps = {
   isAdding?: boolean
   show: boolean
   optionsDisabled: boolean
+  selectedVariant?: HttpTypes.StoreProductVariant // Added
 }
 
 const MobileActions: React.FC<MobileActionsProps> = ({
   product,
-  // variant, // Removed
-  options, // Use options prop
+  options,
   updateOptions,
   inStock,
   handleAddToCart,
   isAdding,
   show,
   optionsDisabled,
+  selectedVariant, // Added
 }) => {
   const { state, open, close } = useToggleState()
 
   // Adapt pricing logic to use RhProduct
   const selectedPrice = useMemo(() => {
-    const priceInfo = product.variants?.[0];
+    const priceInfo = selectedVariant; // Use selectedVariant
 
     if (!priceInfo) {
       return null;
@@ -61,7 +62,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
       original_price: original,
       price_type: isOnSale ? "sale" : "default",
     };
-  }, [product.variants]);
+  }, [selectedVariant]); // Depend on selectedVariant
 
   const isSimple = isSimpleProduct(product)
 
@@ -122,8 +123,8 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               >
                 <div className="flex items-center justify-between w-full">
                   <span>
-                    {product.options?.[0]?.values
-                      ? product.options.map((opt: HttpTypes.StoreProductOption) => opt.values).join(" / ")
+                    {selectedVariant // Use selectedVariant for display
+                      ? Object.values(options).join(" / ")
                       : "Select Options"}
                   </span>
                   <ChevronDown />
@@ -131,12 +132,12 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               </Button>}
               <Button
                 onClick={handleAddToCart}
-                disabled={!inStock || !product.variants?.[0]?.id} // Check if a variant exists
+                disabled={!inStock || !selectedVariant} // Use selectedVariant
                 className="w-full"
                 isLoading={isAdding}
                 data-testid="mobile-cart-button"
               >
-                {!product.variants?.[0]?.id
+                {!selectedVariant // Use selectedVariant
                   ? "Select variant"
                   : !inStock
                   ? "Out of stock"
@@ -165,7 +166,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
-                enterFrom="opacity-0"
+                enterFrom="opacity-0" 
                 enterTo="opacity-100"
                 leave="ease-in duration-200"
                 leaveFrom="opacity-100"

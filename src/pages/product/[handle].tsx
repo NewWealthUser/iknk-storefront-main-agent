@@ -82,13 +82,11 @@ export const getStaticProps: GetStaticProps<Props, Params> = async (context: Get
     }
   }
 
-  // Fetch product directly using SDK
-  const product = await sdk.store.product.list({ handle, limit: 1 })
-    .then(({ products }: { products: HttpTypes.StoreProduct[] }) => products[0] || null) // Fixed: Explicitly typed products
-    .catch((err: any) => {
-      console.error(`[getStaticProps] Error fetching product by handle '${handle}':`, err);
-      return null;
-    });
+  const { response: { products } } = await listProducts({
+    queryParams: { handle, limit: 1 } as any,
+    countryCode: countryCode,
+  });
+  const product = products[0] || null;
 
   if (!product) {
     console.error(`[getStaticProps] Product not found for handle '${handle}'.`);

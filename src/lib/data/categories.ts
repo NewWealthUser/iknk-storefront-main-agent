@@ -1,43 +1,49 @@
-import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
-import { HttpTypes } from "@medusajs/types"
 import { sdk } from "@lib/config"
+import { HttpTypes } from "@medusajs/types"
+import { getCacheOptions } from "./cookies"
 
-export const listCategories = async (query?: Record<string, any>): Promise<HttpTypes.StoreProductCategory[]> => {
+export const listCategories = async (query?: Record<string, any>) => {
+  const next = {
+    ...(await getCacheOptions("categories")),
+  }
+
   const limit = query?.limit || 100
 
-  try {
-    const { product_categories } = await sdk.store.productCategory.list({
-      fields:
-        "*category_children, *products, *parent_category, *parent_category.parent_category",
-      limit,
-      ...query,
-    });
-
-    return product_categories;
-  } catch (error: any) {
-    console.warn(`[categories][fallback] Failed to list categories: ${error.message || 'Unknown error'}`);
-    return [];
-  }
+  return sdk.client
+    .fetch<{ product_categories: HttpTypes.StoreProductCategory[] }>(
+      "/store/product-categories",
+      {
+        query: {
+          fields:
+            "*category_children, *products, *parent_category, *parent_category.parent_category",
+          limit,
+          ...query,
+        },
+        next,
+        cache: "force-cache",
+      }
+    )
+    .then(({ product_categories }) => product_categories)
 }
 
-export const getCategoryByHandle = async (categoryHandle: string[]): Promise<HttpTypes.StoreProductCategory | null> => {
+export const getCategoryByHandle = async (categoryHandle: string[]) => {
   const handle = `${categoryHandle.join("/")}`
 
-  try {
-    const { product_categories } = await sdk.store.productCategory.list(
-      {
-        fields: "*category_children, *products",
-        handle,
-      }
-    );
-
-    if (!product_categories || product_categories.length === 0) {
-      console.warn(`[categories][fallback] Category with handle '${handle}' not found.`);
-      return null;
-    }
-    return product_categories[0];
-  } catch (error: any) {
-    console.warn(`[categories][fallback] Failed to get category by handle '${handle}': ${error.message || 'Not found or unknown error'}`);
-    return null;
+  const next = {
+    ...(await getCacheOptions("categories")),
   }
+
+  return sdk.client
+    .fetch<HttpTypes.StoreProductCategoryListResponse>(
+      `/store/product-categories`,
+      {
+        query: {
+          fields: "*category_children, *products",
+          handle,
+        },
+        next,
+        cache: "force-cache",
+      }
+    )
+    .then(({ product_categories }) => product_categories[0])
 }

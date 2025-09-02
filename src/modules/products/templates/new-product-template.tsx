@@ -1,9 +1,11 @@
 "use client"
-import React, { useState } from "react"
+import React, { useState, useContext } from "react"
 import Image from "next/image"
 import ProductPrice from "../../../components/ProductPrice"
 import { HttpTypes } from "@medusajs/types"
 import { useCartActions } from "@lib/hooks/use-cart-actions"
+import { IknkShoppingCartContext } from "@lib/context/iknk-cart-context"
+import ProductActions from "@modules/products/components/product-actions" // Import ProductActions
 
 type Props = {
   product: HttpTypes.StoreProduct
@@ -12,22 +14,18 @@ type Props = {
   relatedProducts?: HttpTypes.StoreProduct[]
 }
 
-const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
+const NewProductTemplate: React.FC<Props> = ({ product, region, countryCode }) => {
   const [selectedImage, setSelectedImage] = useState(product.images?.[0]?.url)
   const [showDetails, setShowDetails] = useState(false)
   const [showCare, setShowCare] = useState(false)
 
-  const { addItem, loading, error } = useCartActions()
+  // Add state for selected options
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
-  const handleAddToCart = async () => {
-    if (!product.variants?.[0]?.id) {
-      console.error("No variant selected or variant ID missing.")
-      return
-    }
-    // TODO: Get actual cartId - This needs to be handled by the useCartActions hook or passed from a higher component
-    const cartId = "some_cart_id"; // Placeholder for now
-    await addItem(cartId, product.variants[0].id, 1)
-  }
+  // Handler for option changes
+  const onOptionChange = (optionId: string, value: string) => {
+    setSelectedOptions(prev => ({ ...prev, [optionId]: value }));
+  };
 
   // Product check as per user's previous instruction
   if (!product || !product.variants?.length) {
@@ -40,7 +38,7 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
       <div>
         <Image
           src={selectedImage || "/placeholder.png"}
-          alt={product.title || "Product image"} // Added fallback for alt
+          alt={product.title || "Product image"}
           width={800}
           height={800}
           className="object-contain w-full h-auto"
@@ -49,8 +47,8 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           {product.images?.map((img, i) => (
             <button key={i} onClick={() => setSelectedImage(img.url)}>
               <Image
-                src={img.url || "/placeholder.png"} // Added fallback for src
-                alt={product.title || "Product thumbnail"} // Added fallback for alt
+                src={img.url || "/placeholder.png"}
+                alt={product.title || "Product thumbnail"}
                 width={100}
                 height={100}
                 className="object-contain border border-gray-300"
@@ -71,50 +69,6 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
             </p>
           ))}
 
-        {/* Price Block */}
-        <div className="mt-6">
-          <span className="text-sm text-black mr-2">Starting at</span>
-          <div className="flex gap-2 items-baseline">
-            <span className="font-serif text-lg">
-              {product.variants?.[0]?.calculated_price?.calculated_amount != null
-                ? product.variants?.[0]?.calculated_price?.calculated_amount / 100
-                : ""}{" "}
-              {product.variants?.[0]?.calculated_price?.currency_code?.toUpperCase()}
-            </span>
-            {product.variants?.[0]?.calculated_price?.original_amount && (
-              <span className="line-through text-gray-500 text-sm">
-                {product.variants?.[0]?.calculated_price?.original_amount / 100}{" "}
-                {product.variants?.[0]?.calculated_price?.currency_code?.toUpperCase()}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Options (Swatches / Variants) */}
-        {product.options?.map((opt) => (
-          <div key={opt.id} className="mt-8">
-            <h3 className="uppercase text-sm font-medium mb-2">{opt.title}</h3>
-            <div className="grid grid-cols-6 gap-3">
-              {opt.values?.map((val, i) => (
-                <button
-                  key={i}
-                  className="flex flex-col items-center border p-2 hover:border-black transition"
-                >
-                  {/* Ensure val.metadata.swatch is a string before using */}
-                  {typeof val.metadata?.swatch === "string" && (
-                    <img
-                      src={val.metadata.swatch}
-                      alt={val.value || "Swatch image"} // Added fallback for alt
-                      className="w-16 h-16 object-contain"
-                    />
-                  )}
-                  <span className="text-xs mt-1">{val.value}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-
         {/* Dimensions Section */}
         {typeof product.metadata?.dimensions === "string" && product.metadata.dimensions && (
           <div className="mt-8">
@@ -127,17 +81,13 @@ const NewProductTemplate: React.FC<Props> = ({ product, region }) => {
           </div>
         )}
 
-        {/* Add to Cart Button */}
-        <div className="mt-8">
-          <button
-            onClick={handleAddToCart}
-            disabled={loading}
-            className="w-full bg-black text-white py-3 uppercase tracking-wide"
-          >
-            {loading ? "Adding..." : "Add to Cart"}
-          </button>
-          {error && <p className="text-red-500 mt-2">{error}</p>}
-        </div>
+        {/* ProductActions Component - Pass selectedOptions and onOptionChange */}
+        <ProductActions
+          product={product}
+          region={region}
+          selectedOptions={selectedOptions}
+          onOptionChange={onOptionChange}
+        />
 
         {/* Details Accordion */}
         <div className="mt-8 border-t border-gray-300 pt-4">

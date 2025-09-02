@@ -1,7 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
+
 import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
@@ -43,15 +43,19 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
     ...(await getAuthHeaders()),
   }
 
-  const updateRes = await sdk.store.customer
-    .update(body, {}, headers)
-    .then(({ customer }: { customer: HttpTypes.StoreCustomer }) => customer) // Fixed: Explicitly typed customer
-    .catch(medusaError)
+  try {
+    const updateRes = await sdk.store.customer
+      .update(body, {}, headers)
+      .then(({ customer }: { customer: HttpTypes.StoreCustomer }) => customer)
+    
+    const cacheTag = await getCacheTag("customers")
+    revalidateTag(cacheTag)
 
-  const cacheTag = await getCacheTag("customers")
-  revalidateTag(cacheTag)
-
-  return updateRes
+    return updateRes
+  } catch (error: any) {
+    console.error("[customer][error] Failed to update customer:", error);
+    return null; // Safe fallback
+  }
 }
 
 export async function signup(_currentState: unknown, formData: FormData) {
@@ -106,10 +110,12 @@ export async function login(_currentState: unknown, formData: FormData) {
   try {
     await sdk.auth
       .login("customer", "emailpass", { email, password })
-      .then(async (token: string) => { // Fixed: Explicitly typed token as string
-        await setAuthToken(token as string)
-        const customerCacheTag = await getCacheTag("customers")
-        revalidateTag(customerCacheTag)
+      .then(async (token) => {
+        if (typeof token === "string") {
+          await setAuthToken(token)
+          const customerCacheTag = await getCacheTag("customers")
+          revalidateTag(customerCacheTag)
+        }
       })
   } catch (error: any) {
     return error.toString()
@@ -123,19 +129,24 @@ export async function login(_currentState: unknown, formData: FormData) {
 }
 
 export async function signout(countryCode: string) {
-  await sdk.auth.logout()
+  try {
+    await sdk.auth.logout()
 
-  await removeAuthToken()
+    await removeAuthToken()
 
-  const customerCacheTag = await getCacheTag("customers")
-  revalidateTag(customerCacheTag)
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
 
-  await removeCartId()
+    await removeCartId()
 
-  const cartCacheTag = await getCacheTag("carts")
-  revalidateTag(cartCacheTag)
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
 
-  redirect(`/${countryCode}/account`)
+    redirect(`/${countryCode}/account`)
+  } catch (error: any) {
+    console.error("[customer][error] Failed to sign out:", error);
+    // No return value, just log
+  }
 }
 
 export async function transferCart() {
@@ -149,10 +160,15 @@ export async function transferCart() {
     ...(await getAuthHeaders()),
   }
 
-  await sdk.store.cart.transferCart(cartId, {}, headers)
+  try {
+    await sdk.store.cart.transferCart(cartId, {}, headers)
 
-  const cartCacheTag = await getCacheTag("carts")
-  revalidateTag(cartCacheTag)
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+  } catch (error: any) {
+    console.error("[customer][error] Failed to transfer cart:", error);
+    // No return value, just log
+  }
 }
 
 export const addCustomerAddress = async (

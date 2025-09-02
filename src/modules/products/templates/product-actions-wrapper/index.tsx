@@ -13,7 +13,7 @@ export default async function ProductActionsWrapper({
   region: HttpTypes.StoreRegion
 }) {
   const { products: data } = await sdk.store.product.list({
-    id_in: id ? [id] as string[] : [], // v2 param
+    id: id ? [id] as string[] : [], // v2 param
   })
 
   const product = data?.[0];

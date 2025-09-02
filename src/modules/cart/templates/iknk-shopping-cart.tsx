@@ -59,7 +59,7 @@ const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
             </div>
           </div>
           {cart.lineItems.map((item: IknkLineItem) => (
-            <div key={item.sku} className="grid grid-cols-6 gap-4 items-center border-b border-gray-200 py-4">
+            <div key={item.id} className="grid grid-cols-6 gap-4 items-center border-b border-gray-200 py-4">
               <div className="col-span-3 flex items-center">
                 <img src={item.imageUrl} alt={item.displayName} className="w-24 h-24 object-contain mr-6" /> {/* Changed from item.thumbnail to item.imageUrl and item.title to item.displayName */}
                 <div>
@@ -67,7 +67,7 @@ const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
                   <p className="text-sm text-gray-600">SKU: {item.sku}</p>
                   <button
                     className="mt-2 text-red-600 hover:text-red-800 transition-colors duration-200 flex items-center text-sm"
-                    onClick={() => handleRemoveItem(item.sku)}
+                    onClick={() => handleRemoveItem(item.id)}
                   >
                     <TrashIcon className="w-4 h-4 mr-1" />
                     Remove
@@ -78,14 +78,14 @@ const IknkShoppingCart: FC<IknkShoppingCartProps> = () => {
               <div className="col-span-1 flex justify-center items-center">
                 <button
                   className="px-3 py-1 border border-gray-300 hover:bg-gray-100 transition-colors duration-200"
-                  onClick={() => handleUpdateQuantity(item.sku, item.quantity - 1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                 >
                   -
                 </button>
                 <span className="mx-4 font-primary-rhroman">{item.quantity}</span>
                 <button
                   className="px-3 py-1 border border-gray-300 hover:bg-gray-100 transition-colors duration-200"
-                  onClick={() => handleUpdateQuantity(item.sku, item.quantity + 1)}
+                  onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                 >
                   +
                 </button>

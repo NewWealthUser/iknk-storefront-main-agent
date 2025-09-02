@@ -5,7 +5,7 @@ import { HttpTypes } from "@medusajs/types"
 
 export const retrieveCollection = async (id: string): Promise<HttpTypes.StoreCollection | null> => {
   try {
-    const { collection } = await sdk.store.collection.retrieve(id);
+    const { collection } = await sdk.client.fetch<{ collection: HttpTypes.StoreCollection }>(`/store/collections/${id}`);
     return collection;
   } catch (error: any) {
     console.warn(`[collections][fallback] Failed to retrieve collection '${id}': ${error.message || 'Unknown error'}`);
@@ -17,7 +17,7 @@ export const listCollections = async (
   queryParams: Record<string, string> = {}
 ): Promise<{ collections: HttpTypes.StoreCollection[]; count: number }> => {
   try {
-    const { collections, count } = await sdk.store.collection.list(queryParams);
+    const { collections, count } = await sdk.client.fetch<{ collections: HttpTypes.StoreCollection[]; count: number }>("/store/collections", { query: queryParams });
     return { collections, count };
   } catch (error: any) {
     console.warn(`[collections][fallback] Failed to list collections: ${error.message || 'Unknown error'}`);
@@ -29,7 +29,7 @@ export const getCollectionByHandle = async (
   handle: string
 ): Promise<HttpTypes.StoreCollection | null> => {
   try {
-    const { collections } = await sdk.store.collection.list({ handle, fields: "*products" });
+    const { collections } = await sdk.client.fetch<{ collections: HttpTypes.StoreCollection[] }>("/store/collections", { query: { handle, fields: "*products" } });
     if (collections.length === 0) {
       console.warn(`[collections][fallback] Collection with handle '${handle}' not found.`);
       return null;

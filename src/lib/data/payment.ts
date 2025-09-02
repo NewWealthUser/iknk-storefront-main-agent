@@ -1,20 +1,35 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { medusaGet } from "@lib/medusa" // Removed MedusaGetResult
+import { getAuthHeaders, getCacheOptions } from "./cookies"
 import { HttpTypes } from "@medusajs/types"
 
-export const listCartPaymentMethods = async (regionId: string): Promise<HttpTypes.StorePaymentProvider[] | null> => {
-  try {
-    const { payment_providers } = await sdk.store.paymentProvider.list(
-      { region_id: regionId }
-    );
-
-    return payment_providers?.sort((a: HttpTypes.StorePaymentProvider, b: HttpTypes.StorePaymentProvider) => {
-      return a.id > b.id ? 1 : -1
-    });
-  } catch (error: any) {
-    console.warn(`[payment][fallback] Failed to list cart payment methods: ${error.message || 'Unknown error'}`);
-    return null;
+export const listCartPaymentMethods = async (regionId: string) => {
+  const headers = {
+    ...(await getAuthHeaders()),
   }
+
+  const next = {
+    ...(await getCacheOptions("payment_providers")),
+  }
+
+  return sdk.client
+    .fetch<HttpTypes.StorePaymentProviderListResponse>(
+      `/store/payment-providers`,
+      {
+        method: "GET",
+        query: { region_id: regionId },
+        headers,
+        next,
+        cache: "force-cache",
+      }
+    )
+    .then(({ payment_providers }) =>
+      payment_providers.sort((a, b) => {
+        return a.id > b.id ? 1 : -1
+      })
+    )
+    .catch(() => {
+      return null
+    })
 }

@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
-import { sdk } from "@lib/config" // Import sdk
-import NewProductTemplate from "@modules/products/templates/new-product-template" // Updated import
-
+import { listProducts } from "@lib/data/products"
+import { getRegion } from "@lib/data/regions"
+import NewProductTemplate from "@modules/products/templates/new-product-template"
 import { HttpTypes, StoreProduct } from "@medusajs/types"
 import { Metadata } from "next"
-import { getRegion } from "@lib/data/regions" // Corrected import
 
 function SkeletonProductPage() {
   return <div className="animate-pulse w-full h-96 bg-gray-100" />
@@ -17,30 +16,29 @@ type Props = {
 }
 
 export async function generateStaticParams() {
-  const { products } = await sdk.store.product.list({
-    limit: 100,
-    fields: "handle",
-  })
+  // Using the centralized listProducts function
+  const { response } = await listProducts({ queryParams: { limit: 100 }, countryCode: "us" })
 
-  if (!products) {
+  if (!response.products) {
     return []
   }
 
-  const staticParams = products.map((product: StoreProduct) => ({
+  const staticParams = response.products.map((product: StoreProduct) => ({
     handle: product.handle,
   }))
 
   return staticParams
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Fetch product directly using SDK
-  const product = await sdk.store.product.list({ handle: params.handle, limit: 1 })
-    .then(({ products }: { products: HttpTypes.StoreProduct[] }) => products[0] || null) // Fixed: Explicitly typed products
-    .catch((err: any) => {
-      console.error(`[generateMetadata] Error fetching product by handle '${params.handle}':`, err);
-      return null;
-    });
+export async function generateMetadata({ params: paramsPromise }: Props): Promise<Metadata> {
+  const { handle, countryCode } = await paramsPromise;
+  // Using the centralized listProducts function
+  const { response } = await listProducts({
+    queryParams: { handle: handle, limit: 1 } as any,
+    countryCode: countryCode,
+  })
+
+  const product = response.products[0]
 
   if (!product) {
     notFound()
@@ -59,29 +57,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ProductPage({ params }: Props) {
-  // Fetch product directly using SDK
-  const product = await sdk.store.product.list({ handle: params.handle, limit: 1 })
-    .then(({ products }: { products: HttpTypes.StoreProduct[] }) => products[0] || null) // Fixed: Explicitly typed products
-    .catch((err: any) => {
-      console.error(`[ProductPage] Error fetching product by handle '${params.handle}':`, err);
-      notFound()
-    })
-  const region = (await getRegion(params.countryCode)) as HttpTypes.StoreRegion
+export default async function ProductPage(props: { params: Promise<{ handle: string; countryCode: string }> }) {
+  const { params } = props;
+  const { handle, countryCode } = await params;
+  // Using the centralized listProducts function
+  const { response } = await listProducts({
+    queryParams: { handle: handle, limit: 1 } as any,
+    countryCode: countryCode,
+  })
+
+  const product = response.products[0]
+  const region = await getRegion(countryCode)
 
   if (!product || !region) {
-    console.error(`[ProductPage] Product or region not found for handle '${params.handle}' and countryCode '${params.countryCode}'.`);
     notFound()
   }
 
-  const { products: relatedProductsData } = await sdk.store.product.list({
-    collection_id_in: product.collection_id ? [product.collection_id] as string[] : [], // v2 param
-    limit: 4,
+  const { response: relatedProductsResponse } = await listProducts({
+    queryParams: {
+      collection_id: [product.collection_id!],
+      limit: 4,
+    } as any,
+    countryCode: countryCode,
   })
 
-  const relatedProducts = relatedProductsData?.filter(
+  const relatedProducts = relatedProductsResponse.products.filter(
     (p: StoreProduct) => p.id !== product.id
-  ) || []
+  )
 
   return (
     <Suspense fallback={<SkeletonProductPage />}>
@@ -89,7 +91,7 @@ export default async function ProductPage({ params }: Props) {
         product={product}
         relatedProducts={relatedProducts}
         region={region}
-        countryCode={params.countryCode}
+        countryCode={countryCode}
       />
     </Suspense>
   )

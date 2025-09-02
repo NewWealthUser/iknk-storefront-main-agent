@@ -9,14 +9,13 @@ import React, {
   useEffect
 } from "react";
 import { HttpTypes } from "@medusajs/types";
-import { retrieveCart, updateCart as medusaUpdateCart } from "@lib/data/cart"; // Medusa cart functions
+import { getOrSetCart, retrieveCart, updateCart as medusaUpdateCart } from "@lib/data/cart"; // Medusa cart functions
 import { adaptMedusaCartToIknkCart, IknkCart } from "@lib/util/iknk-cart-adapter"; // Our cart adapter
 import { getCartId, setCartId } from "@lib/data/cookies"; // Our cookie functions
 
 // Simplified placeholders for RH.COM specific hooks/utilities
-const useLocale = () => "en-US";
-const getCountryFromUrl = () => "US";
 const countryCurrencyMapper: { [key: string]: string } = {};
+const useLocale = () => "en-US";
 const useSite = () => "default";
 const useMembershipInfoAtomValue = () => ({ userHasActiveMembership: false });
 const useCartProjectionAtomValue = () => ({ id: "" });
@@ -67,7 +66,7 @@ export const IknkShoppingCartContext = createContext<IknkShoppingCartContextType
   iknkShoppingCartContextDefault
 );
 
-export function IknkShoppingCartContextProvider({ children }: { children: React.ReactNode }) {
+export function IknkShoppingCartContextProvider({ children, countryCode }: { children: React.ReactNode, countryCode: string }) {
   const {
     loading: loadingSession,
     loadingUpdateUserSession,
@@ -78,7 +77,6 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
   const membershipInfo = useMembershipInfoAtomValue();
   const siteId = useSite();
   const locale = useLocale();
-  const currencyCode = countryCurrencyMapper?.[getCountryFromUrl() || "US"];
   const [memberShipLoading, setMembershipLoading] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
   const { cartUpdateloading, setCart } = useContext(
@@ -109,23 +107,26 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
   const fetchCart = useCallback(async () => {
     setCartLoading(true);
     try {
-      const medusaCart = await retrieveCart(cartId || undefined);
+      const medusaCart = await getOrSetCart(countryCode);
+
       if (medusaCart) {
         const iknkCart = adaptMedusaCartToIknkCart(medusaCart);
-        setInternalCart(iknkCart); // Update internal cart state
-        setCart(iknkCart); // Also update context's cart state
+        setInternalCart(iknkCart);
+        setCart(iknkCart);
         await setCartId(iknkCart.id);
+        setCookieCartId(iknkCart.id);
       } else {
-        setInternalCart(null); // Update internal cart state
-        setCart(null); // Also update context's cart state
+        setInternalCart(null);
+        setCart(null);
       }
     } catch (error) {
-      setInternalCart(null); // Update internal cart state
-      setCart(null); // Also update context's cart state
+      console.error("Error in fetchCart:", error);
+      setInternalCart(null);
+      setCart(null);
     } finally {
       setCartLoading(false);
     }
-  }, [cartId]);
+  }, [countryCode, setCart]);
 
   const refetch = useCallback(async () => {
     await fetchCart();
@@ -144,15 +145,8 @@ export function IknkShoppingCartContextProvider({ children }: { children: React.
 
   // Simplified useEffect to trigger fetchCart
   useEffect(() => {
-    // Only fetch if cartId is available or if we need to initialize
-    if (cartId) {
-      fetchCart();
-    } else {
-      // If cartId is null, ensure cart is null
-      setInternalCart(null);
-      setCart(null);
-    }
-  }, [cartId]); // Depend only on cartId
+    fetchCart();
+  }, [fetchCart]);
 
   // useEffectOnce is removed as it prevents re-fetching
   // The logic is now handled by the simplified useEffect above.

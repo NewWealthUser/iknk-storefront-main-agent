@@ -17,13 +17,7 @@ async function getRegionMap(cacheId: string) {
     regionMapUpdated < Date.now() - 3600 * 1000
   ) {
     // Fetch regions from Medusa using the SDK
-    const { regions } = await sdk.store.region.list({
-      next: {
-        revalidate: 3600,
-        tags: [`regions-${cacheId}`],
-      },
-      cache: "force-cache",
-    }).catch((error: any) => { // Fixed: Explicitly typed error as any
+    const { regions } = await sdk.store.region.list().catch((error: any) => { // Fixed: Explicitly typed error as any
       console.error("Error fetching regions from Medusa backend:", error.message);
       throw new Error(error.message);
     });
