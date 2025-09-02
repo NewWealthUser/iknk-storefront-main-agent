@@ -8,6 +8,7 @@ export async function addToCartAction(
   quantity: number,
   countryCode: string
 ) {
+  console.log("DEBUG: addToCartAction received - Variant ID:", variantId, "Quantity:", quantity, "Country Code:", countryCode); // Added debug log
   try {
     await addToCart({ variantId, quantity, countryCode })
     revalidateTag("cart")

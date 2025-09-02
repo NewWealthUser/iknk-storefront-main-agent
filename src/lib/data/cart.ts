@@ -149,6 +149,11 @@ export async function addToCart({
     ...(await getAuthHeaders()),
   }
 
+  // Removed the problematic line: console.log("DEBUG: addToCart - SDK Base URL:", sdk.baseUrl);
+  console.log("DEBUG: addToCart - Cart ID:", cart.id); // Added debug log
+  console.log("DEBUG: addToCart - Variant ID:", variantId); // Added debug log
+  console.log("DEBUG: addToCart - Quantity:", quantity); // Added debug log
+
   try {
     await sdk.store.cart
       .createLineItem(
